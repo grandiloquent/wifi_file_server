@@ -3,6 +3,10 @@ package euphoria.psycho.fileserver;
 import android.Manifest;
 import android.Manifest.permission;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -15,12 +19,19 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.os.Process;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,8 +48,6 @@ public class MainActivity extends Activity {
     static {
         System.loadLibrary("nativelib");
     }
-
-    private static native void load(AssetManager mgr);
 
     private TextView mTextView;
     private ImageView mImageView;
@@ -73,6 +82,8 @@ public class MainActivity extends Activity {
             String ip,
             String resourceDirectory, int port);
 
+    private static native void load(AssetManager mgr);
+
     private Bitmap getBitmap(String localIp) {
         byte[] buffer = new byte[29 * 29];
         makeQrCode(localIp, buffer);
@@ -104,20 +115,21 @@ public class MainActivity extends Activity {
                 mImageView.setImageBitmap(qrcode);
             });
         }).start();
-        if (Environment.isExternalStorageManager()) {
-            try {
-                Uri uri = Uri.parse("package:" + getPackageName());
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
-                startActivity(intent);
-            } catch (Exception ex) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                startActivity(intent);
+        if (VERSION.SDK_INT >= VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                try {
+                    Uri uri = Uri.parse("package:" + getPackageName());
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
+                    startActivity(intent);
+                } catch (Exception ex) {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    startActivity(intent);
+                }
             }
         }
         Intent service = new Intent(this, FileService.class);
         startService(service);
-        Log.e("TAG", getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
     }
 
     @Override
@@ -127,14 +139,32 @@ public class MainActivity extends Activity {
                 permission.INTERNET,
                 permission.ACCESS_WIFI_STATE,
                 permission.READ_EXTERNAL_STORAGE,
-                permission.WRITE_EXTERNAL_STORAGE
         }).filter(permission -> checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
                 .collect(Collectors.toList());
+        if (VERSION.SDK_INT <= 28 && checkSelfPermission(permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            needPermissions.add(permission.WRITE_EXTERNAL_STORAGE);
+        } else if (VERSION.SDK_INT >= VERSION_CODES.P && (checkSelfPermission(permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED)) {
+            needPermissions.add(permission.FOREGROUND_SERVICE);
+        }
         if (needPermissions.size() > 0) {
             requestPermissions(needPermissions.toArray(new String[0]), 1);
             return;
         }
         initialize();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 1, 0, "帮助");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("https://lucidu.cn"));
+        startActivity(Intent.createChooser(intent, "打开"));
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -151,9 +181,11 @@ public class MainActivity extends Activity {
     }
 
     public static class FileService extends Service implements Runnable {
-
+        public static final String CHANNEL_ID = "FileService_channel_01";
         private String mHost;
         Thread mThread;
+        private WakeLock mWakeLock;
+        private NotificationManager mNotificationManager;
 
         @Override
         public IBinder onBind(Intent intent) {
@@ -164,7 +196,36 @@ public class MainActivity extends Activity {
         public void onCreate() {
             super.onCreate();
             mHost = getDeviceIP(this);
+            final PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+            mWakeLock.setReferenceCounted(false);
+            mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                NotificationChannel channel;
+                channel = new NotificationChannel(CHANNEL_ID, "YT", NotificationManager.IMPORTANCE_LOW);
+                mNotificationManager.createNotificationChannel(channel);
+            }
+            startForeground(hashCode(), createNotification()
+                    .setContentTitle("Wifi文件服务器已启动")
+                    .build());
+        }
 
+        private Notification.Builder createNotification() {
+            Notification.Builder builder;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                builder = new Notification.Builder(this, CHANNEL_ID);
+            } else {
+                builder = new Notification.Builder(this);
+            }
+//            PendingIntent pendingIntent = PendingIntent.getActivity(
+//                    this, 0, new Intent(this, MusicActivity
+//                            .class),
+//                    PendingIntent.FLAG_UPDATE_CURRENT
+//            );
+            builder.setSmallIcon(android.R.drawable.stat_notify_sync);
+//                    .addAction(R.drawable.ic_action_play_arrow, "", null)
+//                    .setContentIntent(pendingIntent);
+            return builder;
         }
 
         @Override
@@ -173,6 +234,7 @@ public class MainActivity extends Activity {
                 mThread.interrupt();
                 mThread = null;
             }
+            mWakeLock.release();
             super.onDestroy();
         }
 

@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "euphoria.psycho.fileserver"
-        minSdkVersion 30
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
