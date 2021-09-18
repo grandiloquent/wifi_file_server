@@ -4,8 +4,10 @@
 
 通过Wifi在手机、电脑、平板等智能设备上共享文件。
 
+该程序大部分代码使用C/C++语言，低耗能高效率
+
 <img src="images/1.jpg" width="33.333%">
-        
+
 ## 限制
 
 * 安卓新版本无法访问其他程序的数据，无法访问 `/storage/emulated/0/Android/data`路径
