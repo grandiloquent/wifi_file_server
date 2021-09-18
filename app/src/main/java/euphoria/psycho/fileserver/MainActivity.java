@@ -77,7 +77,7 @@ public class MainActivity extends Activity {
         byte[] buffer = new byte[29 * 29];
         makeQrCode(localIp, buffer);
         int border = 0;
-        int scale = 7;
+        int scale = 20;
         int width = (29 + border * 2) * scale;
         Bitmap qrcode = Bitmap.createBitmap(width, width, Config.ARGB_8888);
         for (int y = 0; y < width; y++) {
@@ -96,11 +96,11 @@ public class MainActivity extends Activity {
         mImageView = findViewById(R.id.image_view);
         new Thread(() -> {
             String localIp = getDeviceIP(MainActivity.this);
-            localIp = localIp + ":12345";
+            localIp = "http://" + localIp + ":12345";
             String finalLocalIp = localIp;
             Bitmap qrcode = getBitmap(localIp);
             MainActivity.this.runOnUiThread(() -> {
-                mTextView.setText(finalLocalIp);
+                mTextView.setText("服务器地址：" + finalLocalIp);
                 mImageView.setImageBitmap(qrcode);
             });
         }).start();

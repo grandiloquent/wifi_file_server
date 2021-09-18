@@ -7,11 +7,25 @@
     <TextView
         android:id="@+id/text_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="56dp"
+        android:layout_marginBottom="56dp"
+        android:gravity="center"
+        android:textSize="18sp" />
 
     <ImageView
         android:id="@+id/image_view"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:scaleType="center" />
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:gravity="center"
+        android:scaleType="centerInside" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="56dp"
+        android:gravity="center"
+        android:text="扫描二维码登录"
+        android:textSize="18sp" />
+
 </LinearLayout>

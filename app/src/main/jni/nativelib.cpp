@@ -1,12 +1,10 @@
 #include <jni.h>
 #include <android/log.h>
-#include <dirent.h>
 #include "httplib.h"
 #include "java_interop.h"
 #include "qrcode.h"
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
-#include <fcntl.h>
 #include "ArduinoJson/ArduinoJson.h"
 #include <errno.h>
 
@@ -19,13 +17,7 @@
 
 using namespace httplib;
 
-//
-struct File {
-public:
-    std::string path;
-    long size;
-    bool isDirectory;
-};
+
 static AAssetManager *manager = nullptr;
 
 extern "C" JNIEXPORT jboolean JNICALL
@@ -64,45 +56,11 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         if (req.has_param("v")) {
             path = req.get_param_value("v");
         }
-        struct dirent *entry;
-        DIR *dir = opendir(path.c_str());
-        if (dir == nullptr) {
+        auto files = GetFiles(path);
+        if (files.size() == 0) {
             res.status = 404;
             return;
         }
-        std::vector <File> files = {};
-        struct stat s;
-        int dfd = dirfd(dir);
-        while ((entry = readdir(dir)) != nullptr) {
-            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
-            std::string fullPath = {path + "/" + entry->d_name};
-            if (entry->d_type == DT_DIR) {
-                files.push_back(File{
-                        fullPath,
-                        0,
-                        true,
-                });
-            } else {
-                if (fstatat(dfd, entry->d_name, &s, AT_SYMLINK_NOFOLLOW) == 0) {
-                    files.push_back(File{
-                            fullPath,
-                            s.st_blocks * 512,
-                            false,
-                    });
-                }
-                //LOGE("%s", strerror(errno));
-            }
-        }
-        closedir(dir);
-        std::sort(files.begin(), files.end(), [](File &a, File &b) {
-            if (a.isDirectory == b.isDirectory) {
-                return a.path < b.path;
-            } else if (a.isDirectory) {
-                return true;
-            }
-            return false;
-        });
-
         DynamicJsonDocument doc(1024 * 32);
         JsonArray arr = doc.to<JsonArray>();
 
@@ -122,6 +80,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
 
     return 0;
 }
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_euphoria_psycho_fileserver_MainActivity_makeQrCode(JNIEnv *env, jclass clazz,

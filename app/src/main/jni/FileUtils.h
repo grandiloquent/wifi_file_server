@@ -2,13 +2,23 @@
 #define FILEUTILS_H
 // #include "FileUtils.h"
 
-#include <stdint.h>
+#include <string>
+#include <cstdint>
+#include <vector>
 
-
+struct File {
+public:
+    std::string path;
+    long size;
+    bool isDirectory;
+};
 
 uint64_t get_block_device_size(int fd);
 
 int64_t get_file_size(int fd);
+
+
+std::vector <File> GetFiles(std::string &path);
 
 //static int64_t get_file_size(int fd, uint64_t reserve_len) {
 //    struct stat buf;
