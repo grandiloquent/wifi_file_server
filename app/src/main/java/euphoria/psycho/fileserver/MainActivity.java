@@ -116,9 +116,9 @@ public class MainActivity extends Activity {
             });
         }).start();
         if (VERSION.SDK_INT >= VERSION_CODES.R) {
-            if (Environment.isExternalStorageManager()) {
+            if (!Environment.isExternalStorageManager()) {
                 try {
-                    Uri uri = Uri.parse("package:" + getPackageName());
+                    Uri uri = Uri.parse("package:" + getApplicationContext().getPackageName());
                     Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
                     startActivity(intent);
                 } catch (Exception ex) {
@@ -206,7 +206,7 @@ public class MainActivity extends Activity {
                 mNotificationManager.createNotificationChannel(channel);
             }
             startForeground(hashCode(), createNotification()
-                    .setContentTitle("Wifi文件服务器已启动")
+                    .setContentTitle("Wifi文件服务器正在运行")
                     .build());
         }
 
