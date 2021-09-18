@@ -5,14 +5,15 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <regex>
 
 #ifndef BLKGETSIZE64
 # define BLKGETSIZE64   _IOR(0x12,114,size_t)
 #endif
 
-std::vector<File> GetFiles(std::string&
-                                   path) {
-    std::vector <File> files = {};
+std::vector<File> GetFiles(std::string &
+path) {
+    std::vector<File> files = {};
 
     struct dirent *entry;
     DIR *dir = opendir(path.c_str());
@@ -76,4 +77,21 @@ int64_t get_file_size(int fd) {
     else
         computed_size = 0;
     return computed_size;
+}
+
+bool IsDirectory(std::string &fileName, bool followLinks) {
+    int status;
+    struct stat statBuf;
+    if (followLinks)
+        status = stat(fileName.c_str(), &statBuf);
+    else
+        status = lstat(fileName.c_str(), &statBuf);
+    status = (status == 0 && S_ISDIR(statBuf.st_mode));
+    return status;
+}
+std::string file_extension(const std::string &path) {
+    std::smatch m;
+    static auto re = std::regex("\\.([a-zA-Z0-9]+)$");
+    if (std::regex_search(path, m, re)) { return m[1].str(); }
+    return std::string();
 }

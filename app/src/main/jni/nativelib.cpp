@@ -52,8 +52,120 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         if (req.has_param("v")) {
             path = req.get_param_value("v");
         }
+        if (!IsDirectory(path, false)) {
+            auto extension = file_extension(path);
+            auto type = "application/octet-stream";
+
+            if (extension == "css") {
+                type = "text/css";
+            } else if (extension == "mpga") {
+                type = "audio/mpeg";
+            } else if (extension == "csv") {
+                type = "text/csv";
+            } else if (extension == "weba") {
+                type = "audio/webm";
+            } else if (extension == "txt") {
+                type = "text/plain";
+            } else if (extension == "wav") {
+                type = "audio/wave";
+            } else if (extension == "vtt") {
+                type = "text/vtt";
+            } else if (extension == "otf") {
+                type = "font/otf";
+            } else if (extension == "html" || extension == "htm") {
+                type = "text/html";
+            } else if (extension == "ttf") {
+                type = "font/ttf";
+            } else if (extension == "apng") {
+                type = "image/apng";
+            } else if (extension == "woff") {
+                type = "font/woff";
+            } else if (extension == "avif") {
+                type = "image/avif";
+            } else if (extension == "woff2") {
+                type = "font/woff2";
+            } else if (extension == "bmp") {
+                type = "image/bmp";
+            } else if (extension == "7z") {
+                type = "application/x-7z-compressed";
+            } else if (extension == "gif") {
+                type = "image/gif";
+            } else if (extension == "atom") {
+                type = "application/atom+xml";
+            } else if (extension == "png") {
+                type = "image/png";
+            } else if (extension == "pdf") {
+                type = "application/pdf";
+            } else if (extension == "svg") {
+                type = "image/svg+xml";
+            } else if (extension == "js" || extension == "mjs") {
+                type = "application/javascript";
+            } else if (extension == "webp") {
+                type = "image/webp";
+            } else if (extension == "json") {
+                type = "application/json";
+            } else if (extension == "ico") {
+                type = "image/x-icon";
+            } else if (extension == "rss") {
+                type = "application/rss+xml";
+            } else if (extension == "tif" || extension == "tiff") {
+                type = "image/tiff";
+            } else if (extension == "tar") {
+                type = "application/x-tar";
+            } else if (extension == "xhtml" || extension == "xht") {
+                type = "application/xhtml+xml";
+            } else if (extension == "jpg" || extension == "jpeg") {
+                type = "image/jpeg";
+            } else if (extension == "xslt") {
+                type = "application/xslt+xml";
+            } else if (extension == "mp4") {
+                type = "video/mp4";
+            } else if (extension == "xml") {
+                type = "application/xml";
+            } else if (extension == "mpeg") {
+                type = "video/mpeg";
+            } else if (extension == "gz") {
+                type = "application/gzip";
+            } else if (extension == "webm") {
+                type = "video/webm";
+            } else if (extension == "zip") {
+                type = "application/zip";
+            } else if (extension == "mp3") {
+                type = "audio/mp3";
+            } else if (extension == "wasm") {
+                type = "application/wasm";
+            }
+
+            std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
+            fs->open(path, std::ios_base::binary);
+            fs->seekg(0, std::ios_base::end);
+            auto end = fs->tellg();
+            fs->seekg(0);
+            std::map<std::string, std::string> file_extension_and_mimetype_map;
+            res.set_content_provider(static_cast<size_t>(end),
+                                     type,
+                                     [fs](uint64_t offset,
+                                          uint64_t length,
+                                          DataSink &sink) {
+                                         if (fs->fail()) {
+                                             return false;
+                                         }
+
+                                         fs->seekg(offset, std::ios_base::beg);
+
+                                         size_t bufSize = 81920;
+                                         char buffer[bufSize];
+
+                                         fs->read(buffer, bufSize);
+
+                                         sink.write(buffer,
+                                                    static_cast<size_t>(fs->gcount()));
+                                         return true;
+                                     });
+            return;
+        }
         auto files = GetFiles(path);
-        if (files.size() == 0) {
+        if (files.empty()) {
             res.status = 404;
             return;
         }

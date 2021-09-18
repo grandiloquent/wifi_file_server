@@ -334,7 +334,7 @@
                  (/\.(?:psd)$/i.test(obj.path) && 'icon-ps-m') ||
                'icon-nor-m';
                 const fileSize = obj.isDirectory ? '' : humanFileSize(obj.size);
-                const item = `<div class="list-group-item">
+                const item = `<div class="list-group-item" data-type="${obj.isDirectory ? '1' :'0'}" data-path="${encodeURIComponent(obj.path)}">
       <div class="item-inner">
         <div class="item-tit">
           <div class="thumb">
@@ -342,7 +342,7 @@
             </i>
           </div>
           <div class="info">
-            <a href="javascript:void(0)" class="tit" data-path=${encodeURIComponent(obj.path)}>
+            <a href="javascript:void(0)" class="tit">
               ${filename}
             </a>
           </div>
@@ -365,10 +365,13 @@
 
             container.innerHTML = results.join('');
 
-            const listGroupItem = document.querySelectorAll('.list-group-item .tit');
+            const listGroupItem = document.querySelectorAll('.list-group-item');
             listGroupItem.forEach(x => {
                 x.addEventListener('click', async ev => {
+                if(ev.target.dataset.type==="1")
                    location.href=`?v=${ev.target.dataset.path||''}`;
+                   else
+                   location.href=`/api/files?v=${ev.currentTarget.dataset.path||''}`;
                 });
             })
         }

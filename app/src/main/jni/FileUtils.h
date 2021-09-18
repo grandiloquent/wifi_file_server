@@ -18,7 +18,11 @@ uint64_t get_block_device_size(int fd);
 int64_t get_file_size(int fd);
 
 
-std::vector <File> GetFiles(std::string &path);
+std::vector<File> GetFiles(std::string &path);
+
+bool IsDirectory(std::string &fileName, bool followLinks);
+
+std::string file_extension(const std::string &path);
 
 //static int64_t get_file_size(int fd, uint64_t reserve_len) {
 //    struct stat buf;
