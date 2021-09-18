@@ -20,6 +20,14 @@ using namespace httplib;
 
 static AAssetManager *manager = nullptr;
 
+bool endsWith(const std::string &mainStr, const std::string &toMatch) {
+    if (mainStr.size() >= toMatch.size() &&
+        mainStr.compare(mainStr.size() - toMatch.size(), toMatch.size(), toMatch) == 0)
+        return true;
+    else
+        return false;
+}
+
 extern "C" JNIEXPORT jboolean JNICALL
 Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj,
                                                          jstring ip,
@@ -32,18 +40,6 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             jsonparse::jni::Convert<std::string>::from(env, ip);
     Server server;
     server.Get("/", [](const Request &req, Response &res) {
-//        auto path = "/storage/emulated/0";
-//        struct dirent *entry;
-//        DIR *dir = opendir(path);
-//        if (dir == NULL) {
-//            return;
-//        }
-//        while ((entry = readdir(dir)) != NULL) {
-//            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
-//            LOGE("%s\n", entry->d_name);
-//        }
-//
-//        closedir(dir);
         unsigned char *data;
         unsigned int len = 0;
         readBytesAsset(manager, "index.html", &data, &len);
@@ -75,6 +71,26 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
 
         res.set_content(result.c_str(), "application/json");
 
+    });
+    server.Get(R"(/static/([a-zA-Z\\.-]+))", [](const Request &req, Response &res) {
+
+        auto value = req.matches[1];
+        auto filename = value.str();
+        unsigned char *data;
+        unsigned int len = 0;
+        readBytesAsset(manager, filename.c_str(), &data, &len);
+
+        res.set_header("Cache-Control", "max-age=259200");
+        if (endsWith(filename, ".css"))
+            res.set_content(reinterpret_cast<const char *>(data), len, "text/css");
+        else if (endsWith(filename, ".js"))
+            res.set_content(reinterpret_cast<const char *>(data), len, "application/javascript");
+        else if (endsWith(filename, ".svg")) {
+            res.set_content(reinterpret_cast<const char *>(data), len, "image/svg+xml");
+        } else
+            res.set_content(reinterpret_cast<const char *>(data), len, "image/*");
+
+        free(data);
     });
     server.listen(host.c_str(), port);
 

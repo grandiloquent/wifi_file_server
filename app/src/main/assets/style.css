@@ -1,0 +1,162 @@
+       body,
+        button,
+        input,
+        select,
+        textarea {
+            font: 14px/1.5 -apple-system, BlinkSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Helevetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans CN", sans-serif;
+            -webkit-font-smoothing: subpixel-antialiased;
+            color: #000;
+            outline: 0;
+            margin: 0;
+        }
+
+        .list-group-item:after {
+            position: absolute;
+            content: "";
+            display: block;
+            left: 38px;
+            right: 0;
+            height: 1px;
+            background: #f1f2f4;
+            bottom: 0;
+        }
+
+        .item-inner {
+            position: relative;
+            height: 56px;
+            line-height: 56px;
+            cursor: default;
+        }
+
+        .item-tit {
+            float: left;
+            width: 50%;
+        }
+
+        .item-info {
+            float: right;
+            width: 50%;
+            color: #777;
+            height: 100%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+
+
+
+
+
+
+
+
+
+
+        .item-tit .label {
+            width: 38px;
+            text-align: center;
+            float: left;
+            cursor: default;
+            visibility: hidden;
+        }
+
+        .thumb {
+            float: left;
+            font-size: 0;
+            position: relative;
+            z-index: 0;
+        }
+
+        .item-tit .thumb {
+            float: left;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            margin: 8px 15px 0 8px;
+            cursor: pointer;
+        }
+
+        .item-tit .info {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-tit .info {
+            height: 56px;
+            white-space: nowrap;
+            overflow-y: hidden;
+            position: relative;
+            z-index: 0;
+        }
+
+        .icon {
+            position: relative;
+            display: inline-block;
+            background-repeat: no-repeat;
+            font-size: 0;
+            overflow: hidden;
+            -webkit-text-size-adjust: none;
+            vertical-align: middle;
+        }
+
+        .icon-m {
+            width: 40px;
+            height: 40px;
+            background-position: center;
+        }
+
+        .icon {
+            display: inline-block;
+        }
+
+        .item-tit .thumb .icon {
+            vertical-align: top;
+        }
+
+        a {
+            text-decoration: none;
+            color: #020202;
+            outline: 0;
+        }
+
+        .item-tit .info .tit {
+            display: inline-block;
+            vertical-align: middle;
+            max-width: 80%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .item-info-list {
+            text-indent: 10px;
+            float: left;
+            width: 33.333333333%;
+        }
+
+
+        .txt-time {
+            vertical-align: top;
+        }
+
+        .txt {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            float: left;
+        }
+
+        .icon-file-m {
+            background-image: url(/static/icon-file-m.svg);
+        }
+
+        .icon-nor-m {
+            background-image: url(/static/icon-nor-m.svg)
+        }
+
+        .icon-pic-m {
+            background-image: url(/static/icon-pic-m.svg)
+        }
+        .icon-ps-m {
+            background-image: url(/static/icon-ps-m.svg)
+        }
