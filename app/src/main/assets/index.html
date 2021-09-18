@@ -8,7 +8,19 @@
 </head>
 
 <body>
-<script></script>
+<script>
+        async function getFiles() {
+            const resposne = await fetch('/api/files');
+            return resposne.json();
+        }
+
+        async function loadFiles() {
+            const files = await getFiles();
+            console.log(files);
+        }
+        loadFiles();
+
+    </script>
 </body>
 
 </html>
