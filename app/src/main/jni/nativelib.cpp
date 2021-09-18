@@ -130,6 +130,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         res.set_content(reinterpret_cast<const char *>(data), len, "text/html");
         free(data);
     });
+    // https://android.googlesource.com/platform/frameworks/native/+/master/libs/diskusage/dirsize.c
     server.Get("/api/files", [](const Request &req, Response &res) {
         std::string path = "/storage/emulated/0";
         struct dirent *entry;
@@ -140,14 +141,15 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         }
         std::vector <File> files = {};
         struct stat s;
+        int dfd = dirfd(dir);
         while ((entry = readdir(dir)) != nullptr) {
             if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
             std::string fullPath = {path + "/" + entry->d_name};
-            lstat(path.c_str(), &s);
-            if (S_ISREG(s.st_mode) == 0) {
+            stat(path.c_str(), &s);
+            if (fstatat(dfd, entry->d_name, &s, AT_SYMLINK_NOFOLLOW) == 0) {
                 files.push_back(File{
                         fullPath,
-                        s.st_size,
+                        s.st_blocks * 512,
                         false,
                 });
             } else {
@@ -158,8 +160,9 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
                 });
             }
         }
+        closedir(dir);
         std::sort(files.begin(), files.end(), [](File &a, File &b) {
-            if (a.isDirectory && b.isDirectory) {
+            if (a.isDirectory == b.isDirectory) {
                 return a.path.compare(b.path);
             } else if (a.isDirectory) {
                 return 1;
@@ -167,14 +170,18 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             return 0;
         });
 
-        DynamicJsonDocument doc(1024);
-        JsonArray arr = doc.as<JsonArray>();
-        JsonObject object = arr.createNestedObject();
-        object["path"] = "123";
+        DynamicJsonDocument doc(1024 * 8);
+        JsonArray arr = doc.to<JsonArray>();
+
+        for (auto &file:files) {
+            JsonObject object = arr.createNestedObject();
+            object["path"] = file.path;
+            object["size"] = file.size;
+            object["isDirectory"] = file.isDirectory;
+        }
         std::string result;
         serializeJson(doc, result);
 
-        closedir(dir);
         res.set_content(result.c_str(), "application/json");
 
     });
