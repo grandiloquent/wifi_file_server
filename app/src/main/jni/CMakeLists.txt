@@ -8,4 +8,5 @@ add_library(qrcode SHARED qrcode.c)
 
 target_link_libraries(nativelib
         qrcode
+        android
         log)
