@@ -207,7 +207,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse("https://lucidu.cn"));
+        intent.setData(Uri.parse("https://lucidu.cn/article/jbqfmd"));
         startActivity(Intent.createChooser(intent, "打开"));
         return super.onOptionsItemSelected(item);
     }

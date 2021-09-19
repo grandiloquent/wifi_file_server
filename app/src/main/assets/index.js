@@ -141,13 +141,14 @@ async function uploadFiles(files)
         formData.append('file', file, file.name);
         try
         {
-            await fetch("/post"),
+            await fetch("/post",
             {
                 method: "POST",
                 body: formData
-            };
-            .then(res => console.log(res))
+            })
+            .then(res => console.log(res));
         }
         catch(e) {}
     }
+     document.querySelector('.dialog').className = 'dialog';
 }

@@ -14,8 +14,14 @@
 * 服务器开启后，好友可播放手机上的视频、音乐或图片，高速又便携
 
 <img src="images/1.jpg" width="33.333%">
+<img src="images/3.jpg" width="33.333%">
 
 ![](images/2.jpg)
+
+## 下载
+
+[国内](https://lucidu.cn/article/jbqfmd)
+[GitHub](https://github.com/grandiloquent/wifi_file_server/releases)
 
 ## 限制
 
