@@ -254,6 +254,7 @@ public class MainActivity extends Activity {
                     PendingIntent.FLAG_UPDATE_CURRENT
             );
             builder.setSmallIcon(android.R.drawable.stat_notify_sync)
+                    .setOngoing(true)
                     .addAction(0, "关闭", pendingIntent);
             return builder;
         }
