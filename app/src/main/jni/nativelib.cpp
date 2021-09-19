@@ -243,7 +243,7 @@ Java_euphoria_psycho_fileserver_MainActivity_makeQrCode(JNIEnv *env, jclass claz
         result[i] = buf[i];
     }
 
-    env->SetByteArrayRegion(buffer, 0, qrcode.size * qrcode.size,
+    env->SetByteArrayRegion(buffer, 0, size,
                             result);
     return 0;
 }
