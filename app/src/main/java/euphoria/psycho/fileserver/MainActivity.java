@@ -233,6 +233,14 @@ public class MainActivity extends Activity {
         Thread mThread;
         private WakeLock mWakeLock;
         private NotificationManager mNotificationManager;
+        private BroadcastReceiver mBroadcastReceiver = new
+                BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        stopForeground(true);
+                        stopSelf();
+                    }
+                };
 
         private Notification.Builder createNotification() {
             Notification.Builder builder;
@@ -247,7 +255,6 @@ public class MainActivity extends Activity {
             );
             builder.setSmallIcon(android.R.drawable.stat_notify_sync)
                     .addAction(0, "关闭", pendingIntent);
-                   
             return builder;
         }
 
@@ -255,15 +262,6 @@ public class MainActivity extends Activity {
         public IBinder onBind(Intent intent) {
             return null;
         }
-
-        private BroadcastReceiver mBroadcastReceiver = new
-                BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        stopForeground(true);
-                        stopSelf();
-                    }
-                };
 
         @Override
         public void onCreate() {
