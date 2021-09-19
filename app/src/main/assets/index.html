@@ -1,54 +1,51 @@
 <!doctype html>
-<html class="no-js" lang="">
-
+<html class="no-js">
 <head>
-    <meta charset="utf-8">
-    <title></title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/style.css">
+    <meta charset="utf-8" />
+    <title>
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/toast.js">
+    </script>
 </head>
-
 <body>
-<style>
-    .layout-toolbar {
-    background-color: #fff;
-    border-bottom: 1px solid #dbdbdb;
-}
- .mod-nav {
-    height: 64px;
-   display: flex;
-    align-items: center;
-    margin-left: 8px;
-}
- .mod-action-wrap {
-  float: left;
-    border-radius: 2px;
-    background-color: #2980ff;
-    border: 1px solid #2980ff;
-    padding: 0 20px;
-    color: #fff;
-    height: 34px;
-    display: flex;
-    align-items: center;
-}
-.icon-upload-s {
-    width: 24px;
-    height: 24px;
-    background-image: url(/static/icon-upload-s.svg);
-}
-
-</style>
 <div class="layout-toolbar">
     <div class="mod-nav">
         <div class="mod-action-wrap">
-            <i class="icon icon-upload-s"></i>
-            <span>上传</span>
+            <i class="icon icon-upload-s">
+            </i> <span>上传
+          </span>
         </div>
     </div>
 </div>
 <div class="container">
 </div>
+<custom-toast>
+</custom-toast>
+<div class="dialog">
+    <div class="dialog-mask">
+    </div>
+    <div class="dialog-wrapper">
+        <div class="dialog-container">
+            <div class="dialog-container-wrapper">
+                <div class="dialog-content">
+                    <div class="spinner">
+                    </div><span>正在上传文件...
+              </span>
+                </div>
+                <div class="dialog-footer" style="display: none;">
+                    <div class="dialog-button">
+                        确认
+                    </div>
+                    <div class="dialog-button" style="color: #db4437;">
+                        删除
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="/static/index.js"></script>
 </body>
-
 </html>

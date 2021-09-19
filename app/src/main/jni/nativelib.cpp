@@ -204,6 +204,13 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
 
         free(data);
     });
+    server.Post("/post", [](const Request &req, Response &res) {
+        auto file = req.get_file_value("file");
+        std::string path{"/storage/emulated/0/Download/"};
+        std::ofstream ofs(path + file.filename, std::ios::binary);
+        ofs << file.content;
+        res.set_content("done", "text/plain");
+    });
     server.listen(host.c_str(), port);
 
     return 0;
