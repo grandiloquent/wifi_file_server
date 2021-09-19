@@ -9,6 +9,43 @@
 </head>
 
 <body>
+<style>
+    .layout-toolbar {
+    background-color: #fff;
+    border-bottom: 1px solid #dbdbdb;
+}
+ .mod-nav {
+    height: 64px;
+   display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+ .mod-action-wrap {
+  float: left;
+    border-radius: 2px;
+    background-color: #2980ff;
+    border: 1px solid #2980ff;
+    padding: 0 20px;
+    color: #fff;
+    height: 34px;
+    display: flex;
+    align-items: center;
+}
+.icon-upload-s {
+    width: 24px;
+    height: 24px;
+    background-image: url(/static/icon-upload-s.svg);
+}
+
+</style>
+<div class="layout-toolbar">
+    <div class="mod-nav">
+        <div class="mod-action-wrap">
+            <i class="icon icon-upload-s"></i>
+            <span>上传</span>
+        </div>
+    </div>
+</div>
 <div class="container">
 </div>
 <script src="/static/index.js"></script>
