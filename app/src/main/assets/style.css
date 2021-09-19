@@ -399,18 +399,21 @@ a
 {
     background-image: url(/static/icon-close-mac-hover.svg);
 }
-   .layout-toolbar {
+.layout-toolbar
+{
     background-color: #fff;
     border-bottom: 1px solid #dbdbdb;
 }
- .mod-nav {
+.mod-nav
+{
     height: 64px;
-   display: flex;
+    display: flex;
     align-items: center;
     margin-left: 8px;
 }
- .mod-action-wrap {
-  float: left;
+.mod-action-wrap
+{
+    float: left;
     border-radius: 2px;
     background-color: #2980ff;
     border: 1px solid #2980ff;
@@ -420,32 +423,32 @@ a
     display: flex;
     align-items: center;
 }
-.icon-upload-s {
+.icon-upload-s
+{
     width: 24px;
     height: 24px;
     background-image: url(/static/icon-upload-s.svg);
 }
-
-.dialog-mask {
+.dialog-mask
+{
     position: fixed;
     z-index: 1001;
     right: 0;
     bottom: -200px;
     top: 0;
     left: 0;
-    -webkit-transition: opacity 0.25s;
+    -webkit-transition: opacity .25s;
     opacity: 0;
     visibility: hidden;
 }
-
-.dialog-show .dialog-mask {
+.dialog-show .dialog-mask
+{
     background-color: #000;
-    opacity: 0.4;
+    opacity: .4;
     visibility: inherit;
 }
-
-
-.dialog-wrapper {
+.dialog-wrapper
+{
     position: fixed;
     right: 0;
     bottom: 0;
@@ -460,22 +463,22 @@ a
     max-width: 100%;
     overflow: auto;
     transform: translateZ(0);
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
-
-.dialog-show .dialog-wrapper {
+.dialog-show .dialog-wrapper
+{
     opacity: 1;
     visibility: inherit;
 }
-
-.dialog-wrapper::after {
+.dialog-wrapper::after
+{
     content: '';
     display: inline-block;
     height: 100%;
     vertical-align: middle;
 }
-
-.dialog-container {
+.dialog-container
+{
     border-radius: 8px;
     position: relative;
     display: inline-block;
@@ -487,32 +490,32 @@ a
     white-space: normal;
     overflow: hidden;
     transform: translateZ(0);
-    box-shadow: 0 5px 26px 0 rgba(0, 0, 0, 0.22), 0 20px 28px 0 rgba(0, 0, 0, 0.30);
+    box-shadow: 0 5px 26px 0 rgba(0,0,0,.22),0 20px 28px 0 rgba(0,0,0,.3);
 }
-
-.dialog-show .dialog-container {
+.dialog-show .dialog-container
+{
     opacity: 1;
     visibility: inherit;
 }
-
-.dialog-container-wrapper {
+.dialog-container-wrapper
+{
     max-width: 300px;
     -webkit-user-select: none;
 }
-
-.dialog-content {
+.dialog-content
+{
     padding: 24px;
     font-size: 16px;
     overflow-wrap: break-word;
 }
-
-.dialog-footer {
+.dialog-footer
+{
     display: flex;
     justify-content: flex-end;
     padding: 0 0 8px 0;
 }
-
-.dialog-button {
+.dialog-button
+{
     margin-bottom: -1px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -523,5 +526,5 @@ a
     padding: 0 8px;
     line-height: 36px !important;
     text-align: center;
-    font-family: Roboto-Medium, HelveticaNeue-Medium, HelveticaNeue, sans-serif-medium, Arial, sans-serif !important;
+    font-family: Roboto-Medium,HelveticaNeue-Medium,HelveticaNeue,sans-serif-medium,Arial,sans-serif !important;
 }
