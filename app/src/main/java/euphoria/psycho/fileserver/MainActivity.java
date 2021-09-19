@@ -8,8 +8,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -239,14 +241,13 @@ public class MainActivity extends Activity {
             } else {
                 builder = new Notification.Builder(this);
             }
-//            PendingIntent pendingIntent = PendingIntent.getActivity(
-//                    this, 0, new Intent(this, MusicActivity
-//                            .class),
-//                    PendingIntent.FLAG_UPDATE_CURRENT
-//            );
-            builder.setSmallIcon(android.R.drawable.stat_notify_sync);
-//                    .addAction(R.drawable.ic_action_play_arrow, "", null)
-//                    .setContentIntent(pendingIntent);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    this, 0, new Intent("euphoria.psycho.fileserver.SHUTDOWN"),
+                    PendingIntent.FLAG_UPDATE_CURRENT
+            );
+            builder.setSmallIcon(android.R.drawable.stat_notify_sync)
+                    .addAction(0, "关闭", pendingIntent);
+                   
             return builder;
         }
 
@@ -255,9 +256,21 @@ public class MainActivity extends Activity {
             return null;
         }
 
+        private BroadcastReceiver mBroadcastReceiver = new
+                BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        stopForeground(true);
+                        stopSelf();
+                    }
+                };
+
         @Override
         public void onCreate() {
             super.onCreate();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("euphoria.psycho.fileserver.SHUTDOWN");
+            registerReceiver(mBroadcastReceiver, filter);
             mHost = getDeviceIP(this);
             final PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
             mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
@@ -280,6 +293,10 @@ public class MainActivity extends Activity {
                 mThread = null;
             }
             mWakeLock.release();
+            if (mBroadcastReceiver != null) {
+                unregisterReceiver(mBroadcastReceiver);
+                mBroadcastReceiver = null;
+            }
             super.onDestroy();
         }
 
