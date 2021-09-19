@@ -16,6 +16,8 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -36,11 +38,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,12 +62,44 @@ public class MainActivity extends Activity {
         WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         try {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            InetAddress inetAddress = intToInetAddress(wifiInfo.getIpAddress());
+            int rawIp = wifiInfo.getIpAddress();
+            if (rawIp == 0) {
+                Method method = wifiManager.getClass().getDeclaredMethod("isWifiApEnabled");
+                method.setAccessible(true);
+                boolean isWifiApEnabled = (boolean) method.invoke(wifiManager);
+                if (isWifiApEnabled)
+                    return getWifiApIpAddress();
+                else
+                    return null;
+            }
+            //Log.e("B5aOx2", String.format("getDeviceIP, %s", wifiManager.getConnectionInfo().getSupplicantState().name()));
+            InetAddress inetAddress = intToInetAddress(rawIp);
             return inetAddress.getHostAddress();
         } catch (Exception e) {
             Log.e("TAG", e.getMessage());
             return null;
         }
+    }
+
+    public static String getWifiApIpAddress() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en
+                    .hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                if (intf.getName().contains("wlan")) {
+                    for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr
+                            .hasMoreElements(); ) {
+                        InetAddress inetAddress = enumIpAddr.nextElement();
+                        if (!inetAddress.isLoopbackAddress()
+                                && (inetAddress.getAddress().length == 4)) {
+                            return inetAddress.getHostAddress();
+                        }
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+        }
+        return null;
     }
 
     public static InetAddress intToInetAddress(int hostAddress) {
@@ -107,6 +145,13 @@ public class MainActivity extends Activity {
         mImageView = findViewById(R.id.image_view);
         new Thread(() -> {
             String localIp = getDeviceIP(MainActivity.this);
+            if (localIp == null) {
+                MainActivity.this.runOnUiThread(() -> {
+                    Toast.makeText(this, "请连接WIFI或打开热点后再试", Toast.LENGTH_LONG).show();
+                    finish();
+                });
+                return;
+            }
             localIp = "http://" + localIp + ":12345";
             String finalLocalIp = localIp;
             Bitmap qrcode = getBitmap(localIp);
@@ -187,6 +232,24 @@ public class MainActivity extends Activity {
         private WakeLock mWakeLock;
         private NotificationManager mNotificationManager;
 
+        private Notification.Builder createNotification() {
+            Notification.Builder builder;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                builder = new Notification.Builder(this, CHANNEL_ID);
+            } else {
+                builder = new Notification.Builder(this);
+            }
+//            PendingIntent pendingIntent = PendingIntent.getActivity(
+//                    this, 0, new Intent(this, MusicActivity
+//                            .class),
+//                    PendingIntent.FLAG_UPDATE_CURRENT
+//            );
+            builder.setSmallIcon(android.R.drawable.stat_notify_sync);
+//                    .addAction(R.drawable.ic_action_play_arrow, "", null)
+//                    .setContentIntent(pendingIntent);
+            return builder;
+        }
+
         @Override
         public IBinder onBind(Intent intent) {
             return null;
@@ -208,24 +271,6 @@ public class MainActivity extends Activity {
             startForeground(hashCode(), createNotification()
                     .setContentTitle("Wifi文件服务器正在运行")
                     .build());
-        }
-
-        private Notification.Builder createNotification() {
-            Notification.Builder builder;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                builder = new Notification.Builder(this, CHANNEL_ID);
-            } else {
-                builder = new Notification.Builder(this);
-            }
-//            PendingIntent pendingIntent = PendingIntent.getActivity(
-//                    this, 0, new Intent(this, MusicActivity
-//                            .class),
-//                    PendingIntent.FLAG_UPDATE_CURRENT
-//            );
-            builder.setSmallIcon(android.R.drawable.stat_notify_sync);
-//                    .addAction(R.drawable.ic_action_play_arrow, "", null)
-//                    .setContentIntent(pendingIntent);
-            return builder;
         }
 
         @Override
