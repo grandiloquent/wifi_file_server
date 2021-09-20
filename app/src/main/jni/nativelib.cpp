@@ -159,7 +159,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         if (type.empty()) {
             type = "application/octet-stream";
         }
-        res.set_content(reinterpret_cast<const char *>(data), len, type);
+        res.set_content(reinterpret_cast<const char *>(data), len, type.c_str());
         free(data);
     });
     server.Post("/post", [](const Request &req, Response &res) {
