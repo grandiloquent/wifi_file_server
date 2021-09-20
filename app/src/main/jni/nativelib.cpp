@@ -10,6 +10,7 @@
 
 #include "FileUtils.h"
 #include "AndroidUtils.h"
+#include "StringUtils.h"
 
 #define LOG_TAG "TAG/Native"
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -19,13 +20,52 @@ using namespace httplib;
 
 static AAssetManager *manager = nullptr;
 
-bool endsWith(const std::string &mainStr, const std::string &toMatch) {
-    if (mainStr.size() >= toMatch.size() &&
-        mainStr.compare(mainStr.size() - toMatch.size(), toMatch.size(), toMatch) == 0)
-        return true;
-    else
-        return false;
-}
+static std::map<std::string, std::string> mimetypes{
+        {"css",   "text/css"},
+        {"mpga",  "audio/mpeg"},
+        {"csv",   "text/csv"},
+        {"weba",  "audio/webm"},
+        {"txt",   "text/plain"},
+        {"wav",   "audio/wave"},
+        {"vtt",   "text/vtt"},
+        {"otf",   "font/otf"},
+        {"html",  "text/html"},
+        {"htm",   "text/html"},
+        {"ttf",   "font/ttf"},
+        {"apng",  "image/apng"},
+        {"woff",  "font/woff"},
+        {"avif",  "image/avif"},
+        {"woff2", "font/woff2"},
+        {"bmp",   "image/bmp"},
+        {"7z",    "application/x-7z-compressed"},
+        {"gif",   "image/gif"},
+        {"atom",  "application/atom+xml"},
+        {"png",   "image/png"},
+        {"pdf",   "application/pdf"},
+        {"svg",   "image/svg+xml"},
+        {"mjs",   "application/javascript"},
+        {"js",    "application/javascript"},
+        {"webp",  "image/webp"},
+        {"json",  "application/json"},
+        {"ico",   "image/x-icon"},
+        {"rss",   "application/rss+xml"},
+        {"tif",   "image/tiff"},
+        {"tar",   "application/x-tar"},
+        {"tiff",  "image/tiff"},
+        {"xhtml", "application/xhtml+xml"},
+        {"xht",   "application/xhtml+xml"},
+        {"jpeg",  "image/jpeg"},
+        {"jpg",   "image/jpeg"},
+        {"xslt",  "application/xslt+xml"},
+        {"mp4",   "video/mp4"},
+        {"xml",   "application/xml"},
+        {"mpeg",  "video/mpeg"},
+        {"gz",    "application/gzip"},
+        {"webm",  "video/webm"},
+        {"zip",   "application/zip"},
+        {"mp3",   "audio/mp3"},
+        {"wasm",  "application/wasm"},
+};
 
 extern "C" JNIEXPORT jboolean JNICALL
 Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj,
@@ -52,89 +92,11 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             path = req.get_param_value("v");
         }
         if (!IsDirectory(path, false)) {
-            auto extension = file_extension(path);
-            auto type = "application/octet-stream";
-
-            if (extension == "css") {
-                type = "text/css";
-            } else if (extension == "mpga") {
-                type = "audio/mpeg";
-            } else if (extension == "csv") {
-                type = "text/csv";
-            } else if (extension == "weba") {
-                type = "audio/webm";
-            } else if (extension == "txt") {
-                type = "text/plain";
-            } else if (extension == "wav") {
-                type = "audio/wave";
-            } else if (extension == "vtt") {
-                type = "text/vtt";
-            } else if (extension == "otf") {
-                type = "font/otf";
-            } else if (extension == "html" || extension == "htm") {
-                type = "text/html";
-            } else if (extension == "ttf") {
-                type = "font/ttf";
-            } else if (extension == "apng") {
-                type = "image/apng";
-            } else if (extension == "woff") {
-                type = "font/woff";
-            } else if (extension == "avif") {
-                type = "image/avif";
-            } else if (extension == "woff2") {
-                type = "font/woff2";
-            } else if (extension == "bmp") {
-                type = "image/bmp";
-            } else if (extension == "7z") {
-                type = "application/x-7z-compressed";
-            } else if (extension == "gif") {
-                type = "image/gif";
-            } else if (extension == "atom") {
-                type = "application/atom+xml";
-            } else if (extension == "png") {
-                type = "image/png";
-            } else if (extension == "pdf") {
-                type = "application/pdf";
-            } else if (extension == "svg") {
-                type = "image/svg+xml";
-            } else if (extension == "js" || extension == "mjs") {
-                type = "application/javascript";
-            } else if (extension == "webp") {
-                type = "image/webp";
-            } else if (extension == "json") {
-                type = "application/json";
-            } else if (extension == "ico") {
-                type = "image/x-icon";
-            } else if (extension == "rss") {
-                type = "application/rss+xml";
-            } else if (extension == "tif" || extension == "tiff") {
-                type = "image/tiff";
-            } else if (extension == "tar") {
-                type = "application/x-tar";
-            } else if (extension == "xhtml" || extension == "xht") {
-                type = "application/xhtml+xml";
-            } else if (extension == "jpg" || extension == "jpeg") {
-                type = "image/jpeg";
-            } else if (extension == "xslt") {
-                type = "application/xslt+xml";
-            } else if (extension == "mp4") {
-                type = "video/mp4";
-            } else if (extension == "xml") {
-                type = "application/xml";
-            } else if (extension == "mpeg") {
-                type = "video/mpeg";
-            } else if (extension == "gz") {
-                type = "application/gzip";
-            } else if (extension == "webm") {
-                type = "video/webm";
-            } else if (extension == "zip") {
-                type = "application/zip";
-            } else if (extension == "mp3") {
-                type = "audio/mp3";
-            } else if (extension == "wasm") {
-                type = "application/wasm";
+            auto extension = SubstringAfterLast(path, ".");
+            auto type = mimetypes[extension];
+            if (type.empty()) {
+                type = "application/octet-stream";
             }
-
             std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
             fs->open(path, std::ios_base::binary);
             fs->seekg(0, std::ios_base::end);
@@ -142,7 +104,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             fs->seekg(0);
             std::map<std::string, std::string> file_extension_and_mimetype_map;
             res.set_content_provider(static_cast<size_t>(end),
-                                     type,
+                                     type.c_str(),
                                      [fs](uint64_t offset,
                                           uint64_t length,
                                           DataSink &sink) {
@@ -192,15 +154,12 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         readBytesAsset(manager, filename.c_str(), &data, &len);
 
         res.set_header("Cache-Control", "max-age=259200");
-        if (endsWith(filename, ".css"))
-            res.set_content(reinterpret_cast<const char *>(data), len, "text/css");
-        else if (endsWith(filename, ".js"))
-            res.set_content(reinterpret_cast<const char *>(data), len, "application/javascript");
-        else if (endsWith(filename, ".svg")) {
-            res.set_content(reinterpret_cast<const char *>(data), len, "image/svg+xml");
-        } else
-            res.set_content(reinterpret_cast<const char *>(data), len, "image/*");
-
+        auto extension = SubstringAfterLast(filename, ".");
+        auto type = mimetypes[extension];
+        if (type.empty()) {
+            type = "application/octet-stream";
+        }
+        res.set_content(reinterpret_cast<const char *>(data), len, type);
         free(data);
     });
     server.Post("/post", [](const Request &req, Response &res) {
