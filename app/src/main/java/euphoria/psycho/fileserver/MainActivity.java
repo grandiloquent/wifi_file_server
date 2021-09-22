@@ -59,6 +59,13 @@ public class MainActivity extends Activity {
 
     private TextView mTextView;
     private ImageView mImageView;
+    private BroadcastReceiver mBroadcastReceiver = new
+            BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    finish();
+                }
+            };
 
     public static String getDeviceIP(Context context) {
         WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -141,6 +148,9 @@ public class MainActivity extends Activity {
     }
 
     private void initialize() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("euphoria.psycho.fileserver.SHUTDOWN");
+        registerReceiver(mBroadcastReceiver, filter);
         load(getAssets());
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
@@ -198,6 +208,15 @@ public class MainActivity extends Activity {
             return;
         }
         initialize();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mBroadcastReceiver != null) {
+            unregisterReceiver(mBroadcastReceiver);
+            mBroadcastReceiver = null;
+        }
+        super.onDestroy();
     }
 
     @Override
