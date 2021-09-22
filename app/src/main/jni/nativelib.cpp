@@ -146,7 +146,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         res.set_content(result.c_str(), "application/json");
 
     });
-    server.Get(R"(/static/([a-zA-Z\\.-]+))", [](const Request &req, Response &res) {
+    server.Get(R"(/static/([a-zA-Z\\._-]+))", [](const Request &req, Response &res) {
 
         auto value = req.matches[1];
         auto filename = value.str();
