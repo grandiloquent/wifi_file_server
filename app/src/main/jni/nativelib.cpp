@@ -68,10 +68,26 @@ static std::map<std::string, std::string> mimetypes{
 };
 
 extern "C" JNIEXPORT jboolean JNICALL
-Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj,
+Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj, jobject context,
                                                          jstring ip,
                                                          jstring resourceDirectory,
                                                          jint port) {
+    jclass activity = env->FindClass("euphoria/psycho/fileserver/MainActivity");
+    if (activity != nullptr) {
+        LOGE("%s", "activity is null");
+    }
+    jmethodID m = env->GetStaticMethodID(activity, "getExternalStoragePath",
+                                         "(Landroid/content/Context;)Ljava/lang/String;");
+
+
+    auto result = reinterpret_cast<jstring>( env->CallStaticObjectMethod(activity, m, context));
+    jboolean isCopy;
+    const char *convertedValue = (env)->GetStringUTFChars(result, &isCopy);
+    env->DeleteLocalRef(activity);
+
+    std::string storage(convertedValue);
+
+    env->ReleaseStringUTFChars(result, convertedValue);
 
     const std::string directory =
             jsonparse::jni::Convert<std::string>::from(env, resourceDirectory);
@@ -183,7 +199,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             struct stat statBuf;
             status = lstat(newPath.c_str(), &statBuf);
             if (status) {
-                LOGE("%s %s", newPath.c_str(),old.c_str());
+                LOGE("%s %s", newPath.c_str(), old.c_str());
                 rename(old.c_str(), newPath.c_str());
             }
             res.set_header("Access-Control-Allow-Origin", "*");
@@ -192,9 +208,14 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             res.status = 403;
             return;
         }
-
-
     });
+
+    server.Get("/api/storage", [&](const Request &req, Response &res) {
+
+        res.set_content(storage, "text/plain");
+    });
+
+
     server.listen(host.c_str(), port);
 
     return 0;

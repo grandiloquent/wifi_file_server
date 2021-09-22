@@ -148,3 +148,19 @@ async function uploadFiles(files) {
 const container = document.querySelector('.container');
 loadFiles(new URL(location.href).searchParams.get('v') || '');
 
+const storage = document.querySelector('#storage');
+
+if (storage) {
+                storage.addEventListener('click', ev => {
+  location.href = `?v=${storage.dataset.path || ''}`;
+                });
+            }
+fetch('/api/storage').then(res=>{
+return res.text();
+}).then(res=>{
+if(res){
+storage.setAttribute('data-path',res);
+storage.parentNode.removeAttribute('style');
+storage.querySelector('span').textContent=res;
+}
+})

@@ -32,6 +32,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.Process;
+import android.os.storage.StorageManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
@@ -40,6 +41,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -90,6 +92,34 @@ public class MainActivity extends Activity {
         }
     }
 
+
+    public static String getExternalStoragePath(Context context) {
+        StorageManager mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+        Class<?> storageVolumeClazz = null;
+        try {
+            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
+            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
+            Method getPath = storageVolumeClazz.getMethod("getPath");
+            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
+            Object result = getVolumeList.invoke(mStorageManager);
+            if (result == null) return null;
+            final int length = Array.getLength(result);
+            for (int i = 0; i < length; i++) {
+                Object storageVolumeElement = Array.get(result, i);
+                String path = (String) getPath.invoke(storageVolumeElement);
+                Object removableObject = isRemovable.invoke(storageVolumeElement);
+                if (removableObject == null) return null;
+                boolean removable = (Boolean) removableObject;
+                if (removable) {
+                    return path;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static String getWifiApIpAddress() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en
@@ -126,6 +156,7 @@ public class MainActivity extends Activity {
     public native static int makeQrCode(String value, byte[] buffer);
 
     public native static boolean startServer(
+            Context context,
             String ip,
             String resourceDirectory, int port);
 
@@ -187,6 +218,7 @@ public class MainActivity extends Activity {
         }
         Intent service = new Intent(this, FileService.class);
         startService(service);
+
     }
 
     @Override
@@ -330,7 +362,7 @@ public class MainActivity extends Activity {
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            startServer(mHost,
+            startServer(this, mHost,
                     "", 12345);
         }
     }
