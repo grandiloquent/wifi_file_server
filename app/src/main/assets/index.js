@@ -69,7 +69,7 @@ function render(items) {
                     input = text2;
                     text1.value = substringAfterLast(decodeURIComponent(fullpath), '/');
                 }, async () => {
-                    const resposne = await fetch(`/api/file?old=${fullpath}&new=${input.value.trim()}`);
+                    const resposne = await fetch(`/api/file?old=${fullpath}&new=${encodeURIComponent(input.value.trim())}`);
                     dialog.hide();
                     toast.setAttribute('message', '成功重命名');
                 });
