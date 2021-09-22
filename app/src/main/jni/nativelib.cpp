@@ -142,6 +142,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         std::string result;
         serializeJson(doc, result);
 
+        res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content(result.c_str(), "application/json");
 
     });
@@ -159,6 +160,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         if (type.empty()) {
             type = "application/octet-stream";
         }
+
         res.set_content(reinterpret_cast<const char *>(data), len, type.c_str());
         free(data);
     });
@@ -168,6 +170,30 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         std::ofstream ofs(path + file.filename, std::ios::binary);
         ofs << file.content;
         res.set_content("done", "text/plain");
+    });
+    server.Get("/api/file", [](const Request &req, Response &res) {
+
+        if (req.has_param("old") && req.has_param("new")) {
+            auto old = req.get_param_value("old");
+            auto newPath = SubstringBeforeLast(old, "/");
+            LOGE("%s", newPath.c_str());
+            newPath.append("/")
+                    .append(req.get_param_value("new"));
+            int status;
+            struct stat statBuf;
+            status = lstat(newPath.c_str(), &statBuf);
+            if (status) {
+                LOGE("%s %s", newPath.c_str(),old.c_str());
+                rename(old.c_str(), newPath.c_str());
+            }
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.status = 200;
+        } else {
+            res.status = 403;
+            return;
+        }
+
+
     });
     server.listen(host.c_str(), port);
 

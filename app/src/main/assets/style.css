@@ -6,37 +6,13 @@ body, button, input, select, textarea
     outline: 0;
     margin: 0;
 }
-.list-group-item:after
-{
-    position: absolute;
-    content: "";
-    display: block;
-    left: 38px;
-    right: 0;
-    height: 1px;
-    background: #f1f2f4;
-    bottom: 0;
+.list-group-item:first-child{
+    margin-top: 16px;
 }
-.item-inner
-{
-    position: relative;
-    height: 56px;
-    line-height: 56px;
-    cursor: default;
-}
-.item-tit
-{
-    float: left;
-    width: 50%;
-}
-.item-info
-{
-    float: right;
-    width: 50%;
-    color: #777;
-    height: 100%;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+.list-group-item{
+    display: flex;
+    margin-bottom: 16px;
+    margin-left: 12px;
 }
 .item-tit .label
 {
@@ -61,19 +37,6 @@ body, button, input, select, textarea
     text-align: center;
     margin: 8px 15px 0 8px;
     cursor: pointer;
-}
-.item-tit .info
-{
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.item-tit .info
-{
-    height: 56px;
-    white-space: nowrap;
-    overflow-y: hidden;
-    position: relative;
-    z-index: 0;
 }
 .icon
 {
@@ -105,31 +68,23 @@ a
     color: #020202;
     outline: 0;
 }
-.item-tit .info .tit
-{
-    display: inline-block;
-    vertical-align: middle;
-    max-width: 80%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.item-info-list
-{
-    text-indent: 10px;
-    float: left;
-    width: 33.333333333%;
-}
+ 
 .txt-time
 {
     vertical-align: top;
 }
 .txt
 {
-    display: block;
-    overflow: hidden;
+    opacity: .6;
+    box-orient: vertical;
+    -webkit-box-orient: vertical;
+    display: box;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    max-height: 3em;
     text-overflow: ellipsis;
-    float: left;
+    overflow: hidden;
+    font-size: 12px;
 }
 .task-ctrl-list .icon-upload-mini
 {
@@ -389,16 +344,15 @@ a
     height: 16px;
     background-image: url(/static/icon-min-mac.svg);
 }
-.icon-max-mac
+.icon-more-m
 {
-    width: 16px;
-    height: 16px;
-    background-image: url(/static/icon-max-mac.svg);
+    background-image: url(/static/more_vert.svg);
 }
 .icon-close-mac
 {
     background-image: url(/static/icon-close-mac-hover.svg);
 }
+
 .layout-toolbar
 {
     background-color: #fff;
@@ -527,4 +481,37 @@ a
     line-height: 36px !important;
     text-align: center;
     font-family: Roboto-Medium,HelveticaNeue-Medium,HelveticaNeue,sans-serif-medium,Arial,sans-serif !important;
+}
+.info{
+    flex-grow: 1;
+    min-width: 0;
+    align-items: flex-start;
+    margin-left: 12px;
+    display: flex;
+    flex-direction: column;
+}
+h1, h2, h3, h4 {
+    margin: 0 0 3px 0;
+}
+h1, h2, h3, h4, .subhead {
+    box-orient: vertical;
+    -webkit-box-orient: vertical;
+    display: box;
+    display: -webkit-box;
+    max-height: 2.5em;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    font-weight: normal;
+}
+h3 {
+    font-size: 14px;
+    width: 100%;
+}
+.list-group-item .icon{
+    flex-shrink: 0;
+}
+.item-info{
+    flex-shrink: 0;
 }
