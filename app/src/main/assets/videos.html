@@ -1323,16 +1323,16 @@ function humanFileSize(size) {
 }
 
 async function loadData() {
-    const response = await fetch('http://192.168.0.109:12345/api/files?v=/storage/FD12-1F1D/Movies');
+    const response = await fetch('api/files?v=/storage/FD12-1F1D/Movies');
     const items = await response.json();
     const buffer = [];
     items.filter(x => !x.isDirectory && x.path.endsWith(".mp4")).forEach(x => {
         const template = `<div class="context-renderer">
                 <div class="large-media-item">
-                    <a class="large-media-item-thumbnail-container" data-href="http://192.168.0.109:12345/api/files?v=${x.path}">
+                    <a class="large-media-item-thumbnail-container" data-href="/api/files?v=${x.path}">
                         <div class="video-thumbnail-container-large">
                             <div class="video-thumbnail-bg">
-                            </div><img class="video-thumbnail-img" src="http://192.168.0.109:12345/api/files?v=${substringBeforeLast(x.path, " .")}.jpg"="">
+                            </div><img class="video-thumbnail-img" src="/api/files?v=${substringBeforeLast(x.path, ".")}.jpg"="">
                             <div class="video-thumbnail-overlay-bottom-group">
                                 <div class="thumbnail-overlay-time-status-renderer">
                                     ${humanFileSize(x.size)}
@@ -1352,7 +1352,7 @@ async function loadData() {
                         </div>
                         <div class="large-media-item-info">
                             <div class="large-media-item-metadata">
-                                <a href="http://192.168.0.109:12345/api/files?v=${x.path}">
+                                <a href="/api/files?v=${x.path}">
                                     <h3 class="large-media-item-headline">
                                     ${substringAfterLast(x.path, "/")}
                                     </h3>
