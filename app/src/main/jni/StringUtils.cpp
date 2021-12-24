@@ -27,7 +27,7 @@ std::string SubstringBeforeLast(const std::string &value,
                                 const std::string &str) {
     auto index = value.find_last_of(str);
     if (index != std::string::npos)
-        return value.substr(0, index );
+        return value.substr(0, index);
     else
         return std::string();
 }

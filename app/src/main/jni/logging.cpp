@@ -23,18 +23,18 @@
 
 namespace jsonparse::logging {
 
-[[noreturn, gnu::format(printf, 2, 3)]] void FatalError(JNIEnv* env,
-                                                        const char* fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  char* msg = nullptr;
-  vasprintf(&msg, fmt, ap);
-  va_end(ap);
+    [[noreturn, gnu::format(printf, 2, 3)]] void FatalError(JNIEnv *env,
+                                                            const char *fmt, ...) {
+        va_list ap;
+        va_start(ap, fmt);
+        char *msg = nullptr;
+        vasprintf(&msg, fmt, ap);
+        va_end(ap);
 
-  env->FatalError(msg);
-  // env->FatalError() is specified to not return, but the function is not
-  // annotated with the noreturn attribute. abort() just in case.
-  abort();
-}
+        env->FatalError(msg);
+        // env->FatalError() is specified to not return, but the function is not
+        // annotated with the noreturn attribute. abort() just in case.
+        abort();
+    }
 
 }  // namespace com.example.prefabdependency::logging

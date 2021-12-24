@@ -7,6 +7,7 @@
 #include <android/asset_manager_jni.h>
 #include "ArduinoJson/ArduinoJson.h"
 #include <errno.h>
+#include <filesystem>
 
 #include "FileUtils.h"
 #include "AndroidUtils.h"
@@ -20,7 +21,7 @@ using namespace httplib;
 
 static AAssetManager *manager = nullptr;
 
-static std::map<std::string, std::string> mimetypes{
+static std::map <std::string, std::string> mimetypes{
         {"css",   "text/css"},
         {"mpga",  "audio/mpeg"},
         {"csv",   "text/csv"},
@@ -83,7 +84,7 @@ std::string getExternalStoragePath(JNIEnv *env, jobject context) {
     return storage;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL
+extern "C" JNICALL jboolean
 Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj, jobject context,
                                                          jstring ip,
                                                          jstring resourceDirectory,
@@ -104,13 +105,26 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         free(data);
     });
     server.Get("/videos", [](const Request &req, Response &res) {
-            unsigned char *data;
-            unsigned int len = 0;
-            readBytesAsset(manager, "videos.html", &data, &len);
-            res.set_content(reinterpret_cast<const char *>(data), len, "text/html");
-            free(data);
-        });
+        unsigned char *data;
+        unsigned int len = 0;
+        readBytesAsset(manager, "videos.html", &data, &len);
+        res.set_content(reinterpret_cast<const char *>(data), len, "text/html");
+        free(data);
+    });
     // https://android.googlesource.com/platform/frameworks/native/+/master/libs/diskusage/dirsize.c
+
+server.Get("/api/remove", [](const Request & req, Response & res) {
+std::string path = "/storage/emulated/0";
+if (req.has_param("v")) {
+path = req.get_param_value("v");
+}
+if (!IsDirectory(path, false)) {
+std::filesystem::path p = path;
+std::filesystem::create_directories(p.parent_path() / "Recycle");
+std::filesystem::rename(path, p.parent_path() / "Recycle" / p.filename());
+res.set_content("OK", "text/plain");
+}
+});
     server.Get("/api/files", [](const Request &req, Response &res) {
         std::string path = "/storage/emulated/0";
         if (req.has_param("v")) {
@@ -124,13 +138,14 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             }
             res.set_header("Access-Control-Allow-Origin", "*");
             //
-            res.set_header("Content-Disposition", "'attachment; filename=\""+SubstringAfterLast(path, "/")+"\"'");
-            std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
+            res.set_header("Content-Disposition",
+                           "'attachment; filename=\"" + SubstringAfterLast(path, "/") + "\"'");
+            std::shared_ptr <std::ifstream> fs = std::make_shared<std::ifstream>();
             fs->open(path, std::ios_base::binary);
             fs->seekg(0, std::ios_base::end);
             auto end = fs->tellg();
             fs->seekg(0);
-            std::map<std::string, std::string> file_extension_and_mimetype_map;
+            std::map <std::string, std::string> file_extension_and_mimetype_map;
             res.set_content_provider(static_cast<size_t>(end),
                                      type.c_str(),
                                      [fs](uint64_t offset,
@@ -240,7 +255,9 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jint
+
+JNICALL
 Java_euphoria_psycho_fileserver_MainActivity_makeQrCode(JNIEnv *env, jclass clazz,
                                                         jstring value,
                                                         jbyteArray buffer) {
@@ -271,11 +288,15 @@ Java_euphoria_psycho_fileserver_MainActivity_makeQrCode(JNIEnv *env, jclass claz
                             result);
     return 0;
 }
+
 extern "C"
 JNIEXPORT void JNICALL
-Java_euphoria_psycho_fileserver_MainActivity_load(JNIEnv *env, jclass clazz,
-                                                  jobject assetManager) {
-    AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
-    manager = mgr;
+Java_euphoria_psycho_fileserver_MainActivity_load(JNIEnv
+*env,
+jclass clazz,
+        jobject
+assetManager) {
+AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
+manager = mgr;
 }
 
