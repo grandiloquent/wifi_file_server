@@ -123,6 +123,8 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
                 type = "application/octet-stream";
             }
             res.set_header("Access-Control-Allow-Origin", "*");
+            //
+            res.set_header("Content-Disposition", "'attachment; filename=\""+SubstringAfterLast(path, "/")+"\"'");
             std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
             fs->open(path, std::ios_base::binary);
             fs->seekg(0, std::ios_base::end);

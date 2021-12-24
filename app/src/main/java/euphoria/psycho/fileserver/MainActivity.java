@@ -275,6 +275,7 @@ public class MainActivity extends Activity {
                 });
                 for (File file : files) {
                     String output = substringBeforeLast(file.getAbsolutePath(), ".") + ".jpg";
+                    if (new File(output).exists()) continue;
                     try {
                         FileOutputStream fileOutputStream = new FileOutputStream(output);
                         Bitmap bitmap = createVideoThumbnail(file.getAbsolutePath());
