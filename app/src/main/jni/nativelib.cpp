@@ -67,18 +67,10 @@ static std::map<std::string, std::string> mimetypes{
         {"wasm",  "application/wasm"},
 };
 
-extern "C" JNIEXPORT jboolean JNICALL
-Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj, jobject context,
-                                                         jstring ip,
-                                                         jstring resourceDirectory,
-                                                         jint port) {
+std::string getExternalStoragePath(JNIEnv *env, jobject context) {
     jclass activity = env->FindClass("euphoria/psycho/fileserver/MainActivity");
-    if (activity != nullptr) {
-        LOGE("%s", "activity is null");
-    }
     jmethodID m = env->GetStaticMethodID(activity, "getExternalStoragePath",
                                          "(Landroid/content/Context;)Ljava/lang/String;");
-
 
     auto result = reinterpret_cast<jstring>( env->CallStaticObjectMethod(activity, m, context));
     jboolean isCopy;
@@ -88,6 +80,16 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
     std::string storage(convertedValue);
 
     env->ReleaseStringUTFChars(result, convertedValue);
+    return storage;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj, jobject context,
+                                                         jstring ip,
+                                                         jstring resourceDirectory,
+                                                         jint port) {
+
+    std::string storage = getExternalStoragePath(env, context);
 
     const std::string directory =
             jsonparse::jni::Convert<std::string>::from(env, resourceDirectory);
@@ -101,6 +103,13 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         res.set_content(reinterpret_cast<const char *>(data), len, "text/html");
         free(data);
     });
+    server.Get("/videos", [](const Request &req, Response &res) {
+            unsigned char *data;
+            unsigned int len = 0;
+            readBytesAsset(manager, "videos.html", &data, &len);
+            res.set_content(reinterpret_cast<const char *>(data), len, "text/html");
+            free(data);
+        });
     // https://android.googlesource.com/platform/frameworks/native/+/master/libs/diskusage/dirsize.c
     server.Get("/api/files", [](const Request &req, Response &res) {
         std::string path = "/storage/emulated/0";
@@ -113,6 +122,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             if (type.empty()) {
                 type = "application/octet-stream";
             }
+            res.set_header("Access-Control-Allow-Origin", "*");
             std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
             fs->open(path, std::ios_base::binary);
             fs->seekg(0, std::ios_base::end);
@@ -146,7 +156,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             res.status = 404;
             return;
         }
-        DynamicJsonDocument doc(1024 * 32);
+        DynamicJsonDocument doc(1024 * 512);
         JsonArray arr = doc.to<JsonArray>();
 
         for (auto &file:files) {
@@ -181,9 +191,15 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         free(data);
     });
     server.Post("/post", [](const Request &req, Response &res) {
+        auto v = req.get_file_value("v");
+        std::string path{"/storage/emulated/0/"};
         auto file = req.get_file_value("file");
-        std::string path{"/storage/emulated/0/Download/"};
-        std::ofstream ofs(path + file.filename, std::ios::binary);
+
+        if (!v.content.empty())
+            path = v.content + "/" + file.filename;
+        else
+            path = path + file.filename;
+        std::ofstream ofs(path, std::ios::binary);
         ofs << file.content;
         res.set_content("done", "text/plain");
     });

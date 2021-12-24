@@ -7,6 +7,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -15,6 +16,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -41,7 +43,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileOutputStream;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -53,6 +59,8 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static android.content.ContentValues.TAG;
 
 public class MainActivity extends Activity {
     static {
@@ -178,6 +186,58 @@ public class MainActivity extends Activity {
         return qrcode;
     }
 
+    public static Bitmap createVideoThumbnail(String filePath) {
+        // MediaMetadataRetriever is available on API Level 8
+        // but is hidden until API Level 10
+        Class<?> clazz = null;
+        Object instance = null;
+        try {
+            clazz = Class.forName("android.media.MediaMetadataRetriever");
+            instance = clazz.newInstance();
+            Method method = clazz.getMethod("setDataSource", String.class);
+            method.invoke(instance, filePath);
+            // The method name changes between API Level 9 and 10.
+            if (Build.VERSION.SDK_INT <= 9) {
+                return (Bitmap) clazz.getMethod("captureFrame").invoke(instance);
+            } else {
+                byte[] data = (byte[]) clazz.getMethod("getEmbeddedPicture").invoke(instance);
+                if (data != null) {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                    if (bitmap != null) return bitmap;
+                }
+                return (Bitmap) clazz.getMethod("getFrameAtTime").invoke(instance);
+            }
+        } catch (IllegalArgumentException ex) {
+            // Assume this is a corrupt video file
+        } catch (RuntimeException ex) {
+            // Assume this is a corrupt video file.
+        } catch (InstantiationException e) {
+            Log.e(TAG, "createVideoThumbnail", e);
+        } catch (InvocationTargetException e) {
+            Log.e(TAG, "createVideoThumbnail", e);
+        } catch (ClassNotFoundException e) {
+            Log.e(TAG, "createVideoThumbnail", e);
+        } catch (NoSuchMethodException e) {
+            Log.e(TAG, "createVideoThumbnail", e);
+        } catch (IllegalAccessException e) {
+            Log.e(TAG, "createVideoThumbnail", e);
+        } finally {
+            try {
+                if (instance != null) {
+                    clazz.getMethod("release").invoke(instance);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    public static String substringBeforeLast(String s, String delimiter) {
+        int index = s.lastIndexOf(delimiter);
+        if (index == -1) return s;
+        return s.substring(0, index);
+    }
+
     private void initialize() {
         IntentFilter filter = new IntentFilter();
         filter.addAction("euphoria.psycho.fileserver.SHUTDOWN");
@@ -202,6 +262,31 @@ public class MainActivity extends Activity {
                 mTextView.setText("服务器地址：" + finalLocalIp);
                 mImageView.setImageBitmap(qrcode);
             });
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                File dir = new File("/storage/FD12-1F1D/Movies");
+                File[] files = dir.listFiles(new FileFilter() {
+                    @Override
+                    public boolean accept(File file) {
+                        return file.isFile() && file.getName().endsWith(".mp4");
+                    }
+                });
+                for (File file : files) {
+                    String output = substringBeforeLast(file.getAbsolutePath(), ".") + ".jpg";
+                    try {
+                        FileOutputStream fileOutputStream = new FileOutputStream(output);
+                        Bitmap bitmap = createVideoThumbnail(file.getAbsolutePath());
+                        bitmap.compress(CompressFormat.JPEG, 75, fileOutputStream);
+                        bitmap.recycle();
+                        fileOutputStream.close();
+                    } catch (Exception ignored) {
+                        Log.e("B5aOx2", String.format("run, %s", ignored.getMessage()));
+                    }
+
+                }
+            }
         }).start();
         if (VERSION.SDK_INT >= VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
