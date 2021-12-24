@@ -1418,6 +1418,7 @@ c3-icon svg path
         document.querySelector('.menu-container .menu-item-button')
             .addEventListener('click', async evt => {
                 const reponse = await fetch(`/api/remove?v=${substringAfterLast(menuContainer.getAttribute('data-href'), "v=")}`);
+                menuContainer.setAttribute('hidden', '');
             });
         loadData();
     </script>
