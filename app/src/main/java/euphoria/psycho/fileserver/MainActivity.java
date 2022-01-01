@@ -10,6 +10,8 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -39,6 +41,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -260,6 +264,12 @@ public class MainActivity extends Activity {
             Bitmap qrcode = getBitmap(localIp);
             MainActivity.this.runOnUiThread(() -> {
                 mTextView.setText("服务器地址：" + finalLocalIp);
+                mTextView.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText(null, finalLocalIp));
+                    }
+                });
                 mImageView.setImageBitmap(qrcode);
             });
         }).start();
