@@ -264,12 +264,7 @@ public class MainActivity extends Activity {
             Bitmap qrcode = getBitmap(localIp);
             MainActivity.this.runOnUiThread(() -> {
                 mTextView.setText("服务器地址：" + finalLocalIp);
-                mTextView.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText(null, finalLocalIp));
-                    }
-                });
+                mTextView.setOnClickListener(view -> getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText(null, finalLocalIp)));
                 mImageView.setImageBitmap(qrcode);
             });
         }).start();
@@ -277,12 +272,7 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 File dir = new File("/storage/FD12-1F1D/Movies");
-                File[] files = dir.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File file) {
-                        return file.isFile() && file.getName().endsWith(".mp4");
-                    }
-                });
+                File[] files = dir.listFiles(file -> file.isFile() && file.getName().endsWith(".mp4"));
                 for (File file : files) {
                     String output = substringBeforeLast(file.getAbsolutePath(), ".") + ".jpg";
                     if (new File(output).exists()) continue;
