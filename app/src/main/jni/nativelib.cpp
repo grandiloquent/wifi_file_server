@@ -21,7 +21,7 @@ using namespace httplib;
 
 static AAssetManager *manager = nullptr;
 
-static std::map <std::string, std::string> mimetypes{
+static std::map<std::string, std::string> mimetypes{
         {"css",   "text/css"},
         {"mpga",  "audio/mpeg"},
         {"csv",   "text/csv"},
@@ -113,18 +113,18 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
     });
     // https://android.googlesource.com/platform/frameworks/native/+/master/libs/diskusage/dirsize.c
 
-server.Get("/api/remove", [](const Request & req, Response & res) {
-std::string path = "/storage/emulated/0";
-if (req.has_param("v")) {
-path = req.get_param_value("v");
-}
-if (!IsDirectory(path, false)) {
-std::filesystem::path p = path;
-std::filesystem::create_directories(p.parent_path() / "Recycle");
-std::filesystem::rename(path, p.parent_path() / "Recycle" / p.filename());
-res.set_content("OK", "text/plain");
-}
-});
+    server.Get("/api/remove", [](const Request &req, Response &res) {
+        std::string path = "/storage/emulated/0";
+        if (req.has_param("v")) {
+            path = req.get_param_value("v");
+        }
+        if (!IsDirectory(path, false)) {
+            std::filesystem::path p = path;
+            std::filesystem::create_directories(p.parent_path() / "Recycle");
+            std::filesystem::rename(path, p.parent_path() / "Recycle" / p.filename());
+            res.set_content("OK", "text/plain");
+        }
+    });
     server.Get("/api/files", [](const Request &req, Response &res) {
         std::string path = "/storage/emulated/0";
         if (req.has_param("v")) {
@@ -140,12 +140,12 @@ res.set_content("OK", "text/plain");
             //
             res.set_header("Content-Disposition",
                            "'attachment; filename=\"" + SubstringAfterLast(path, "/") + "\"'");
-            std::shared_ptr <std::ifstream> fs = std::make_shared<std::ifstream>();
+            std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
             fs->open(path, std::ios_base::binary);
             fs->seekg(0, std::ios_base::end);
             auto end = fs->tellg();
             fs->seekg(0);
-            std::map <std::string, std::string> file_extension_and_mimetype_map;
+            std::map<std::string, std::string> file_extension_and_mimetype_map;
             res.set_content_provider(static_cast<size_t>(end),
                                      type.c_str(),
                                      [fs](uint64_t offset,
@@ -248,6 +248,180 @@ res.set_content("OK", "text/plain");
         res.set_content(storage, "text/plain");
     });
 
+    server.Get(R"(/books/(.*))", [&](const Request &req, Response &res) {
+        auto query = req.matches[1];
+        std::string dir = "/storage/emulated/0/Books";
+        if (query.length() == 0) {
+            std::stringstream ss;
+            ss << R"(<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+ <style>
+        html,
+        body,
+        h1 {
+            font-family: Roboto, Helvetica Neue, Arial, sans-serif;
+        }
+
+        body,
+        h1 {
+            font-size: small;
+        }
+
+        body {
+            margin: 0;
+            background: #fff;
+            color: #4d5156;
+        }
+
+        a {
+            color: #1558d6;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            display: block;
+        }
+
+        a {
+            display: block;
+            background-color: #fff;
+            /* text-align: center; */
+            font-size: 14px;
+            color: #202124;
+            /* border-radius: 20px; */
+            height: 24px;
+            line-height: 24px;
+            border-bottom: 1px solid #dadce0;
+            /* margin: 16px 16px 22px 16px; */
+            padding: 8px 13px;
+        }
+    </style>
+)";
+            for (auto const &dir_entry: std::filesystem::directory_iterator{dir}) {
+                ss << "<a href=\"" << dir_entry.path().filename().string()
+                   << "\">"
+                   << dir_entry.path().filename().string()
+                   << "</a>";
+            }
+            ss << R"(</body>
+
+</html>)";
+            res.set_content(ss.str(), "text/html");
+            return;
+        }
+        auto  path=dir + "/" + query.str();
+        if (std::filesystem::is_directory(path)) {
+            std::stringstream ss;
+            ss << R"(<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+ <style>
+        html,
+        body,
+        h1 {
+            font-family: Roboto, Helvetica Neue, Arial, sans-serif;
+        }
+
+        body,
+        h1 {
+            font-size: small;
+        }
+
+        body {
+            margin: 0;
+            background: #fff;
+            color: #4d5156;
+        }
+
+        a {
+            color: #1558d6;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            display: block;
+        }
+
+        a {
+            display: block;
+            background-color: #fff;
+            /* text-align: center; */
+            font-size: 14px;
+            color: #202124;
+            /* border-radius: 20px; */
+            height: 24px;
+            line-height: 24px;
+            border-bottom: 1px solid #dadce0;
+            /* margin: 16px 16px 22px 16px; */
+            padding: 8px 13px;
+        }
+    </style>
+)";
+            for (auto const &dir_entry: std::filesystem::directory_iterator{dir+"/"+query.str()}) {
+                    ss << "<a href=\""
+                            << dir_entry.path().parent_path().filename().string()
+                            <<"/"
+                    << dir_entry.path().filename().string()
+                       << "\">"
+                       << dir_entry.path().filename().string()
+                       << "</a>";
+            }
+            ss << R"(</body>
+
+</html>)";
+            res.set_content(ss.str(), "text/html");
+        } else {
+
+            auto extension = SubstringAfterLast(path, ".");
+            auto type = mimetypes[extension];
+            if (type.empty()) {
+                type = "application/octet-stream";
+            }
+            std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
+            fs->open(path, std::ios_base::binary);
+            fs->seekg(0, std::ios_base::end);
+            auto end = fs->tellg();
+            fs->seekg(0);
+            std::map<std::string, std::string> file_extension_and_mimetype_map;
+            res.set_content_provider(static_cast<size_t>(end),
+                                     type.c_str(),
+                                     [fs](uint64_t offset,
+                                          uint64_t length,
+                                          DataSink &sink) {
+                                         if (fs->fail()) {
+                                             return false;
+                                         }
+
+                                         fs->seekg(offset, std::ios_base::beg);
+
+                                         size_t bufSize = 81920;
+                                         char buffer[bufSize];
+
+                                         fs->read(buffer, bufSize);
+
+                                         sink.write(buffer,
+                                                    static_cast<size_t>(fs->gcount()));
+                                         return true;
+                                     });
+
+        }
+
+
+    });
+
 
     server.listen(host.c_str(), port);
 
@@ -292,11 +466,11 @@ Java_euphoria_psycho_fileserver_MainActivity_makeQrCode(JNIEnv *env, jclass claz
 extern "C"
 JNIEXPORT void JNICALL
 Java_euphoria_psycho_fileserver_MainActivity_load(JNIEnv
-*env,
-jclass clazz,
-        jobject
-assetManager) {
-AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
-manager = mgr;
+                                                  *env,
+                                                  jclass clazz,
+                                                  jobject
+                                                  assetManager) {
+    AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
+    manager = mgr;
 }
 
