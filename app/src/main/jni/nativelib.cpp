@@ -9,13 +9,12 @@
 #include <errno.h>
 #include <filesystem>
 
+
 #include "FileUtils.h"
 #include "AndroidUtils.h"
 #include "StringUtils.h"
+#include "nativelib.h"
 
-#define LOG_TAG "TAG/Native"
-#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 using namespace httplib;
 
@@ -113,41 +112,29 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
     });
     // https://android.googlesource.com/platform/frameworks/native/+/master/libs/diskusage/dirsize.c
 
-    server.Get("/api/remove", [](const Request &req, Response &res) {
-        std::string path = "/storage/emulated/0";
-        if (req.has_param("v")) {
-            path = req.get_param_value("v");
-        }
-        if (!IsDirectory(path, false)) {
-            std::filesystem::path p = path;
-            std::filesystem::create_directories(p.parent_path() / "Recycle");
-            std::filesystem::rename(path, p.parent_path() / "Recycle" / p.filename());
-            res.set_content("OK", "text/plain");
-        }
-    });
+    server.Get("/api/remove", handlingDeleteFileRequests);
+    server.Get("/api/move", handlingMoveFileRequests);
     server.Get("/api/files", [](const Request &req, Response &res) {
         std::string path = "/storage/emulated/0";
+
         if (req.has_param("v")) {
             path = req.get_param_value("v");
         }
         if (!IsDirectory(path, false)) {
-            auto extension = SubstringAfterLast(path, ".");
-            auto type = mimetypes[extension];
-            if (type.empty()) {
-                type = "application/octet-stream";
-            }
+
             res.set_header("Access-Control-Allow-Origin", "*");
             //
             res.set_header("Content-Disposition",
-                           "'attachment; filename=\"" + SubstringAfterLast(path, "/") + "\"'");
+                           "'attachment; filename=\"" + SubstringAfterLast(path, "/") + "\"");
             std::shared_ptr<std::ifstream> fs = std::make_shared<std::ifstream>();
             fs->open(path, std::ios_base::binary);
             fs->seekg(0, std::ios_base::end);
             auto end = fs->tellg();
+            if (end == 0)return;
             fs->seekg(0);
             std::map<std::string, std::string> file_extension_and_mimetype_map;
             res.set_content_provider(static_cast<size_t>(end),
-                                     type.c_str(),
+                                     findMimeType(path).c_str(),
                                      [fs](uint64_t offset,
                                           uint64_t length,
                                           DataSink &sink) {
@@ -225,14 +212,12 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         if (req.has_param("old") && req.has_param("new")) {
             auto old = req.get_param_value("old");
             auto newPath = SubstringBeforeLast(old, "/");
-            LOGE("%s", newPath.c_str());
             newPath.append("/")
                     .append(req.get_param_value("new"));
             int status;
             struct stat statBuf;
             status = lstat(newPath.c_str(), &statBuf);
             if (status) {
-                LOGE("%s %s", newPath.c_str(), old.c_str());
                 rename(old.c_str(), newPath.c_str());
             }
             res.set_header("Access-Control-Allow-Origin", "*");
@@ -304,10 +289,18 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         }
     </style>
 )";
+            std::vector<std::filesystem::path> sorted_by_name;
             for (auto const &dir_entry: std::filesystem::directory_iterator{dir}) {
-                ss << "<a href=\"" << dir_entry.path().filename().string()
+                sorted_by_name.push_back(dir_entry.path());
+            }
+            std::sort(sorted_by_name.begin(), sorted_by_name.end(),
+                      [](const auto &lhs, const auto &rhs) {
+                          return lhs.filename().string() < rhs.filename().string();
+                      });
+            for (auto &dir_entry : sorted_by_name) {
+                ss << "<a href=\"" << dir_entry.filename().string()
                    << "\">"
-                   << dir_entry.path().filename().string()
+                   << dir_entry.filename().string()
                    << "</a>";
             }
             ss << R"(</body>
@@ -316,7 +309,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
             res.set_content(ss.str(), "text/html");
             return;
         }
-        auto  path=dir + "/" + query.str();
+        auto path = dir + "/" + query.str();
         if (std::filesystem::is_directory(path)) {
             std::stringstream ss;
             ss << R"(<!DOCTYPE html>
@@ -370,15 +363,24 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         }
     </style>
 )";
-            for (auto const &dir_entry: std::filesystem::directory_iterator{dir+"/"+query.str()}) {
-                    ss << "<a href=\""
-                            << dir_entry.path().parent_path().filename().string()
-                            <<"/"
-                    << dir_entry.path().filename().string()
-                       << "\">"
-                       << dir_entry.path().filename().string()
-                       << "</a>";
+            std::vector<std::filesystem::path> sorted_by_name;
+            for (auto const &dir_entry: std::filesystem::directory_iterator{path}) {
+                sorted_by_name.push_back(dir_entry.path());
             }
+            std::sort(sorted_by_name.begin(), sorted_by_name.end(),
+                      [](const auto &lhs, const auto &rhs) {
+                          return lhs.filename().string() > rhs.filename().string();
+                      });
+            for (auto &dir_entry : sorted_by_name) {
+                ss << "<a href=\""
+                   << dir_entry.parent_path().filename().string()
+                   << "/"
+                   << dir_entry.filename().string()
+                   << "\">"
+                   << dir_entry.filename().string()
+                   << "</a>";
+            }
+
             ss << R"(</body>
 
 </html>)";
@@ -422,7 +424,532 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
 
     });
 
+    server.Get("/music", [&](const Request &req, Response &res) {
+        res.set_content(R"(<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html {
+            font-size: 12px;
+            font-family: Roboto, Noto Naskh Arabic UI, Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: #030303;
+            -webkit-font-smoothing: antialiased;
+            overflow: visible;
+        }
+
+        .player-bar-a11y-label {
+            position: absolute;
+            top: auto;
+            left: -101vw;
+            width: 1px;
+            height: 1px;
+            border: 0;
+            overflow: hidden;
+        }
+
+        .music-player-bar {
+            background-color: #212121;
+            display: grid;
+            grid-template-columns: 0fr 1fr 0fr;
+            grid-template-areas: "start middle end";
+            color: #909090;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 64px;
+            transition-property: transform, height, background-color;
+            transition-duration: 300ms;
+            transition-timing-function: cubic-bezier(0.2, 0, 0.6, 1);
+            will-change: transform;
+            z-index: 3;
+            width: 100%;
+            transform: translate3d(0, 0, 0);
+            visibility: visible;
+        }
+
+        .left-controls {
+            grid-area: start;
+            flex: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .left-controls-buttons {
+            flex: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .paper-icon-button {
+            display: inline-block;
+            position: relative;
+            outline: none;
+            user-select: none;
+            cursor: pointer;
+            z-index: 0;
+            line-height: 1;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box !important;
+            flex: none;
+            padding: 4px;
+            width: 32px;
+            height: 32px;
+
+        }
+
+        .iron-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            vertical-align: middle;
+            fill: #fff;
+            stroke: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .middle-controls {
+            grid-area: middle;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .content-info-wrapper {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: 0;
+        }
+
+
+        .title {
+            display: block;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            font-family: Roboto, Noto Naskh Arabic UI, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.3;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .byline-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .right-controls {
+            grid-area: end;
+            justify-self: end;
+            position: relative;
+            justify-content: flex-end;
+            margin: 0 4px 0 0;
+            flex: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .subtitle {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .byline {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: pre;
+            display: flex;
+            flex-direction: row;
+            font-family: Roboto, Noto Naskh Arabic UI, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.3;
+            font-weight: 400;
+            color: rgba(255, 255, 255, .7);
+
+        }
+
+        .paper-slider {
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+            -ms-flex-pack: justify;
+            -webkit-justify-content: space-between;
+            justify-content: space-between;
+            -ms-flex-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            user-select: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+            position: absolute;
+            cursor: pointer;
+            display: block;
+            top: 1px;
+            left: -16px;
+            width: 100%;
+            transform: translateY(-50%);
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: calc(30px + 2px);
+            margin-left: calc(15px + 2px / 2);
+            margin-right: calc(15px + 2px / 2);
+            transform: scaleX(1);
+        }
+
+        .bar-container {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow: hidden;
+        }
+
+        .paper-progress {
+            display: block;
+            position: relative;
+            overflow: hidden;
+            padding: 15px 0;
+            width: 100%;
+            touch-action: none;
+        }
+
+        .progress-container {
+            position: relative;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .primary-progress {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform-origin: left center;
+            transform: scaleX(0);
+            will-change: transform;
+            background-color: rgb(255, 0, 0);
+        }
+
+        .secondary-progress {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform-origin: left center;
+            transform: scaleX(0);
+            will-change: transform;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .slider-knob {
+            position: absolute;
+            left: 0;
+            top: 0;
+            margin-left: calc(-15px - 2px / 2);
+            width: calc(30px + 2px);
+            height: calc(30px + 2px);
+            touch-action: none;
+        }
+
+        .slider-knob-inner {
+            margin: 10px;
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            background-color: #3367d6;
+            border: 2px solid #3367d6;
+            border-radius: 50%;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            transition-property: -webkit-transform, background-color, border;
+            transition-property: transform, background-color, border;
+            transition-duration: 0.18s;
+            transition-timing-function: ease;
+        }
+
+        .list-item {
+            padding: 0 8px 0 16px;
+            margin-bottom: 16px;
+            position: relative;
+            display: flex;
+            color: #fff;
+        }
+
+        .simple-endpoint {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .left-items {
+            flex: none;
+            position: relative;
+            border-radius: 2px;
+            overflow: hidden;
+            width: 48px;
+            height: 48px;
+            margin: 0 16px 0 0;
+        }
+
+        .thumbnail {
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 2px;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .flex-columns {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .title-column {
+            display: flex;
+            flex: 6 1 0;
+            justify-content: space-between;
+            overflow: hidden;
+            flex-basis: 100%;
+            margin: 0 0 3px;
+        }
+
+        .secondary-flex-columns {
+            flex: 9 1 0;
+            display: flex;
+            overflow: hidden;
+            align-items: center;
+            flex-basis: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <audio></audio>
+    <div class="list">
+
+    </div>
+    <div class="music-player-bar">
+        <h2 class="player-bar-a11y-label">播放器控制栏</h2>
+        <div class="left-controls">
+            <div class="left-controls-buttons">
+
+                <div class="paper-icon-button" style="margin: 0 0 0 8px;">
+                    <div class="iron-icon">
+                        <svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false"
+                            class="style-scope tp-yt-iron-icon"
+                            style="pointer-events: none; display: block; width: 100%; height: 100%;">
+                            <g class="style-scope tp-yt-iron-icon">
+                                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" class="style-scope tp-yt-iron-icon"></path>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="paper-icon-button" id="play-button" style="height: 40px;width: 40px;">
+                    <div class="iron-icon">
+                        <svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false"
+                            class="style-scope tp-yt-iron-icon"
+                            style="pointer-events: none; display: block; width: 100%; height: 100%;">
+                            <g class="style-scope tp-yt-iron-icon">
+                                <path d="M8 5v14l11-7z" class="style-scope tp-yt-iron-icon"></path>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="paper-icon-button">
+                    <div class="iron-icon">
+                        <svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false"
+                            class="style-scope tp-yt-iron-icon"
+                            style="pointer-events: none; display: block; width: 100%; height: 100%;">
+                            <g class="style-scope tp-yt-iron-icon">
+                                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" class="style-scope tp-yt-iron-icon">
+                                </path>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class="middle-controls">
+            <div class="content-info-wrapper">
+                <div class="title"></div>
+                <div class="byline-wrapper">
+                    <div class="subtitle">
+                        <div class="byline"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="right-controls">
+        </div>
+        <div class="paper-slider">
+            <div class="slider-container">
+                <div class="bar-container">
+                    <div class="paper-progress">
+                        <div class="progress-container">
+                            <div class="secondary-progress">
+                            </div>
+                            <div class="primary-progress">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slider-knob" style="display: none;">
+                    <div class="slider-knob-inner">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const audio = document.querySelector('audio');
+
+        async function play() {
+            await audio.play();
+        }
+
+        const playButton = document.querySelector('#play-button');
+        playButton.setAttribute('hidden', '');
+        playButton.addEventListener('click', async ev => {
+            await play();
+            playButton.querySelector('path').setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
+        })
+
+        const primaryProgress = document.querySelector('.primary-progress');
+        const secondaryProgress = document.querySelector('.secondary-progress');
+        const byline = document.querySelector('.byline');
+        const sliderKnob = document.querySelector('.slider-knob');
+        const title = document.querySelector('.title');
+        const list = document.querySelector('.list');
+
+        audio.addEventListener('durationchange', evt => {
+        })
+        audio.addEventListener('progress', evt => {
+            if (audio.buffered.length) {
+                secondaryProgress.style.transform = `scaleX(${audio.buffered.end(0) / audio.duration})`;
+            }
+        })
+        audio.addEventListener('timeupdate', evt => {
+            const value = audio.currentTime / audio.duration;
+            primaryProgress.style.transform = `scaleX(${value})`;
+            //sliderKnob.style.left = `${value * 100}%`;
+            byline.textContent = formatDuration(audio.currentTime);
+        })
+        function formatDuration(ms) {
+            if (isNaN(ms)) return '0:00';
+            if (ms < 0) ms = -ms;
+            const time = {
+                hour: Math.floor(ms / 3600) % 24,
+                minute: Math.floor(ms / 60) % 60,
+                second: Math.floor(ms) % 60,
+            };
+            return Object.entries(time)
+                .filter((val, index) => index || val[1])
+                .map(val => (val[1] + '').padStart(2, '0'))
+                .join(':');
+        }
+        function substringAfterLast(string, delimiter, missingDelimiterValue) {
+            const index = string.lastIndexOf(delimiter);
+            if (index === -1) {
+                return missingDelimiterValue || string;
+            } else {
+                return string.substring(index + delimiter.length);
+            }
+        }
+        async function fetchItems() {
+            const response = await fetch(`/api/files?v=%2Fstorage%2Femulated%2F0%2FMusics%2F听书`);
+            const items = await response.json();
+            const strings = [];
+            items.forEach(element => {
+                const string = `<div class="list-item" data-path="${element.path}">
+            <a class="simple-endpoint">
+            </a>
+            <div class="left-items">
+                <div class="thumbnail">
+                </div>
+            </div>
+            <div class="flex-columns">
+                <div class="title-column">
+                    <div style="font-size: 14px;line-height: 1.3;display: flex;white-space: pre;">${substringAfterLast(element.path, "/")}</div>
+                </div>
+                <div class="secondary-flex-columns">
+                    <div style="font-size: 14px;line-height: 1.3;display: flex;white-space: pre;">
+                       </div>
+                </div>
+            </div>
+        </div>`;
+                strings.push(string);
+            });
+            list.innerHTML = strings.join('');
+
+
+            document.querySelectorAll('.list-item')
+                .forEach(listItem => listItem.addEventListener('click', ev => {
+                    audio.src = "/api/files?v=" + listItem.dataset.path;
+                    title.textContent = listItem.querySelector('.title-column div').textContent;
+                    play();
+                }));
+
+
+        }
+        fetchItems();
+        window.addEventListener('hashchange', ev => {
+            const values = /((\d+)h)?((\d+)m)?(\d+)s/.exec(location.hash);
+            let currentTime = 0;
+            if (values[2]) {
+                currentTime += parseInt(values[2]) * 3600;
+            }
+            if (values[4]) {
+                currentTime += parseInt(values[4]) * 60;
+            }
+            if (values[5]) {
+                currentTime += parseInt(values[5]);
+            }
+            audio.currentTime = currentTime;
+        })
+    </script>
+</body>
+
+</html>)", "text/html");
+    });
     server.listen(host.c_str(), port);
 
     return 0;
@@ -460,6 +987,8 @@ Java_euphoria_psycho_fileserver_MainActivity_makeQrCode(JNIEnv *env, jclass claz
 
     env->SetByteArrayRegion(buffer, 0, size,
                             result);
+
+
     return 0;
 }
 
