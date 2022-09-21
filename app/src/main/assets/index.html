@@ -1,58 +1,222 @@
 <!doctype html>
 <html class="no-js">
+
 <head>
-    <meta charset="utf-8"/>
+    <meta charset="utf-8" />
     <title>
     </title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link rel="stylesheet" href="/static/style.css"/>
-    <script src="/static/toast.js">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="toast.js">
     </script>
+
 </head>
+
 <body>
-<div class="layout-toolbar">
-    <div class="mod-nav">
-        <div class="mod-action-wrap">
-            <i class="icon icon-upload-s">
-            </i> <span>上传
-          </span>
+    <div class="layout-toolbar">
+        <div class="mod-nav">
+            <div class="mod-action-wrap">
+                <i class="icon icon-upload-s">
+                </i> <span>上传
+                </span>
+            </div>
+        </div>
+        <div class="mod-nav" style="display:none">
+            <div class="mod-action-wrap" id="storage">
+                <span></span>
+            </div>
+        </div>
+        <div class="mod-nav">
+            <div class="mod-action-wrap" id="favorites">
+                <span>目录</span>
+            </div>
         </div>
     </div>
-    <div class="mod-nav"  style="display:none">
-        <div class="mod-action-wrap" id="storage">
-            <span></span>
+    <div class="container">
+    </div>
+    <custom-toast>
+    </custom-toast>
+    <div class="dialog">
+        <div class="dialog-mask">
         </div>
-    </div>
-</div>
-<div class="container">
-</div>
-<custom-toast>
-</custom-toast>
-<div class="dialog">
-    <div class="dialog-mask">
-    </div>
-    <div class="dialog-wrapper">
-        <div class="dialog-container">
-            <div class="dialog-container-wrapper">
-                <div class="dialog-content">
-                    <div class="spinner">
+        <div class="dialog-wrapper">
+            <div class="dialog-container">
+                <div class="dialog-container-wrapper">
+                    <div class="dialog-content">
+                        <div class="spinner">
+                        </div>
+                        <span>正在上传文件...
+                        </span>
                     </div>
-                    <span>正在上传文件...
-              </span>
-                </div>
-                <div class="dialog-footer" style="display: none;">
-                    <div class="dialog-button">
-                        确认
-                    </div>
-                    <div class="dialog-button" style="color: #db4437;">
-                        删除
+                    <div class="dialog-footer" style="display: none;">
+                        <div class="dialog-button">
+                            确认
+                        </div>
+                        <div class="dialog-button" style="color: #db4437;">
+                            删除
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="/static/dialog.js"></script>
-<script src="/static/index.js"></script>
+
+
+    <style>
+        .bottom-sheet-layout {
+            border-radius: 12px;
+            background-color: #fff;
+            display: block;
+            overflow: hidden;
+            position: fixed;
+            margin: 0 8px 24px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2;
+        }
+
+        .bottom-sheet-layout-header-wrapper {
+            overflow: hidden;
+            -webkit-box-flex: 0;
+            flex: none;
+            border-bottom: 1px solid #fff;
+        }
+
+        .bottom-sheet-drag-line {
+            background: #030303;
+            opacity: .15;
+            border-radius: 4px;
+            height: 4px;
+            margin: 0 auto;
+            width: 40px;
+            margin-top: 8px;
+        }
+
+        .bottom-sheet-layout-header {
+            -webkit-box-pack: justify;
+            justify-content: space-between;
+            display: flex;
+            margin-top: 8px;
+        }
+
+        .bottom-sheet-layout-content-wrapper {
+            -webkit-box-flex: 1;
+            flex: 1;
+            overflow-y: hidden;
+            max-height: 273px;
+        }
+
+        .bottom-sheet-content {
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            flex-direction: column;
+            color: #030303;
+        }
+
+        .bottom-sheet-media-menu-item {}
+
+        .menu-item {
+            padding: 0;
+            height: 48px;
+            display: flex;
+            -webkit-box-align: center;
+            align-items: center;
+        }
+
+        .menu-item-button {
+            border: none;
+            outline: none;
+            font: inherit;
+            color: inherit;
+            background: transparent;
+            cursor: pointer;
+            box-sizing: border-box;
+            text-align: initial;
+            text-transform: unset;
+            width: 100%;
+            display: flex;
+            padding: 0;
+            margin-left: 12px;
+            font-family: "Roboto", "Arial", sans-serif;
+            font-size: 16px;
+            line-height: 22px;
+        }
+
+        .c3-icon {
+            display: inline-block;
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            stroke: none;
+            margin-right: 12px;
+        }
+
+        .c3-overlay {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+    </style>
+    <div class="c3-overlay" style="display: none;">
+    </div>
+    <div class="bottom-sheet-layout" style="display: none;">
+
+
+        <div class="bottom-sheet-layout-header-wrapper">
+
+            <div class="bottom-sheet-drag-line">
+            </div>
+
+            <div class="bottom-sheet-layout-header">
+            </div>
+        </div>
+
+
+        <div class="bottom-sheet-layout-content-wrapper">
+
+            <div class="bottom-sheet-content">
+
+                <div class="bottom-sheet-media-menu-item">
+                    
+                    <div class="menu-item" data-src="/storage/emulated/0/Pictures/Screenshots">
+                        <div class="menu-item-button" >
+                            <div class="c3-icon">
+                            </div>
+                            Screenshots
+                        </div>
+                    </div>
+                    <div class="menu-item" data-src="/storage/emulated/0/Movies/TikTok">
+                        <div class="menu-item-button" >
+                            <div class="c3-icon">
+                            </div>
+                            TikTok
+                        </div>
+                    </div>
+                    <div class="menu-item" data-src="/storage/emulated/0/Pictures">
+                        <div class="menu-item-button" >
+                            <div class="c3-icon">
+                            </div>
+                            Pictures
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+    <script src="dialog.js"></script>
+    <script src="index.js"></script>
 </body>
+
 </html>

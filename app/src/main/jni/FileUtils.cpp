@@ -38,6 +38,7 @@ path) {
                         fullPath,
                         s.st_blocks * 512,
                         false,
+                        s.st_mtim.tv_sec
                 });
             }
             //LOGE("%s", strerror(errno));
@@ -46,7 +47,8 @@ path) {
     closedir(dir);
     std::sort(files.begin(), files.end(), [](File &a, File &b) {
         if (a.isDirectory == b.isDirectory) {
-            return a.path < b.path;
+            // a.path < b.path;
+            return a.st_mtim > b.st_mtim;
         } else if (a.isDirectory) {
             return true;
         }

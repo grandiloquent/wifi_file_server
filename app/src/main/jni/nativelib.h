@@ -93,4 +93,33 @@ void handlingMoveFileRequests(const httplib::Request &req, httplib::Response &re
         res.set_content("OK", "text/plain");
     }
 }
+
+void moveFile(const httplib::Request &req, httplib::Response &res){
+    res.set_header("Access-Control-Allow-Origin", "*");
+    std::string path = "/storage/emulated/0";
+    if (req.has_param("v")) {
+        path = req.get_param_value("v");
+    }
+    if (!IsDirectory(path, false)) {
+        std::filesystem::path p = path;
+        std::filesystem::create_directories(p.parent_path() / "Removed");
+        std::filesystem::rename(path, p.parent_path() / "Removed" / p.filename());
+        res.set_content("OK", "text/plain");
+    }
+}
+
+void moveVideo(const httplib::Request &req, httplib::Response &res){
+    res.set_header("Access-Control-Allow-Origin", "*");
+    std::string path = "/storage/emulated/0";
+    if (req.has_param("v")) {
+        path = req.get_param_value("v");
+    }
+    if (!IsDirectory(path, false)) {
+        std::filesystem::path p = path;
+        std::filesystem::create_directories("/storage/emulated/0/Files");
+        std::filesystem::rename(path, "/storage/emulated/0/Files" / p.filename());
+        res.set_content("OK", "text/plain");
+    }
+}
+
 #endif

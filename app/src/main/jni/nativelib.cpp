@@ -110,10 +110,20 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         res.set_content(reinterpret_cast<const char *>(data), len, "text/html");
         free(data);
     });
+    server.Get("/browser", [](const Request &req, Response &res) {
+        unsigned char *data;
+        unsigned int len = 0;
+        readBytesAsset(manager, "browser.html", &data, &len);
+        res.set_content(reinterpret_cast<const char *>(data), len, "text/html");
+        free(data);
+    });
     // https://android.googlesource.com/platform/frameworks/native/+/master/libs/diskusage/dirsize.c
 
     server.Get("/api/remove", handlingDeleteFileRequests);
     server.Get("/api/move", handlingMoveFileRequests);
+    server.Get("/api/movefile", moveFile);
+    server.Get("/api/movevideo", moveVideo);
+
     server.Get("/api/files", [](const Request &req, Response &res) {
         std::string path = "/storage/emulated/0";
 
@@ -176,7 +186,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
         res.set_content(result.c_str(), "application/json");
 
     });
-    server.Get(R"(/static/([a-zA-Z\\._-]+))", [](const Request &req, Response &res) {
+    server.Get(R"(/([a-zA-Z\\._-]+))", [](const Request &req, Response &res) {
 
         auto value = req.matches[1];
         auto filename = value.str();
@@ -229,7 +239,7 @@ Java_euphoria_psycho_fileserver_MainActivity_startServer(JNIEnv *env, jclass obj
     });
 
     server.Get("/api/storage", [&](const Request &req, Response &res) {
-
+        res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content(storage, "text/plain");
     });
 

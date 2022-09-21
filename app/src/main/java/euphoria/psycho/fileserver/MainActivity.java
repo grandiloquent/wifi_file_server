@@ -271,10 +271,14 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                File dir = new File("/storage/FD12-1F1D/Movies");
+                File dir = new File("/storage/emulated/0/Movies/TikTok");
+                File parent = new File(dir, "Images");
+                if (!parent.exists()) {
+                    parent.mkdir();
+                }
                 File[] files = dir.listFiles(file -> file.isFile() && file.getName().endsWith(".mp4"));
                 for (File file : files) {
-                    String output = substringBeforeLast(file.getAbsolutePath(), ".") + ".jpg";
+                    String output = parent + "/" + substringBeforeLast(file.getName(), ".");
                     if (new File(output).exists()) continue;
                     try {
                         FileOutputStream fileOutputStream = new FileOutputStream(output);

@@ -5,12 +5,14 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <time.h>
 
 struct File {
 public:
     std::string path;
     long size;
     bool isDirectory;
+    long st_mtim;
 };
 
 uint64_t get_block_device_size(int fd);
