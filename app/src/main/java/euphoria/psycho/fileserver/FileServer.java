@@ -153,7 +153,7 @@ public class FileServer extends NanoHTTPD {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
         Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
-        response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(path, "/")));
+        response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Uri.encode(Shared.substringAfterLast(path, "/"))));
         return response;
 
     }
@@ -214,7 +214,7 @@ public class FileServer extends NanoHTTPD {
                                 "text/plain", e.getMessage());
                     }
                 } else {
-                    return deleteFileSystem(new File(mDirectory, parameters[0]));
+                    return Utils.deleteFileSystem(new File(mDirectory, parameters[0]));
                 }
 
 
@@ -242,30 +242,17 @@ public class FileServer extends NanoHTTPD {
                     return serveFile(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
                 else {
                     try {
-                        InputStream stream = new FileInputStream(new File(mDirectory, parameters[0]));
+                        InputStream stream = new FileInputStream(Utils.processPath(mStoragePath,
+                                mDirectory, parameters[0]));
                         return serverFile(stream, parameters[0]);
                     } catch (Exception e) {
-                        return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-                                "text/plain", e.getMessage());
+                        return Utils.internalError(e);
                     }
                 }
             }
         }
-        return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
+        return Utils.notFound();
     }
 
-    private static Response deleteFileSystem(File path) {
-        Response response;
-        try {
-            Shared.recursiveDelete(path);
-            response = Response.newFixedLengthResponse(Status.OK,
-                    "text/plain", "Ok");
-        } catch (Exception e) {
-            response = Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-                    "text/plain", e.getMessage());
 
-        }
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        return response;
-    }
 }
