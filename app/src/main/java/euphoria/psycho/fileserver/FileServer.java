@@ -1,5 +1,6 @@
 package euphoria.psycho.fileserver;
 
+import android.content.ContentResolver.MimeTypeInfo;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -152,7 +153,11 @@ public class FileServer extends NanoHTTPD {
     private static Response serverFile(InputStream stream, String path) {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
-        Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
+        String mimeType = "application/octet-stream";
+        if (path.endsWith(".mp4")) {
+            mimeType = "video/mp4";
+        }
+        Response response = Response.newChunkedResponse(Status.OK, mimeType, stream);
         response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Uri.encode(Shared.substringAfterLast(path, "/"))));
         return response;
 
