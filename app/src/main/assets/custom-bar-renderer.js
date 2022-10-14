@@ -1,11 +1,11 @@
 class CustomBarRenderer extends HTMLElement {
 
-    constructor() {
-        super();
+  constructor() {
+    super();
 
-        this.root = this.attachShadow({ mode: 'open' });
+    this.root = this.attachShadow({ mode: 'open' });
 
-        this.root.innerHTML = `<style>.text
+    this.root.innerHTML = `<style>.text
         {
             max-width: 100%;
             padding: 0 4px;
@@ -56,7 +56,7 @@ class CustomBarRenderer extends HTMLElement {
                     首页
                   </div>
                 </div>
-                <div class="item">
+                <div class="item" id="menu">
                   <div class="image">
                     <svg xmlns="http://www.w3.org/2000/svg"   height="24" viewBox="0 0 24 24" width="24">
                     <path d="M3 6h18v2.016h-18v-2.016zM3 12.984v-1.969h18v1.969h-18zM3 18v-2.016h18v2.016h-18z"></path>
@@ -69,34 +69,42 @@ class CustomBarRenderer extends HTMLElement {
               </div>
             </div>
 		`;
+    const menu = this.root.querySelector('#menu');
+    menu.addEventListener('click', evt => {
+      const customFavorites = document.createElement('custom-favorites');
+      document.body.appendChild(customFavorites);
+    })
+    
+
+
+  }
+
+
+  static get observedAttributes() {
+    return ['data'];
+  }
+
+
+  connectedCallback() {
+
+    this.root.host.style.userSelect = 'none';
+
+    // this.dispatchEvent(new CustomEvent());
+    /*
+    this.dispatchEvent(new CustomEvent('submit', {
+              detail: 0
+          }));
+          */
+  }
+  disconnectedCallback() {
+
+  }
+
+  attributeChangedCallback(attrName, oldVal, newVal) {
+    if (attrName === 'data') {
+      const obj = JSON.parse(newVal);
     }
-
-
-    static get observedAttributes() {
-        return ['data'];
-    }
-
-
-    connectedCallback() {
-
-        this.root.host.style.userSelect = 'none';
-
-        // this.dispatchEvent(new CustomEvent());
-        /*
-        this.dispatchEvent(new CustomEvent('submit', {
-                  detail: 0
-              }));
-              */
-    }
-    disconnectedCallback() {
-
-    }
-
-    attributeChangedCallback(attrName, oldVal, newVal) {
-        if (attrName === 'data') {
-            const obj = JSON.parse(newVal);
-        }
-    }
+  }
 
 }
 customElements.define('custom-bar-renderer', CustomBarRenderer);
