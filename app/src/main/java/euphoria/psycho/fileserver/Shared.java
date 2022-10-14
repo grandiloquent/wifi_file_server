@@ -26,9 +26,10 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
-import static android.content.ContentValues.TAG;
 
 public class Shared {
+    private static final String TAG = "";
+
     public static Bitmap createVideoThumbnail(String filePath) {
         // MediaMetadataRetriever is available on API Level 8
         // but is hidden until API Level 10
@@ -158,10 +159,21 @@ public class Shared {
         }
     }
 
-    public static String substringBeforeLast(String s, String delimiter) {
-        int index = s.lastIndexOf(delimiter);
-        if (index == -1) return s;
-        return s.substring(0, index);
+    @TargetApi(VERSION_CODES.Q)
+    public static void requestDocumentPermission(Activity activity, String folder, int requestCode) {
+        StorageManager storageManager = (StorageManager) activity.getSystemService(Context.STORAGE_SERVICE);
+        Intent intent = storageManager.getPrimaryStorageVolume().createOpenDocumentTreeIntent();
+        String targetDirectory = "Android%2F" + folder;
+        Uri uri = intent.getParcelableExtra("android.provider.extra.INITIAL_URI");
+        String scheme = uri.toString();
+        // content://com.android.externalstorage.documents/root/primary
+        scheme = scheme.replace("/root/", "/document/");
+        scheme += "%3A" + targetDirectory;
+        uri = Uri.parse(scheme);
+
+        intent.putExtra("android.provider.extra.INITIAL_URI", uri);
+        // content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata
+        activity.startActivityForResult(intent, requestCode);
     }
 
     public static void requestManageAllFilesPermission(Activity activity) {
@@ -180,18 +192,9 @@ public class Shared {
         }
     }
 
-    @TargetApi(VERSION_CODES.Q)
-    public static void requestDocumentPermission(Activity activity, String folder, int requestCode) {
-        StorageManager storageManager = (StorageManager) activity.getSystemService(Context.STORAGE_SERVICE);
-        Intent intent = storageManager.getPrimaryStorageVolume().createOpenDocumentTreeIntent();
-        String targetDirectory = "Android%2F" + folder;
-        Uri uri = intent.getParcelableExtra("android.provider.extra.INITIAL_URI");
-        String scheme = uri.toString();
-        scheme = scheme.replace("/root/", "/document/");
-        scheme += "%3A" + targetDirectory;
-        Log.e("B5aOx2", String.format("requestDocumentPermission, %s", uri));
-        uri = Uri.parse(scheme);
-        intent.putExtra("android.provider.extra.INITIAL_URI", uri);
-        activity.startActivityForResult(intent, requestCode);
+    public static String substringBeforeLast(String s, String delimiter) {
+        int index = s.lastIndexOf(delimiter);
+        if (index == -1) return s;
+        return s.substring(0, index);
     }
 }

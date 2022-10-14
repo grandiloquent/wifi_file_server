@@ -4,9 +4,14 @@ import android.Manifest.permission;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
+import android.provider.DocumentsContract.Document;
+import android.provider.DocumentsProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,11 +25,13 @@ import java.util.stream.Collectors;
 
 public class MainActivity extends Activity {
     private static final int REQUEST_CODE = 1;
+    private static final int REQUEST_CODE_DOCUMENT = 2;
     private TextView mTextView;
     private ImageView mImageView;
 
     private void initialize() {
         Shared.requestManageAllFilesPermission(this);
+        Shared.requestDocumentPermission(this, "data", REQUEST_CODE_DOCUMENT);
     }
 
     @Override
@@ -74,8 +81,29 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
-            Log.e("B5aOx2", String.format("onActivityResult, %s", data));
+        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_DOCUMENT) {
+            Uri uri = data.getData();
+            Uri doc = DocumentsContract.buildDocumentUriUsingTree(uri,
+                    DocumentsContract.getTreeDocumentId(uri));
+
+            // content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata
+            // content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata/document/primary%3AAndroid%2Fdata
+            // content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata/document/com.apkpure.aegon
+
+//            Uri child = DocumentsContract.buildChildDocumentsUriUsingTree(uri,
+//                    DocumentsContract.getTreeDocumentId(uri));
+//            Log.e("B5aOx2", String.format("onActivityResult, %s", doc));
+//            Cursor c = getContentResolver().query(child, new String[] {
+//                    Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE }, null, null, null);
+//            try {
+//                while (c.moveToNext()) {
+//                    DocumentsContract.buildDocumentUriUsingTree(uri,
+//                            c.getString(0));
+//                    Log.e("B5aOx2", String.format("onActivityResult, %s", DocumentsContract.buildDocumentUriUsingTree(uri,
+//                            c.getString(0))));
+//                }
+//            } finally {
+//            }
         }
     }
 }
