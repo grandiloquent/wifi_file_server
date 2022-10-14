@@ -3,6 +3,8 @@ package euphoria.psycho.fileserver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -19,8 +21,10 @@ import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -103,6 +107,9 @@ public class FileServer extends NanoHTTPD {
                     return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
                             "text/plain", e.getMessage());
                 }
+            }
+            if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
+                return getThumbnail(mDirectory, parameters[0]);
             } else if (parameters[1].equals("1"))
                 if (parameters[0].startsWith("/Android/data"))
                     return listAndroidData(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
@@ -202,5 +209,33 @@ public class FileServer extends NanoHTTPD {
         response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(path, "/")));
         return response;
 
+    }
+
+    private static Response getThumbnail(String directory, String path) {
+        try {
+            File videoFile = new File(directory, path);
+            File parent = new File(videoFile.getParentFile(), ".images");
+            if (!parent.isDirectory()) {
+                parent.mkdir();
+            }
+            File thumbnailFile = new File(parent, Shared.md5(videoFile.getAbsolutePath()));
+            if (thumbnailFile.exists()) {
+                return Response.newChunkedResponse(Status.OK,
+                        "image/jpeg", new FileInputStream(thumbnailFile));
+            }
+            Bitmap thumbnail = Shared.createVideoThumbnail(videoFile.getAbsolutePath());
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            thumbnail.compress(CompressFormat.JPEG, 85, stream);
+            byte[] bytes = stream.toByteArray();
+            FileOutputStream outputStream = new FileOutputStream(thumbnailFile);
+            outputStream.write(bytes);
+            outputStream.close();
+            Response res = Response.newFixedLengthResponse(Status.OK,
+                    "image/jpeg", bytes);
+            return res;
+        } catch (Exception e) {
+            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                    "text/plain", e.getMessage());
+        }
     }
 }

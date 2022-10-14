@@ -32,6 +32,8 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -169,6 +171,59 @@ public class Shared {
         }
     }
 
+    public static List<FileInfo> listAndroidData(Context context, String treeUri, String path) {
+        Cursor c = context.getContentResolver().query(
+                Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + path + "/children"), new String[]{
+                        Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE,
+                        Document.COLUMN_LAST_MODIFIED,
+                        Document.COLUMN_DOCUMENT_ID}, null, null, null
+        );
+        List<FileInfo> files = new ArrayList<>();
+        while (c.moveToNext()) {
+            FileInfo fileInfo = new FileInfo();
+            fileInfo.Name = c.getString(0);
+            fileInfo.IsDir = c.getString(1).equals(Document.MIME_TYPE_DIR);
+            fileInfo.LastModified = c.getLong(2);
+            files.add(fileInfo);
+//            try {
+//                DocumentsContract.createDocument(
+//                        context.getContentResolver(),
+//                        Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata%2Feuphoria.psycho.porn%2Ffiles"),
+//                        Document.MIME_TYPE_DIR,
+//                        "good"
+//                );
+//            } catch (Exception e) {
+//                Log.e("B5aOx2", String.format("listAndroidData, %s", e.getMessage()));
+//            }
+        }
+        c.close();
+        return files;
+    }
+
+    public static String md5(String md5) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(md5.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : array) {
+                sb.append(Integer.toHexString((b & 0xFF) | 0x100).substring(1, 3));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException ignored) {
+        }
+        return null;
+    }
+
+    public static String readAllText(InputStream in) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        String line;
+        StringBuilder stringBuilder = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line).append('\n');
+        }
+        return stringBuilder.toString();
+    }
+
     @TargetApi(VERSION_CODES.Q)
     public static void requestDocumentPermission(Activity activity, String folder, int requestCode) {
         StorageManager storageManager = (StorageManager) activity.getSystemService(Context.STORAGE_SERVICE);
@@ -201,55 +256,16 @@ public class Shared {
         }
     }
 
-    public static String substringBeforeLast(String s, String delimiter) {
-        int index = s.lastIndexOf(delimiter);
-        if (index == -1) return s;
-        return s.substring(0, index);
-    }
-
     public static String substringAfterLast(String s, String delimiter) {
         int index = s.lastIndexOf(delimiter);
         if (index == -1) return s;
         return s.substring(index + delimiter.length());
     }
 
-    public static List<FileInfo> listAndroidData(Context context, String treeUri, String path) {
-        Cursor c = context.getContentResolver().query(
-                Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + path + "/children"), new String[]{
-                        Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE,
-                        Document.COLUMN_LAST_MODIFIED,
-                        Document.COLUMN_DOCUMENT_ID}, null, null, null
-        );
-        List<FileInfo> files = new ArrayList<>();
-        while (c.moveToNext()) {
-            FileInfo fileInfo = new FileInfo();
-            fileInfo.Name = c.getString(0);
-            fileInfo.IsDir = c.getString(1).equals(Document.MIME_TYPE_DIR);
-            fileInfo.LastModified = c.getLong(2);
-            files.add(fileInfo);
-//            try {
-//                DocumentsContract.createDocument(
-//                        context.getContentResolver(),
-//                        Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata%2Feuphoria.psycho.porn%2Ffiles"),
-//                        Document.MIME_TYPE_DIR,
-//                        "good"
-//                );
-//            } catch (Exception e) {
-//                Log.e("B5aOx2", String.format("listAndroidData, %s", e.getMessage()));
-//            }
-        }
-        c.close();
-        return files;
-    }
-
-    public static String readAllText(InputStream in) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        String line;
-        StringBuilder stringBuilder = new StringBuilder();
-        while ((line = reader.readLine()) != null) {
-            stringBuilder.append(line).append('\n');
-        }
-        return stringBuilder.toString();
+    public static String substringBeforeLast(String s, String delimiter) {
+        int index = s.lastIndexOf(delimiter);
+        if (index == -1) return s;
+        return s.substring(0, index);
     }
 
     public static class FileInfo {

@@ -71,8 +71,10 @@
                     customMediaItem.setAttribute('src', `icon-txt-m.svg`);
                 } else if (/\.(?:htm|xhtml|html)$/.test(element.name)) {
                     customMediaItem.setAttribute('src', `icon-code-m.svg`);
-                }else if (/\.(?:mp3)$/.test(element.name)) {
+                } else if (/\.(?:mp3)$/.test(element.name)) {
                     customMediaItem.setAttribute('src', `icon-audio-m.svg`);
+                } else if (/\.(?:mp4)$/.test(element.name)) {
+                    customMediaItem.setAttribute('src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(uri + "/" + element.name)}`);
                 } else {
                     customMediaItem.setAttribute('src', "icon-nor-m.svg");
                 }
