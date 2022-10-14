@@ -3,16 +3,14 @@ package euphoria.psycho.fileserver;
 import android.Manifest.permission;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
-import android.provider.DocumentsContract;
-import android.provider.DocumentsContract.Document;
-import android.provider.DocumentsProvider;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -26,12 +24,23 @@ import java.util.stream.Collectors;
 public class MainActivity extends Activity {
     private static final int REQUEST_CODE = 1;
     private static final int REQUEST_CODE_DOCUMENT = 2;
+    public static final String TREE_URI = "tree_uri";
     private TextView mTextView;
     private ImageView mImageView;
 
     private void initialize() {
         Shared.requestManageAllFilesPermission(this);
-        Shared.requestDocumentPermission(this, "data", REQUEST_CODE_DOCUMENT);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String treeUri = sharedPreferences.getString(TREE_URI, null);
+        if (treeUri == null) {
+            Shared.requestDocumentPermission(this, "data", REQUEST_CODE_DOCUMENT);
+        } else {
+            List<Pair<String, Boolean>> files = Shared.listAndroidData(this, treeUri);
+            for (Pair<String, Boolean> f : files) {
+                Log.e("B5aOx2", String.format("initialize, %s",
+                        f.first + "=" + f.second));
+            }
+        }
     }
 
     @Override
@@ -82,28 +91,13 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_DOCUMENT) {
-            Uri uri = data.getData();
-            Uri doc = DocumentsContract.buildDocumentUriUsingTree(uri,
-                    DocumentsContract.getTreeDocumentId(uri));
-
-            // content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata
-            // content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata/document/primary%3AAndroid%2Fdata
-            // content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fdata/document/com.apkpure.aegon
-
-//            Uri child = DocumentsContract.buildChildDocumentsUriUsingTree(uri,
-//                    DocumentsContract.getTreeDocumentId(uri));
-//            Log.e("B5aOx2", String.format("onActivityResult, %s", doc));
-//            Cursor c = getContentResolver().query(child, new String[] {
-//                    Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE }, null, null, null);
-//            try {
-//                while (c.moveToNext()) {
-//                    DocumentsContract.buildDocumentUriUsingTree(uri,
-//                            c.getString(0));
-//                    Log.e("B5aOx2", String.format("onActivityResult, %s", DocumentsContract.buildDocumentUriUsingTree(uri,
-//                            c.getString(0))));
-//                }
-//            } finally {
-//            }
+            getContentResolver().takePersistableUriPermission(
+                    data.getData(),
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            );
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            sharedPreferences.edit().putString(TREE_URI, data.getData().toString()).apply();
         }
     }
 }

@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -14,8 +15,11 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Environment;
 import android.os.storage.StorageManager;
+import android.provider.DocumentsContract;
+import android.provider.DocumentsContract.Document;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.Pair;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -24,7 +28,9 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 
 public class Shared {
@@ -170,7 +176,6 @@ public class Shared {
         scheme = scheme.replace("/root/", "/document/");
         scheme += "%3A" + targetDirectory;
         uri = Uri.parse(scheme);
-
         intent.putExtra("android.provider.extra.INITIAL_URI", uri);
         // content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata
         activity.startActivityForResult(intent, requestCode);
@@ -196,5 +201,18 @@ public class Shared {
         int index = s.lastIndexOf(delimiter);
         if (index == -1) return s;
         return s.substring(0, index);
+    }
+
+    public static List<Pair<String, Boolean>> listAndroidData(Context context, String treeUri) {
+        Cursor c = context.getContentResolver().query(
+                Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata/children"), new String[]{
+                        Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE}, null, null, null
+        );
+        List<Pair<String, Boolean>> files = new ArrayList<>();
+        while (c.moveToNext()) {
+            files.add(Pair.create(c.getString(0), c.getString(1).equals(Document.MIME_TYPE_DIR)));
+        }
+        c.close();
+        return files;
     }
 }
