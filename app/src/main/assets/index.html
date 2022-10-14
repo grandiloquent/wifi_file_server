@@ -60,7 +60,7 @@
     <script src="custom-media-item.js"></script>
     <script src="custom-image-viewer.js"></script>
     <script src="custom-dialog.js"></script>
-   
+
     <script>
         let baseUri = window.location.hostname === "127.0.0.1" ? "http://192.168.8.55:8089" : "";
         async function loadFiles() {
@@ -72,10 +72,29 @@
             const files = await loadFiles();
             const container = document.querySelector('div');
 
+            const io = new IntersectionObserver((entries, observer) => {
+                entries.forEach((entry) => {
+                    // Each entry describes an intersection change for one observed
+                    // target element:
+                    //   entry.boundingClientRect
+                    //   entry.intersectionRatio
+                    //   entry.intersectionRect
+                    //   entry.isIntersecting
+                    //   entry.rootBounds
+                    //   entry.target
+                    //   entry.time
+                    if (entry.isIntersecting) {
+                        if (entry.target.getAttribute('data-src'))
+                            entry.target.setAttribute('src', entry.target.getAttribute('data-src'));
+                        io.unobserve(entry.target)
+                    }
+                });
+            });
+
             const uri = new URL(window.location).searchParams.get("path") || '';
             files.sort((x, y) => {
                 if (x.isDir === y.isDir)
-                    return x.name.localeCompare(y.name);
+                    return y.lastModified - x.lastModified; //x.name.localeCompare(y.name);
                 if (x.isDir)
                     return -1;
                 else
@@ -88,7 +107,8 @@
 
                     customMediaItem.setAttribute('src', `icon-${/\.(apk|pdf|zip|txt)$/.exec(element.name)[1]}-m.svg`);
                 } else if (element.name.endsWith('.jpg') || element.name.endsWith('.png')) {
-                    customMediaItem.setAttribute('src', `${baseUri}/api/files?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=0`);
+                    customMediaItem.setAttribute('src', `icon-pic-m.svg`);
+                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=0`);
                 } else if (element.name.endsWith('.xlsx')) {
                     customMediaItem.setAttribute('src', `icon-xls-m.svg`);
                 } else if (element.name.endsWith('.7z')) {
@@ -100,7 +120,8 @@
                 } else if (/\.(?:mp3)$/.test(element.name)) {
                     customMediaItem.setAttribute('src', `icon-audio-m.svg`);
                 } else if (/\.(?:mp4)$/.test(element.name)) {
-                    customMediaItem.setAttribute('src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(uri + "/" + element.name)}`);
+                    customMediaItem.setAttribute('src', `icon-video-m.svg`);
+                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(uri + "/" + element.name)}`);
                 } else {
                     customMediaItem.setAttribute('src', "icon-nor-m.svg");
                 }
@@ -117,7 +138,10 @@
                     customBottomSheet.style.display = 'block';
                     customBottomSheet.dataset.path = `?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
                 });
+                io.observe(customMediaItem)
+
             });
+
         }
         render();
         const customBottomSheet = document.querySelector('custom-bottom-sheet');

@@ -96,7 +96,8 @@ class CustomFavorites extends HTMLElement {
     })
 
     const items = [
-      "/Movies/TikTok"
+      "/Movies/TikTok",
+      "/Pictures/Screenshots"
     ];
     const buffer = [];
     for (let index = 0; index < items.length; index++) {

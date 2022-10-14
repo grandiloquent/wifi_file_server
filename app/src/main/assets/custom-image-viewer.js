@@ -62,10 +62,13 @@ img{
             const img = this.root.querySelector('img');
             img.src = newVal;
             img.addEventListener('load', evt => {
-                const ratio = img.naturalWidth / window.innerWidth;
-                img.style.width = `${window.innerWidth}px`;
+                const rw = img.naturalWidth / window.innerWidth;
+                const rh = img.naturalHeight / window.innerHeight;
+                const ratio = Math.max(rw, rh);
+                img.style.width = `${ img.naturalWidth  / ratio}px`;
                 img.style.height = `${img.naturalHeight / ratio}px`;
                 img.style.marginTop = `${(window.innerHeight - img.naturalHeight / ratio) / 2}px`
+                img.style.marginLeft = `${(window.innerWidth - img.naturalWidth / ratio) / 2}px`
             })
             img.textContent = this.getAttribute('src') || '';
         }
