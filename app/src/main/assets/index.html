@@ -58,21 +58,23 @@
                 const customMediaItem = document.createElement('custom-media-item');
                 if (element.isDir)
                     customMediaItem.setAttribute('src', "icon-folder-m.svg");
-                else if (element.name.endsWith('.apk') || element.name.endsWith('.pdf')
-                    || element.name.endsWith('.zip')  || element.name.endsWith('.txt')) {
-                    customMediaItem.setAttribute('src', `icon-${element.name.match(/(?<=\.)[a-z0-9]+$/)[0]}-m.svg`);
-                } else if (element.name.endsWith('.epub')) {
-                    customMediaItem.setAttribute('src', `icon-doc-m.svg`);
+                else if (/\.(?:apk|pdf|zip|txt)$/.test(element.name)) {
+
+                    customMediaItem.setAttribute('src', `icon-${/\.(apk|pdf|zip|txt)$/.exec(element.name)[1]}-m.svg`);
                 } else if (element.name.endsWith('.jpg') || element.name.endsWith('.png')) {
                     customMediaItem.setAttribute('src', `${baseUri}/api/files?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=0`);
                 } else if (element.name.endsWith('.xlsx')) {
                     customMediaItem.setAttribute('src', `icon-xls-m.svg`);
                 } else if (element.name.endsWith('.7z')) {
                     customMediaItem.setAttribute('src', `icon-zip-m.svg`);
-                } else if (element.name.endsWith('.txt')) {
+                } else if (/\.(?:txt|epub|azw3|mobi)$/.test(element.name)) {
                     customMediaItem.setAttribute('src', `icon-txt-m.svg`);
+                } else if (/\.(?:htm|xhtml|html)$/.test(element.name)) {
+                    customMediaItem.setAttribute('src', `icon-code-m.svg`);
+                }else if (/\.(?:mp3)$/.test(element.name)) {
+                    customMediaItem.setAttribute('src', `icon-audio-m.svg`);
                 } else {
-                    customMediaItem.setAttribute('src', "icon-file-m.svg");
+                    customMediaItem.setAttribute('src', "icon-nor-m.svg");
                 }
                 customMediaItem.setAttribute('title', element.name);
                 let path;
