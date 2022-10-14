@@ -1,11 +1,11 @@
 class CustomMediaItem extends HTMLElement {
 
-    constructor() {
-        super();
+  constructor() {
+    super();
 
-        this.root = this.attachShadow({ mode: 'open' });
+    this.root = this.attachShadow({ mode: 'open' });
 
-        this.root.innerHTML = `
+    this.root.innerHTML = `
             <style>#thumbnail-img
         {
             min-width: 1px;
@@ -130,50 +130,55 @@ class CustomMediaItem extends HTMLElement {
               </div>
             </div>`;
 
-        const thumbnailImg = this.root.querySelector('#thumbnail-img');
-        thumbnailImg.src = this.getAttribute('src') || '';
-        const mediaItemImage = this.root.querySelector('#media-item-image');
-        mediaItemImage.href = this.getAttribute('href') || '';
-        const mediaItemMenu = this.root.querySelector('#media-item-menu');
-        mediaItemMenu.addEventListener('click', evt => {
-            this.dispatchEvent(new CustomEvent('submit'));
-        });
+    const thumbnailImg = this.root.querySelector('#thumbnail-img');
+    thumbnailImg.src = this.getAttribute('src') || '';
+    const mediaItemImage = this.root.querySelector('#media-item-image');
+    mediaItemImage.href = this.getAttribute('href') || '';
+    const mediaItemMenu = this.root.querySelector('#media-item-menu');
+    mediaItemMenu.addEventListener('click', evt => {
+      this.dispatchEvent(new CustomEvent('submit'));
+    });
+    mediaItemImage.addEventListener('click', evt => {
+      evt.preventDefault();
+      const customImageViewer = document.createElement('custom-image-viewer');
+
+      customImageViewer.setAttribute('src', thumbnailImg.src);
+      document.body.appendChild(customImageViewer);
+    });
 
 
+  }
 
 
+  static get observedAttributes() {
+    return ['src', "title", "href"];
+  }
+
+
+  connectedCallback() {
+
+    this.root.host.style.userSelect = 'none';
+
+    // this.dispatchEvent(new CustomEvent());
+    /*
+    this.dispatchEvent(new CustomEvent('submit', {
+              detail: 0
+          }));
+          */
+  }
+  disconnectedCallback() {
+
+  }
+
+  attributeChangedCallback(attrName, oldVal, newVal) {
+    if (attrName === 'src') {
+      this.root.querySelector('#thumbnail-img').src = newVal;
+    } else if (attrName === "title") {
+      this.root.querySelector('#media-item-headline').textContent = newVal;
+    } else if (attrName === "href") {
+      this.root.querySelector('#media-item-metadata-content').href = newVal;
     }
-
-
-    static get observedAttributes() {
-        return ['src', "title","href"];
-    }
-
-
-    connectedCallback() {
-
-        this.root.host.style.userSelect = 'none';
-
-        // this.dispatchEvent(new CustomEvent());
-        /*
-        this.dispatchEvent(new CustomEvent('submit', {
-                  detail: 0
-              }));
-              */
-    }
-    disconnectedCallback() {
-
-    }
-
-    attributeChangedCallback(attrName, oldVal, newVal) {
-        if (attrName === 'src') {
-            this.root.querySelector('#thumbnail-img').src = newVal;
-        } else if (attrName === "title") {
-            this.root.querySelector('#media-item-headline').textContent = newVal;
-        } else if (attrName === "href") {
-            this.root.querySelector('#media-item-metadata-content').href = newVal;
-        }
-    }
+  }
 
 }
 customElements.define('custom-media-item', CustomMediaItem);
