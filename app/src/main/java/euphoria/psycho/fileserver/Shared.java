@@ -21,6 +21,10 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -203,16 +207,37 @@ public class Shared {
         return s.substring(0, index);
     }
 
-    public static List<Pair<String, Boolean>> listAndroidData(Context context, String treeUri) {
+    public static List<FileInfo> listAndroidData(Context context, String treeUri) {
         Cursor c = context.getContentResolver().query(
                 Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata/children"), new String[]{
-                        Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE}, null, null, null
+                        Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE,
+                        Document.COLUMN_LAST_MODIFIED}, null, null, null
         );
-        List<Pair<String, Boolean>> files = new ArrayList<>();
+        List<FileInfo> files = new ArrayList<>();
         while (c.moveToNext()) {
-            files.add(Pair.create(c.getString(0), c.getString(1).equals(Document.MIME_TYPE_DIR)));
+            FileInfo fileInfo = new FileInfo();
+            fileInfo.Name = c.getString(0);
+            fileInfo.IsDir = c.getString(1).equals(Document.MIME_TYPE_DIR);
+            fileInfo.LastModified = c.getLong(2);
+            files.add(fileInfo);
         }
         c.close();
         return files;
+    }
+
+    public static String readAllText(InputStream in) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        String line;
+        StringBuilder stringBuilder = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line).append('\n');
+        }
+        return stringBuilder.toString();
+    }
+
+    public static class FileInfo {
+        public String Name;
+        public boolean IsDir;
+        public long LastModified;
     }
 }

@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,12 +35,12 @@ public class MainActivity extends Activity {
         String treeUri = sharedPreferences.getString(TREE_URI, null);
         if (treeUri == null) {
             Shared.requestDocumentPermission(this, "data", REQUEST_CODE_DOCUMENT);
-        } else {
-            List<Pair<String, Boolean>> files = Shared.listAndroidData(this, treeUri);
-            for (Pair<String, Boolean> f : files) {
-                Log.e("B5aOx2", String.format("initialize, %s",
-                        f.first + "=" + f.second));
-            }
+        }
+        FileServer fileServer = new FileServer(MainActivity.this);
+        try {
+            fileServer.start();
+        } catch (IOException e) {
+            Log.e("B5aOx2", String.format("initialize, %s", e.getMessage()));
         }
     }
 

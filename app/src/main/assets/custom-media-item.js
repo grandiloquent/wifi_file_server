@@ -146,7 +146,7 @@ class CustomMediaItem extends HTMLElement {
 
 
     static get observedAttributes() {
-        return ['data'];
+        return ['src', "title"];
     }
 
 
@@ -166,8 +166,10 @@ class CustomMediaItem extends HTMLElement {
     }
 
     attributeChangedCallback(attrName, oldVal, newVal) {
-        if (attrName === 'data') {
-            const obj = JSON.parse(newVal);
+        if (attrName === 'src') {
+            this.root.querySelector('#thumbnail-img').src = newVal;
+        } else if (attrName === "title") {
+            this.root.querySelector('#media-item-headline').textContent = newVal;
         }
     }
 

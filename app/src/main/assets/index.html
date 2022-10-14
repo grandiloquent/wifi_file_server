@@ -26,13 +26,36 @@
 </head>
 
 <body>
-    <custom-media-item href="/" src="https://i.ytimg.com/vi_webp/IY0P38yrQ_Y/hqdefault.webp"></custom-media-item>
+    <div>
+
+    </div>
     <script src="custom-media-item.js"></script>
     <script>
-        const customMediaItem = document.querySelector('custom-media-item');
-        customMediaItem.addEventListener('submit', evt => {
-            console.log('===============')
-        });
+        let baseUri = window.location.hostname === "127.0.0.1" ? "http://192.168.8.55:8089" : "";
+        async function loadFiles() {
+            const res = await fetch(`${baseUri}/api/files`);
+            const files = await res.json();
+            return files;
+        }
+        async function render() {
+            const files = await loadFiles();
+            const container = document.querySelector('div');
+            console.log(files, files.sort((x, y) => {
+                return x.lastModified - y.lastModified;
+            }))
+            files.sort((x, y) => {
+                return x.name.localeCompare(y.name);
+            }).forEach(element => {
+                const customMediaItem = document.createElement('custom-media-item');
+                if (element.isDir)
+                    customMediaItem.setAttribute('src', "icon-folder-m.svg");
+                else
+                    customMediaItem.setAttribute('src', "icon-file-m.svg");
+                customMediaItem.setAttribute('title', element.name);
+                container.appendChild(customMediaItem);
+            });
+        }
+        render();
     </script>
 </body>
 
