@@ -33,18 +33,22 @@
     <script>
         let baseUri = window.location.hostname === "127.0.0.1" ? "http://192.168.8.55:8089" : "";
         async function loadFiles() {
-            const res = await fetch(`${baseUri}/api/files`);
+            const res = await fetch(`${baseUri}/api/files?path=${new URL(window.location).searchParams.get("path") || ''}`);
             const files = await res.json();
             return files;
         }
         async function render() {
             const files = await loadFiles();
             const container = document.querySelector('div');
-            console.log(files, files.sort((x, y) => {
-                return x.lastModified - y.lastModified;
-            }))
+
+            const uri = new URL(window.location).searchParams.get("path") || '';
             files.sort((x, y) => {
-                return x.name.localeCompare(y.name);
+                if (x.isDir === y.isDir)
+                    return x.name.localeCompare(y.name);
+                if (x.isDir)
+                    return -1;
+                else
+                    return 1;
             }).forEach(element => {
                 const customMediaItem = document.createElement('custom-media-item');
                 if (element.isDir)
@@ -52,6 +56,14 @@
                 else
                     customMediaItem.setAttribute('src', "icon-file-m.svg");
                 customMediaItem.setAttribute('title', element.name);
+                let path;
+                if (element.isDir) {
+                    path = `?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+                } else {
+                    path = `${baseUri}/api/files?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+
+                }
+                customMediaItem.setAttribute('href', path);
                 container.appendChild(customMediaItem);
             });
         }

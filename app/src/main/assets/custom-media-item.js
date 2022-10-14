@@ -146,7 +146,7 @@ class CustomMediaItem extends HTMLElement {
 
 
     static get observedAttributes() {
-        return ['src', "title"];
+        return ['src', "title","href"];
     }
 
 
@@ -170,6 +170,8 @@ class CustomMediaItem extends HTMLElement {
             this.root.querySelector('#thumbnail-img').src = newVal;
         } else if (attrName === "title") {
             this.root.querySelector('#media-item-headline').textContent = newVal;
+        } else if (attrName === "href") {
+            this.root.querySelector('#media-item-metadata-content').href = newVal;
         }
     }
 

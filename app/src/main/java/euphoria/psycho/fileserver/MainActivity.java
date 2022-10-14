@@ -2,13 +2,19 @@ package euphoria.psycho.fileserver;
 
 import android.Manifest.permission;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.storage.StorageManager;
 import android.preference.PreferenceManager;
+import android.provider.DocumentsContract;
+import android.provider.DocumentsContract.Document;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
@@ -17,7 +23,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -99,6 +107,36 @@ public class MainActivity extends Activity {
             );
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             sharedPreferences.edit().putString(TREE_URI, data.getData().toString()).apply();
+        }
+        if (resultCode == RESULT_OK && requestCode == 3) {
+            final ContentResolver resolver = getContentResolver();
+            Uri uri = data.getData();
+            final Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri,
+                    DocumentsContract.getTreeDocumentId(
+                            uri
+                    ));
+            Cursor c = null;
+            try {
+                c = resolver.query(childrenUri, new String[]{
+                        DocumentsContract.Document.COLUMN_DOCUMENT_ID}, null, null, null);
+                while (c.moveToNext()) {
+                    final String documentId = c.getString(0);
+                    Log.e("B5aOx2", String.format("onActivityResult, %s\n%s", documentId, DocumentsContract.buildTreeDocumentUri(uri.toString(), DocumentsContract.getTreeDocumentId(
+                            uri
+                    ))));
+                    final Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(uri,
+                            documentId);
+                    Log.e("B5aOx2", String.format("onActivityResult documentUri, %s", documentUri));
+                    DocumentsContract.removeDocument(getContentResolver(),
+                            documentUri,
+                            Uri.parse("content://com.android.externalstorage.documents/tree/primary%3A.aaa%2Fddd/document/primary%3A.aaa%2Fddd"));
+                }
+            } catch (Exception e) {
+                Log.e("B5aOx2", String.format("onActivityResult==========, %s", e.getMessage()));
+            } finally {
+            }
+            Log.e("B5aOx2", String.format("onActivityResult, %s",
+                    DocumentsContract.buildDocumentUri(uri.toString(), "primary:Movies/123/123")));
         }
     }
 }

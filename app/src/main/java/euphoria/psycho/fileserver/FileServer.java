@@ -3,7 +3,10 @@ package euphoria.psycho.fileserver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.provider.DocumentsContract;
+import android.provider.DocumentsContract.Document;
 import android.util.Log;
 import android.util.Pair;
 import android.webkit.MimeTypeMap;
@@ -19,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 
@@ -55,7 +59,6 @@ public class FileServer extends NanoHTTPD {
     @Override
     protected Response serve(IHTTPSession session) {
         String uri = session.getUri();
-        Log.e("B5aOx2", String.format("serve, %s", uri));
         if (uri.equals("/favicon.ico")) {
             return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
         } else if (uri.equals("/")) {
@@ -82,24 +85,63 @@ public class FileServer extends NanoHTTPD {
             if (response != null)
                 return response;
         } else if (uri.equals("/api/files")) {
-            Log.e("B5aOx2", String.format("serve, %s", MimeTypeMap.getSingleton()
-                    .getMimeTypeFromExtension("svg")));
-            List<FileInfo> files = Shared.listAndroidData(mContext, mTreeUri);
-            JSONArray jsonArray = new JSONArray();
-            for (FileInfo f : files) {
+            String[] parameters = getParameters(session);
+            if (parameters[1].equals("1"))
+                return listAndroidData(mContext, mTreeUri, parameters[0]);
+            else {
                 try {
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("name", f.Name);
-                    jsonObject.put("isDir", f.IsDir);
-                    jsonObject.put("lastModified", f.LastModified);
-                    jsonArray.put(jsonObject);
+                    InputStream stream = mContext.getContentResolver()
+                            .openInputStream(Uri.parse(
+                                    //"content://content%3A%2F%2Fcom.android.externalstorage.documents%2Ftree%2Fprimary%253AAndroid%252Fdata/" +
+                                    mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(parameters[0])
+                            ));
+                    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+                    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+                    Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
+                    response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(parameters[0], "/")));
+                    return response;
                 } catch (Exception e) {
+                    return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                            "text/plain", e.getMessage());
                 }
+
             }
-            Response response = Response.newFixedLengthResponse(Status.NOT_FOUND, "application/json", jsonArray.toString());
-            response.addHeader("Access-Control-Allow-Origin", "*");
-            return response;
         }
         return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
+    }
+
+    private static Response listAndroidData(Context context, String treeUri, String uri) {
+        List<FileInfo> files = Shared.listAndroidData(context, treeUri, Uri.encode(uri));
+        JSONArray jsonArray = new JSONArray();
+        for (FileInfo f : files) {
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", f.Name);
+                jsonObject.put("isDir", f.IsDir);
+                jsonObject.put("lastModified", f.LastModified);
+                jsonArray.put(jsonObject);
+            } catch (Exception ignored) {
+            }
+        }
+        Response response = Response.newFixedLengthResponse(Status.NOT_FOUND, "application/json", jsonArray.toString());
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
+
+    private static String[] getParameters(IHTTPSession session) {
+        Map<String, List<String>> parameters = session.getParameters();
+        String path = "";
+        String isDir = "1";
+        if (parameters.containsKey("path")) {
+            if (parameters.get("path").size() > 0)
+                path = parameters.get("path").get(0);
+        }
+        if (parameters.containsKey("isDir")) {
+            if (parameters.get("isDir").size() > 0)
+                isDir = parameters.get("isDir").get(0);
+        }
+        return new String[]{
+                path, isDir
+        };
     }
 }

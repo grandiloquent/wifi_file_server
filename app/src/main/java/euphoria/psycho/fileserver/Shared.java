@@ -207,11 +207,18 @@ public class Shared {
         return s.substring(0, index);
     }
 
-    public static List<FileInfo> listAndroidData(Context context, String treeUri) {
+    public static String substringAfterLast(String s, String delimiter) {
+        int index = s.lastIndexOf(delimiter);
+        if (index == -1) return s;
+        return s.substring(index + delimiter.length());
+    }
+
+    public static List<FileInfo> listAndroidData(Context context, String treeUri, String path) {
         Cursor c = context.getContentResolver().query(
-                Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata/children"), new String[]{
+                Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + path + "/children"), new String[]{
                         Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE,
-                        Document.COLUMN_LAST_MODIFIED}, null, null, null
+                        Document.COLUMN_LAST_MODIFIED,
+                        Document.COLUMN_DOCUMENT_ID}, null, null, null
         );
         List<FileInfo> files = new ArrayList<>();
         while (c.moveToNext()) {
@@ -220,10 +227,21 @@ public class Shared {
             fileInfo.IsDir = c.getString(1).equals(Document.MIME_TYPE_DIR);
             fileInfo.LastModified = c.getLong(2);
             files.add(fileInfo);
+//            try {
+//                DocumentsContract.createDocument(
+//                        context.getContentResolver(),
+//                        Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata%2Feuphoria.psycho.porn%2Ffiles"),
+//                        Document.MIME_TYPE_DIR,
+//                        "good"
+//                );
+//            } catch (Exception e) {
+//                Log.e("B5aOx2", String.format("listAndroidData, %s", e.getMessage()));
+//            }
         }
         c.close();
         return files;
     }
+
 
     public static String readAllText(InputStream in) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
