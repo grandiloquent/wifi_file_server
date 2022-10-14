@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html {
+            font-size: 10px;
+            font-family: Roboto, Arial, sans-serif;
+            word-wrap: break-word;
+            color: #030303;
+            background-color: #fff;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            font-size: 1.2rem;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <custom-media-item href="/" src="https://i.ytimg.com/vi_webp/IY0P38yrQ_Y/hqdefault.webp"></custom-media-item>
+    <script src="custom-media-item.js"></script>
+    <script>
+        const customMediaItem = document.querySelector('custom-media-item');
+        customMediaItem.addEventListener('submit', evt => {
+            console.log('===============')
+        });
+    </script>
+</body>
+
+</html>
