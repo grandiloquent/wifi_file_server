@@ -41,6 +41,25 @@
     <script src="custom-image-viewer.js"></script>
     <script src="custom-dialog.js"></script>
     <script>
+
+        function substringBeforeLast(string, delimiter, missingDelimiterValue) {
+            const index = string.lastIndexOf(delimiter);
+            if (index === -1) {
+                return missingDelimiterValue || string;
+            } else {
+                return string.substring(0, index);
+            }
+        }
+        function substringAfterLast(string, delimiter, missingDelimiterValue) {
+            const index = string.lastIndexOf(delimiter);
+            if (index === -1) {
+                return missingDelimiterValue || string;
+            } else {
+                return string.substring(index + delimiter.length);
+            }
+        }
+    </script>
+    <script>
         let baseUri = window.location.hostname === "127.0.0.1" ? "http://192.168.8.55:8089" : "";
         async function loadFiles() {
             const res = await fetch(`${baseUri}/api/files?path=${new URL(window.location).searchParams.get("path") || ''}`);
@@ -104,9 +123,12 @@
             customBottomSheet.style.display = 'none';
             const customDialog = document.createElement('custom-dialog');
             customDialog.setAttribute('title', "询问");
-            customDialog.setAttribute('message', `您确定要删除 ${decodeURIComponent(evt.currentTarget.dataset.path.split('&')[0]).split('/')[1]} 吗？`);
+            const path = evt.currentTarget.dataset.path;
+            let name = substringBeforeLast(path, "&");
+            customDialog.setAttribute('message', `您确定要删除 ${substringAfterLast(decodeURIComponent(name), "/")} 吗？`);
             customDialog.addEventListener('submit', async evt => {
-                fetch(`${baseUri}/api/files${evt.currentTarget.dataset.path}&action=delete`)
+                await fetch(`${baseUri}/api/files${path}&action=delete`);
+                location.reload();
             });
             document.body.appendChild(customDialog);
         });

@@ -22,6 +22,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -224,6 +225,18 @@ public class Shared {
         return stringBuilder.toString();
     }
 
+    public static void recursiveDelete(File rootDir) {
+        if (rootDir.isDirectory()) {
+            File[] childFiles = rootDir.listFiles();
+            if (childFiles != null) {
+                for (File child : childFiles) {
+                    recursiveDelete(child);
+                }
+            }
+        }
+        rootDir.delete();
+    }
+
     @TargetApi(VERSION_CODES.Q)
     public static void requestDocumentPermission(Activity activity, String folder, int requestCode) {
         StorageManager storageManager = (StorageManager) activity.getSystemService(Context.STORAGE_SERVICE);
@@ -274,3 +287,4 @@ public class Shared {
         public long LastModified;
     }
 }
+// https://android.googlesource.com/platform/tools/tradefederation/+/dfd83b4c73cdb2ac0c2459f90b6caed8642cf684/src/com/android/tradefed/util/FileUtil.java

@@ -27,6 +27,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -195,14 +202,22 @@ public class FileServer extends NanoHTTPD {
         } else if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);
             if (parameters[2].equals("delete") && parameters[0].startsWith("/")) {
-                try {
-                    // TODO a very dangerous operation, if the wrong path is passed will completely wipe the whole folder
-                    DocumentsContract.deleteDocument(mContext.getContentResolver(),
-                            Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(parameters[0])));
-                } catch (Exception e) {
-                    return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-                            "text/plain", e.getMessage());
+                if (parameters[0].startsWith("/Android/data")) {
+                    try {
+                        // TODO a very dangerous operation, if the wrong path is passed will completely wipe the whole folder
+                        DocumentsContract.deleteDocument(mContext.getContentResolver(),
+                                Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(
+                                        Shared.substringAfterLast(parameters[0], "/Android/data")
+                                )));
+                    } catch (Exception e) {
+                        return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                                "text/plain", e.getMessage());
+                    }
+                } else {
+                    return deleteFileSystem(new File(mDirectory, parameters[0]));
                 }
+
+
             }
             if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
                 return getThumbnail(mDirectory, parameters[0]);
@@ -237,5 +252,20 @@ public class FileServer extends NanoHTTPD {
             }
         }
         return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
+    }
+
+    private static Response deleteFileSystem(File path) {
+        Response response;
+        try {
+            Shared.recursiveDelete(path);
+            response = Response.newFixedLengthResponse(Status.OK,
+                    "text/plain", "Ok");
+        } catch (Exception e) {
+            response = Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                    "text/plain", e.getMessage());
+
+        }
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        return response;
     }
 }
