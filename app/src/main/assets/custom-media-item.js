@@ -99,7 +99,7 @@ class CustomMediaItem extends HTMLElement {
         }</style>
             <div style="padding: 12px 12px 0; display: flex;">
               <a id="media-item-image">
-                <div style="display: flex; -webkit-box-align: center; align-items: center; -webkit-box-pack: center; justify-content: center; position: relative; flex-shrink: 0; overflow: hidden; width: 160px; height: 90px;">
+                <div style="display: flex; -webkit-box-align: center; align-items: center; -webkit-box-pack: center; justify-content: center; position: relative; flex-shrink: 0; overflow: hidden; width: 90px; height: 90px;">
                   <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; width: 100%; min-height: 100%; margin: auto; background-color: rgba(0,0,0,.1);">
                   </div><img id="thumbnail-img" />
                   <div style="position: absolute; bottom: 0; left: 0; right: 0; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; flex-direction: column; -webkit-box-align: end; align-items: flex-end;">

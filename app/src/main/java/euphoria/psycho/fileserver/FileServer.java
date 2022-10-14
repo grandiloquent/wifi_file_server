@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
@@ -18,8 +19,11 @@ import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +37,8 @@ public class FileServer extends NanoHTTPD {
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
     private final String mTreeUri;
+    private final String mStoragePath;
+    private final String mDirectory;
 
     public FileServer(Context context) {
         super(Shared.getDeviceIP(context), 8089);
@@ -41,6 +47,8 @@ public class FileServer extends NanoHTTPD {
         mAssetManager = mContext.getAssets();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         mTreeUri = sharedPreferences.getString(TREE_URI, null);
+        mStoragePath = Shared.getExternalStoragePath(mContext);
+        mDirectory = Shared.substringBeforeLast(mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath(), "/Android/data");
     }
 
     private Response readAsset(String filename, String uri, String mimeType) {
@@ -86,9 +94,9 @@ public class FileServer extends NanoHTTPD {
                 return response;
         } else if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);
-            if (parameters[2].equals("delete")) {
+            if (parameters[2].equals("delete") && parameters[0].startsWith("/")) {
                 try {
-                    // TODO a very dangerous operation, if the wrong path is passed will completely wipe the whole Android/data directory
+                    // TODO a very dangerous operation, if the wrong path is passed will completely wipe the whole folder
                     DocumentsContract.deleteDocument(mContext.getContentResolver(),
                             Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(parameters[0])));
                 } catch (Exception e) {
@@ -96,9 +104,33 @@ public class FileServer extends NanoHTTPD {
                             "text/plain", e.getMessage());
                 }
             } else if (parameters[1].equals("1"))
-                return listAndroidData(mContext, mTreeUri, parameters[0]);
+                if (parameters[0].startsWith("/Android/data"))
+                    return listAndroidData(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
+                else {
+                    File dir = new File(mDirectory, parameters[0]);
+                    File[] fileArray = dir.listFiles();
+                    List<FileInfo> files = new ArrayList<>();
+                    for (int i = 0; i < fileArray.length; i++) {
+                        FileInfo fileInfo = new FileInfo();
+                        fileInfo.Name = fileArray[i].getName();
+                        fileInfo.LastModified = fileArray[i].lastModified();
+                        fileInfo.IsDir = fileArray[i].isDirectory();
+                        files.add(fileInfo);
+                    }
+                    return serveFiles(files);
+                }
             else {
-                return serveFile(mContext, mTreeUri, parameters[0]);
+                if (parameters[0].startsWith("/Android/data"))
+                    return serveFile(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
+                else {
+                    try {
+                        InputStream stream = new FileInputStream(new File(mDirectory, parameters[0]));
+                        return serverFile(stream, parameters[0]);
+                    } catch (Exception e) {
+                        return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                                "text/plain", e.getMessage());
+                    }
+                }
             }
         }
         return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
@@ -106,6 +138,10 @@ public class FileServer extends NanoHTTPD {
 
     private static Response listAndroidData(Context context, String treeUri, String uri) {
         List<FileInfo> files = Shared.listAndroidData(context, treeUri, Uri.encode(uri));
+        return serveFiles(files);
+    }
+
+    private static Response serveFiles(List<FileInfo> files) {
         JSONArray jsonArray = new JSONArray();
         for (FileInfo f : files) {
             try {
@@ -151,14 +187,20 @@ public class FileServer extends NanoHTTPD {
                             //"content://content%3A%2F%2Fcom.android.externalstorage.documents%2Ftree%2Fprimary%253AAndroid%252Fdata/" +
                             treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(path)
                     ));
-            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
-            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
-            Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
-            response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(path, "/")));
-            return response;
+            return serverFile(stream, path);
         } catch (Exception e) {
+            Log.e("B5aOx2", String.format("serveFile, %s", e.getMessage()));
             return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
                     "text/plain", e.getMessage());
         }
+    }
+
+    private static Response serverFile(InputStream stream, String path) {
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+        Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
+        response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(path, "/")));
+        return response;
+
     }
 }

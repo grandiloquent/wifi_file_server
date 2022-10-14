@@ -242,7 +242,6 @@ public class Shared {
         return files;
     }
 
-
     public static String readAllText(InputStream in) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         String line;
