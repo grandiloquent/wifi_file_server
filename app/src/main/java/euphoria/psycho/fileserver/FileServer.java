@@ -247,9 +247,16 @@ public class FileServer extends NanoHTTPD {
                     return serveFile(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
                 else {
                     try {
-                        InputStream stream = new FileInputStream(Utils.processPath(mStoragePath,
-                                mDirectory, parameters[0]));
-                        return serverFile(stream, parameters[0]);
+                        Response response =
+                                Utils.serveFile(session.getHeaders(), new File(
+                                        Utils.processPath(mStoragePath,
+                                                mDirectory, parameters[0])
+                                ), MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                                        Shared.substringAfterLast(parameters[0], ".")
+                                ));
+                        response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Uri.encode(Shared.substringAfterLast(parameters[0], "/"))));
+                        return  response;
+                        //serverFile(stream, parameters[0]);
                     } catch (Exception e) {
                         return Utils.internalError(e);
                     }
