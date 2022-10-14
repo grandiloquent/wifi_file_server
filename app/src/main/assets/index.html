@@ -29,6 +29,11 @@
     <div>
 
     </div>
+    <div style="height:61px;"></div>
+    <custom-bar-renderer></custom-bar-renderer>
+    <custom-bottom-sheet style="display: none;"></custom-bottom-sheet>
+    <script src="custom-bottom-sheet.js"></script>
+    <script src="custom-bar-renderer.js"></script>
     <script src="custom-media-item.js"></script>
     <script>
         let baseUri = window.location.hostname === "127.0.0.1" ? "http://192.168.8.55:8089" : "";
@@ -61,13 +66,22 @@
                     path = `?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
                 } else {
                     path = `${baseUri}/api/files?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
-
                 }
                 customMediaItem.setAttribute('href', path);
                 container.appendChild(customMediaItem);
+                customMediaItem.addEventListener('submit', evt => {
+                    customBottomSheet.style.display = 'block';
+                    customBottomSheet.dataset.path = `?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+                });
             });
         }
         render();
+        const customBottomSheet = document.querySelector('custom-bottom-sheet');
+        customBottomSheet.addEventListener('delete', async evt => {
+            evt.stopPropagation();
+            fetch(`${baseUri}/api/files${evt.currentTarget.dataset.path}&action=delete`)
+        });
+
     </script>
 </body>
 

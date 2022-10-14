@@ -86,25 +86,22 @@ public class FileServer extends NanoHTTPD {
                 return response;
         } else if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);
-            if (parameters[1].equals("1"))
-                return listAndroidData(mContext, mTreeUri, parameters[0]);
-            else {
+            if (parameters[2].equals("delete")) {
                 try {
-                    InputStream stream = mContext.getContentResolver()
-                            .openInputStream(Uri.parse(
-                                    //"content://content%3A%2F%2Fcom.android.externalstorage.documents%2Ftree%2Fprimary%253AAndroid%252Fdata/" +
-                                    mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(parameters[0])
-                            ));
-                    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
-                    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
-                    Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
-                    response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(parameters[0], "/")));
-                    return response;
+                    DocumentsContract.deleteDocument(mContext.getContentResolver(),
+                            Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(parameters[0])));
+                    // ,
+                    //                            Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(Shared.substringBeforeLast(parameters[0], "/")))
+
                 } catch (Exception e) {
+                    Log.e("B5aOx2", String.format("servexxxxxxxxxxxxxxxxx, %s", e.getMessage()));
                     return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
                             "text/plain", e.getMessage());
                 }
-
+            } else if (parameters[1].equals("1"))
+                return listAndroidData(mContext, mTreeUri, parameters[0]);
+            else {
+                return serveFile(mContext, mTreeUri, parameters[0]);
             }
         }
         return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
@@ -123,7 +120,7 @@ public class FileServer extends NanoHTTPD {
             } catch (Exception ignored) {
             }
         }
-        Response response = Response.newFixedLengthResponse(Status.NOT_FOUND, "application/json", jsonArray.toString());
+        Response response = Response.newFixedLengthResponse(Status.OK, "application/json", jsonArray.toString());
         response.addHeader("Access-Control-Allow-Origin", "*");
         return response;
     }
@@ -132,6 +129,7 @@ public class FileServer extends NanoHTTPD {
         Map<String, List<String>> parameters = session.getParameters();
         String path = "";
         String isDir = "1";
+        String action = "";
         if (parameters.containsKey("path")) {
             if (parameters.get("path").size() > 0)
                 path = parameters.get("path").get(0);
@@ -140,8 +138,30 @@ public class FileServer extends NanoHTTPD {
             if (parameters.get("isDir").size() > 0)
                 isDir = parameters.get("isDir").get(0);
         }
+        if (parameters.containsKey("action")) {
+            if (parameters.get("action").size() > 0)
+                action = parameters.get("action").get(0);
+        }
         return new String[]{
-                path, isDir
+                path, isDir, action
         };
+    }
+
+    private static Response serveFile(Context context, String treeUri, String path) {
+        try {
+            InputStream stream = context.getContentResolver()
+                    .openInputStream(Uri.parse(
+                            //"content://content%3A%2F%2Fcom.android.externalstorage.documents%2Ftree%2Fprimary%253AAndroid%252Fdata/" +
+                            treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(path)
+                    ));
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+            Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
+            response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(path, "/")));
+            return response;
+        } catch (Exception e) {
+            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                    "text/plain", e.getMessage());
+        }
     }
 }
