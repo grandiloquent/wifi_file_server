@@ -1,6 +1,5 @@
 package euphoria.psycho.fileserver;
 
-import android.content.ContentResolver.MimeTypeInfo;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -10,9 +9,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
-import android.provider.DocumentsContract.Document;
 import android.util.Log;
-import android.util.Pair;
 import android.webkit.MimeTypeMap;
 
 import org.json.JSONArray;
@@ -28,13 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +53,11 @@ public class FileServer extends NanoHTTPD {
         mDirectory = Shared.substringBeforeLast(mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath(), "/Android/data");
     }
 
+    private static String getMimeType(String path) {
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                Shared.substringAfterLast(path, "."));
+    }
+
     private static String[] getParameters(IHTTPSession session) {
         Map<String, List<String>> parameters = session.getParameters();
         String path = "";
@@ -85,9 +80,9 @@ public class FileServer extends NanoHTTPD {
         };
     }
 
-    private static Response getThumbnail(String directory, String path) {
+    private static Response getThumbnail(String path) {
         try {
-            File videoFile = new File(directory, path);
+            File videoFile = new File(path);
             File parent = new File(videoFile.getParentFile(), ".images");
             if (!parent.isDirectory()) {
                 parent.mkdir();
@@ -141,6 +136,7 @@ public class FileServer extends NanoHTTPD {
                 jsonObject.put("name", f.Name);
                 jsonObject.put("isDir", f.IsDir);
                 jsonObject.put("lastModified", f.LastModified);
+                jsonObject.put("length", f.Length);
                 jsonArray.put(jsonObject);
             } catch (Exception ignored) {
             }
@@ -148,6 +144,37 @@ public class FileServer extends NanoHTTPD {
         Response response = Response.newFixedLengthResponse(Status.OK, "application/json", jsonArray.toString());
         response.addHeader("Access-Control-Allow-Origin", "*");
         return response;
+    }
+
+    private static Response serveNormalFile(IHTTPSession session, String storagePath, String directory, String path) {
+        try {
+            Response response =
+                    Utils.serveFile(session.getHeaders(), new File(
+                            Utils.processPath(storagePath, directory, path)
+                    ), getMimeType(path));
+            response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Uri.encode(Shared.substringAfterLast(path, "/"))));
+            return response;
+            //serverFile(stream, parameters[0]);
+        } catch (Exception e) {
+            return Utils.internalError(e);
+        }
+    }
+
+    private static Response serveNormalFiles(String storagePath, String directory, String path) {
+        File dir = new File(Utils.processPath(storagePath, directory, path));
+        File[] fileArray = dir.listFiles();
+        List<FileInfo> files = new ArrayList<>();
+        for (int i = 0; i < fileArray.length; i++) {
+            FileInfo fileInfo = new FileInfo();
+            fileInfo.Name = fileArray[i].getName();
+            fileInfo.LastModified = fileArray[i].lastModified();
+            fileInfo.IsDir = fileArray[i].isDirectory();
+            if (!fileInfo.IsDir) {
+                fileInfo.Length = fileArray[i].length();
+            }
+            files.add(fileInfo);
+        }
+        return serveFiles(files);
     }
 
     private static Response serverFile(InputStream stream, String path) {
@@ -180,12 +207,9 @@ public class FileServer extends NanoHTTPD {
     protected Response serve(IHTTPSession session) {
         String uri = session.getUri();
         if (uri.equals("/favicon.ico")) {
-            return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
+            return Utils.notFound();
         } else if (uri.equals("/")) {
             String filename = "index.html";
-            if (uri.equals("/string")) {
-                filename = "string.html";
-            }
             if (mHashMap.containsKey(uri)) {
                 return Response.newFixedLengthResponse(Status.OK, "text/html", mHashMap.get(uri));
             }
@@ -225,46 +249,22 @@ public class FileServer extends NanoHTTPD {
 
             }
             if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
-                return getThumbnail(mDirectory, parameters[0]);
+                return getThumbnail(Utils.processPath(mStoragePath, mDirectory, parameters[0]));
             } else if (parameters[1].equals("1"))
                 if (parameters[0].startsWith("/Android/data"))
                     return listAndroidData(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
                 else {
-                    File dir = new File(mDirectory, parameters[0]);
-                    File[] fileArray = dir.listFiles();
-                    List<FileInfo> files = new ArrayList<>();
-                    for (int i = 0; i < fileArray.length; i++) {
-                        FileInfo fileInfo = new FileInfo();
-                        fileInfo.Name = fileArray[i].getName();
-                        fileInfo.LastModified = fileArray[i].lastModified();
-                        fileInfo.IsDir = fileArray[i].isDirectory();
-                        files.add(fileInfo);
-                    }
-                    return serveFiles(files);
+                    return serveNormalFiles(mStoragePath, mDirectory, parameters[0]);
                 }
             else {
                 if (parameters[0].startsWith("/Android/data"))
                     return serveFile(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
                 else {
-                    try {
-                        Response response =
-                                Utils.serveFile(session.getHeaders(), new File(
-                                        Utils.processPath(mStoragePath,
-                                                mDirectory, parameters[0])
-                                ), MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                        Shared.substringAfterLast(parameters[0], ".")
-                                ));
-                        response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Uri.encode(Shared.substringAfterLast(parameters[0], "/"))));
-                        return  response;
-                        //serverFile(stream, parameters[0]);
-                    } catch (Exception e) {
-                        return Utils.internalError(e);
-                    }
+                    return serveNormalFile(session, mStoragePath, mDirectory, parameters[0]);
                 }
             }
         }
         return Utils.notFound();
     }
-
 
 }

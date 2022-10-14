@@ -15,11 +15,9 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Environment;
 import android.os.storage.StorageManager;
-import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.Pair;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -177,7 +175,7 @@ public class Shared {
                 Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + path + "/children"), new String[]{
                         Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE,
                         Document.COLUMN_LAST_MODIFIED,
-                        Document.COLUMN_DOCUMENT_ID}, null, null, null
+                        Document.COLUMN_SIZE}, null, null, null
         );
         List<FileInfo> files = new ArrayList<>();
         while (c.moveToNext()) {
@@ -185,6 +183,7 @@ public class Shared {
             fileInfo.Name = c.getString(0);
             fileInfo.IsDir = c.getString(1).equals(Document.MIME_TYPE_DIR);
             fileInfo.LastModified = c.getLong(2);
+            fileInfo.Length = c.getLong(3);
             files.add(fileInfo);
 //            try {
 //                DocumentsContract.createDocument(
@@ -285,6 +284,7 @@ public class Shared {
         public String Name;
         public boolean IsDir;
         public long LastModified;
+        public long Length;
     }
 }
 // https://android.googlesource.com/platform/tools/tradefederation/+/dfd83b4c73cdb2ac0c2459f90b6caed8642cf684/src/com/android/tradefed/util/FileUtil.java
