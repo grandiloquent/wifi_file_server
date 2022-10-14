@@ -26,6 +26,9 @@
 </head>
 
 <body>
+    <custom-header></custom-header>
+    <script src="custom-header.js"></script>
+
     <div>
 
     </div>
@@ -35,6 +38,8 @@
     <script src="custom-bottom-sheet.js"></script>
     <script src="custom-bar-renderer.js"></script>
     <script src="custom-media-item.js"></script>
+
+    <script src="custom-dialog.js"></script>
     <script>
         let baseUri = window.location.hostname === "127.0.0.1" ? "http://192.168.8.55:8089" : "";
         async function loadFiles() {
@@ -96,8 +101,14 @@
         render();
         const customBottomSheet = document.querySelector('custom-bottom-sheet');
         customBottomSheet.addEventListener('delete', async evt => {
-            evt.stopPropagation();
-            fetch(`${baseUri}/api/files${evt.currentTarget.dataset.path}&action=delete`)
+            customBottomSheet.style.display = 'none';
+            const customDialog = document.createElement('custom-dialog');
+            customDialog.setAttribute('title', "询问");
+            customDialog.setAttribute('message', `您确定要删除 ${decodeURIComponent(evt.currentTarget.dataset.path.split('&')[0]).split('/')[1]} 吗？`);
+            customDialog.addEventListener('submit', async evt => {
+                fetch(`${baseUri}/api/files${evt.currentTarget.dataset.path}&action=delete`)
+            });
+            document.body.appendChild(customDialog);
         });
 
     </script>
