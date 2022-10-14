@@ -1,11 +1,11 @@
 class CustomBottomSheet extends HTMLElement {
 
-    constructor() {
-        super();
+  constructor() {
+    super();
 
-        this.root = this.attachShadow({ mode: 'open' });
+    this.root = this.attachShadow({ mode: 'open' });
 
-        this.root.innerHTML = `<style>.menu-item
+    this.root.innerHTML = `<style>.menu-item
         {
             -webkit-box-direction: normal;
             color: #030303;
@@ -79,7 +79,13 @@ class CustomBottomSheet extends HTMLElement {
                     <button id="delete-action" class="menu-item-button">
                       删除
                     </button>
-                  </div>  
+                  </div> 
+                  <div class="menu-item">
+                    <button id="move-action" class="menu-item-button">
+                      移动
+                    </button>
+                  </div> 
+                  
                 <div class="menu-item">
                     <button id="close-action" class="menu-item-button">
                       取消
@@ -89,49 +95,53 @@ class CustomBottomSheet extends HTMLElement {
               </div>
             </div>
 		`;
-        const overlay = this.root.querySelector('#overlay');
-        overlay.addEventListener('click', evt => {
-            this.root.host.style.display = 'none';
-        })
-        const closeAction = this.root.querySelector('#close-action');
-        closeAction.addEventListener('click', evt => {
-            this.root.host.style.display = 'none';
-        })
+    const overlay = this.root.querySelector('#overlay');
+    overlay.addEventListener('click', evt => {
+      this.root.host.style.display = 'none';
+    })
+    const closeAction = this.root.querySelector('#close-action');
+    closeAction.addEventListener('click', evt => {
+      this.root.host.style.display = 'none';
+    })
 
-        const deleteAction = this.root.querySelector('#delete-action');
-        deleteAction.addEventListener('click', evt => {
-            this.dispatchEvent(new CustomEvent('delete'));
-        })
+    const deleteAction = this.root.querySelector('#delete-action');
+    deleteAction.addEventListener('click', evt => {
+      this.dispatchEvent(new CustomEvent('delete'));
+    })
+    const moveAction = this.root.querySelector('#move-action');
+    moveAction.addEventListener('click', evt => {
+      this.dispatchEvent(new CustomEvent('move'));
+    })
 
 
+  }
+
+
+  static get observedAttributes() {
+    return ['data'];
+  }
+
+
+  connectedCallback() {
+
+    this.root.host.style.userSelect = 'none';
+
+    // this.dispatchEvent(new CustomEvent());
+    /*
+    this.dispatchEvent(new CustomEvent('submit', {
+              detail: 0
+          }));
+          */
+  }
+  disconnectedCallback() {
+
+  }
+
+  attributeChangedCallback(attrName, oldVal, newVal) {
+    if (attrName === 'data') {
+      const obj = JSON.parse(newVal);
     }
-
-
-    static get observedAttributes() {
-        return ['data'];
-    }
-
-
-    connectedCallback() {
-
-        this.root.host.style.userSelect = 'none';
-
-        // this.dispatchEvent(new CustomEvent());
-        /*
-        this.dispatchEvent(new CustomEvent('submit', {
-                  detail: 0
-              }));
-              */
-    }
-    disconnectedCallback() {
-
-    }
-
-    attributeChangedCallback(attrName, oldVal, newVal) {
-        if (attrName === 'data') {
-            const obj = JSON.parse(newVal);
-        }
-    }
+  }
 
 }
 customElements.define('custom-bottom-sheet', CustomBottomSheet);

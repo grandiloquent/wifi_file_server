@@ -166,7 +166,19 @@
             });
             document.body.appendChild(customDialog);
         });
-
+        customBottomSheet.addEventListener('move', async evt => {
+            customBottomSheet.style.display = 'none';
+            const customDialog = document.createElement('custom-dialog');
+            customDialog.setAttribute('title', "询问");
+            const path = evt.currentTarget.dataset.path;
+            let name = substringBeforeLast(path, "&");
+            customDialog.setAttribute('message', `您确定要移动 ${substringAfterLast(decodeURIComponent(name), "/")} 吗？`);
+            customDialog.addEventListener('submit', async evt => {
+                await fetch(`${baseUri}/api/files${path}&action=move`);
+                location.reload();
+            });
+            document.body.appendChild(customDialog);
+        });
     </script>
     <script src="custom-favorites.js"></script>
 </body>

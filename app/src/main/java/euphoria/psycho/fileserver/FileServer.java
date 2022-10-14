@@ -243,12 +243,27 @@ public class FileServer extends NanoHTTPD {
                                 "text/plain", e.getMessage());
                     }
                 } else {
-                    return Utils.deleteFileSystem(new File(mDirectory, parameters[0]));
+                    return Utils.deleteFileSystem(new File(
+                            Utils.processPath(mStoragePath, mDirectory, parameters[0])
+                    ));
                 }
-
-
-            }
-            if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
+            } else if (parameters[2].equals("move") && parameters[0].startsWith("/")) {
+                if (parameters[0].startsWith("/Android/data")) {
+                } else {
+                    String path = Utils.processPath(mStoragePath, mDirectory, parameters[0]);
+                    if (path.startsWith(mStoragePath)) {
+                    } else {
+                        File dir = new File(mDirectory, ".Recycle");
+                        if (!dir.exists()) {
+                            dir.mkdir();
+                        }
+                        File source = new File(path);
+                        source.renameTo(new File(dir, source.getName()));
+                        return Utils.crossOrigin(Utils.ok());
+                    }
+                    return Utils.notFound();
+                }
+            } else if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
                 return getThumbnail(Utils.processPath(mStoragePath, mDirectory, parameters[0]));
             } else if (parameters[1].equals("1"))
                 if (parameters[0].startsWith("/Android/data"))
