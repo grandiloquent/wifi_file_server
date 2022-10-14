@@ -92,7 +92,7 @@ class CustomDialog extends HTMLElement {
     cursor: pointer;
     padding: .7em .57em;
 }</style>
-<div class="dialog-container">
+    <div class="dialog-container">
       <div class="dialog">
         <div class="dialog-header">
         </div>
@@ -113,8 +113,7 @@ class CustomDialog extends HTMLElement {
       </div>
       <div id="overlay" style="position: fixed; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; cursor: pointer; background-color: rgba(0,0,0,.8);">
       </div>
-    </div>
-		`;
+    </div>`;
 
         const close = this.root.querySelector('#close');
         close.addEventListener('click', evt => {

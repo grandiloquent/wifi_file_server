@@ -15,18 +15,17 @@ class CustomImageViewer extends HTMLElement {
     z-index: 10;
     cursor: pointer;
     background-color: rgba(0,0,0,.8);
-    display:flex;
+    display: flex;
 }
-img{
-    max-width:100%;
-    height:auto;
-    flex-shrink:0;
-}
-</style>
+img
+{
+    max-width: 100%;
+    height: auto;
+    flex-shrink: 0;
+}</style>
     <div class="overlay">
-    <img>
-    </div>
-   	`;
+      <img />
+    </div>`;
 
         const overlay = this.root.querySelector('.overlay');
         overlay.addEventListener('click', evt => {
