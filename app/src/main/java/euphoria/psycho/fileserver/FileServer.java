@@ -88,13 +88,10 @@ public class FileServer extends NanoHTTPD {
             String[] parameters = getParameters(session);
             if (parameters[2].equals("delete")) {
                 try {
+                    // TODO a very dangerous operation, if the wrong path is passed will completely wipe the whole Android/data directory
                     DocumentsContract.deleteDocument(mContext.getContentResolver(),
                             Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(parameters[0])));
-                    // ,
-                    //                            Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(Shared.substringBeforeLast(parameters[0], "/")))
-
                 } catch (Exception e) {
-                    Log.e("B5aOx2", String.format("servexxxxxxxxxxxxxxxxx, %s", e.getMessage()));
                     return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
                             "text/plain", e.getMessage());
                 }

@@ -372,7 +372,6 @@ public abstract class NanoHTTPD {
 
             @Override
             public Response handle(IHTTPSession input) {
-                Log.e("B5aOx2", String.format("handle, %s", ""));
                 return NanoHTTPD.this.serve(input);
             }
         };
