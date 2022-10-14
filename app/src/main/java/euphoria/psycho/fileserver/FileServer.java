@@ -37,12 +37,12 @@ import euphoria.psycho.fileserver.Shared.FileInfo;
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
 public class FileServer extends NanoHTTPD {
+    private final String mDirectory;
+    private final String mStoragePath;
+    private final String mTreeUri;
     private Context mContext;
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
-    private final String mTreeUri;
-    private final String mStoragePath;
-    private final String mDirectory;
 
     public FileServer(Context context) {
         super(Shared.getDeviceIP(context), 8089);
@@ -53,6 +53,102 @@ public class FileServer extends NanoHTTPD {
         mTreeUri = sharedPreferences.getString(TREE_URI, null);
         mStoragePath = Shared.getExternalStoragePath(mContext);
         mDirectory = Shared.substringBeforeLast(mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath(), "/Android/data");
+    }
+
+    private static String[] getParameters(IHTTPSession session) {
+        Map<String, List<String>> parameters = session.getParameters();
+        String path = "";
+        String isDir = "1";
+        String action = "";
+        if (parameters.containsKey("path")) {
+            if (parameters.get("path").size() > 0)
+                path = parameters.get("path").get(0);
+        }
+        if (parameters.containsKey("isDir")) {
+            if (parameters.get("isDir").size() > 0)
+                isDir = parameters.get("isDir").get(0);
+        }
+        if (parameters.containsKey("action")) {
+            if (parameters.get("action").size() > 0)
+                action = parameters.get("action").get(0);
+        }
+        return new String[]{
+                path, isDir, action
+        };
+    }
+
+    private static Response getThumbnail(String directory, String path) {
+        try {
+            File videoFile = new File(directory, path);
+            File parent = new File(videoFile.getParentFile(), ".images");
+            if (!parent.isDirectory()) {
+                parent.mkdir();
+            }
+            File thumbnailFile = new File(parent, Shared.md5(videoFile.getAbsolutePath()));
+            if (thumbnailFile.exists()) {
+                return Response.newChunkedResponse(Status.OK,
+                        "image/jpeg", new FileInputStream(thumbnailFile));
+            }
+            Bitmap thumbnail = Shared.createVideoThumbnail(videoFile.getAbsolutePath());
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            thumbnail.compress(CompressFormat.JPEG, 85, stream);
+            byte[] bytes = stream.toByteArray();
+            FileOutputStream outputStream = new FileOutputStream(thumbnailFile);
+            outputStream.write(bytes);
+            outputStream.close();
+            Response res = Response.newFixedLengthResponse(Status.OK,
+                    "image/jpeg", bytes);
+            return res;
+        } catch (Exception e) {
+            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                    "text/plain", e.getMessage());
+        }
+    }
+
+    private static Response listAndroidData(Context context, String treeUri, String uri) {
+        List<FileInfo> files = Shared.listAndroidData(context, treeUri, Uri.encode(uri));
+        return serveFiles(files);
+    }
+
+    private static Response serveFile(Context context, String treeUri, String path) {
+        try {
+            InputStream stream = context.getContentResolver()
+                    .openInputStream(Uri.parse(
+                            //"content://content%3A%2F%2Fcom.android.externalstorage.documents%2Ftree%2Fprimary%253AAndroid%252Fdata/" +
+                            treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(path)
+                    ));
+            return serverFile(stream, path);
+        } catch (Exception e) {
+            Log.e("B5aOx2", String.format("serveFile, %s", e.getMessage()));
+            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                    "text/plain", e.getMessage());
+        }
+    }
+
+    private static Response serveFiles(List<FileInfo> files) {
+        JSONArray jsonArray = new JSONArray();
+        for (FileInfo f : files) {
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", f.Name);
+                jsonObject.put("isDir", f.IsDir);
+                jsonObject.put("lastModified", f.LastModified);
+                jsonArray.put(jsonObject);
+            } catch (Exception ignored) {
+            }
+        }
+        Response response = Response.newFixedLengthResponse(Status.OK, "application/json", jsonArray.toString());
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
+
+    private static Response serverFile(InputStream stream, String path) {
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+        Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
+        response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(path, "/")));
+        return response;
+
     }
 
     private Response readAsset(String filename, String uri, String mimeType) {
@@ -141,101 +237,5 @@ public class FileServer extends NanoHTTPD {
             }
         }
         return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
-    }
-
-    private static Response listAndroidData(Context context, String treeUri, String uri) {
-        List<FileInfo> files = Shared.listAndroidData(context, treeUri, Uri.encode(uri));
-        return serveFiles(files);
-    }
-
-    private static Response serveFiles(List<FileInfo> files) {
-        JSONArray jsonArray = new JSONArray();
-        for (FileInfo f : files) {
-            try {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("name", f.Name);
-                jsonObject.put("isDir", f.IsDir);
-                jsonObject.put("lastModified", f.LastModified);
-                jsonArray.put(jsonObject);
-            } catch (Exception ignored) {
-            }
-        }
-        Response response = Response.newFixedLengthResponse(Status.OK, "application/json", jsonArray.toString());
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        return response;
-    }
-
-    private static String[] getParameters(IHTTPSession session) {
-        Map<String, List<String>> parameters = session.getParameters();
-        String path = "";
-        String isDir = "1";
-        String action = "";
-        if (parameters.containsKey("path")) {
-            if (parameters.get("path").size() > 0)
-                path = parameters.get("path").get(0);
-        }
-        if (parameters.containsKey("isDir")) {
-            if (parameters.get("isDir").size() > 0)
-                isDir = parameters.get("isDir").get(0);
-        }
-        if (parameters.containsKey("action")) {
-            if (parameters.get("action").size() > 0)
-                action = parameters.get("action").get(0);
-        }
-        return new String[]{
-                path, isDir, action
-        };
-    }
-
-    private static Response serveFile(Context context, String treeUri, String path) {
-        try {
-            InputStream stream = context.getContentResolver()
-                    .openInputStream(Uri.parse(
-                            //"content://content%3A%2F%2Fcom.android.externalstorage.documents%2Ftree%2Fprimary%253AAndroid%252Fdata/" +
-                            treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(path)
-                    ));
-            return serverFile(stream, path);
-        } catch (Exception e) {
-            Log.e("B5aOx2", String.format("serveFile, %s", e.getMessage()));
-            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-                    "text/plain", e.getMessage());
-        }
-    }
-
-    private static Response serverFile(InputStream stream, String path) {
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
-        Response response = Response.newChunkedResponse(Status.OK, "application/octet-stream", stream);
-        response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Shared.substringAfterLast(path, "/")));
-        return response;
-
-    }
-
-    private static Response getThumbnail(String directory, String path) {
-        try {
-            File videoFile = new File(directory, path);
-            File parent = new File(videoFile.getParentFile(), ".images");
-            if (!parent.isDirectory()) {
-                parent.mkdir();
-            }
-            File thumbnailFile = new File(parent, Shared.md5(videoFile.getAbsolutePath()));
-            if (thumbnailFile.exists()) {
-                return Response.newChunkedResponse(Status.OK,
-                        "image/jpeg", new FileInputStream(thumbnailFile));
-            }
-            Bitmap thumbnail = Shared.createVideoThumbnail(videoFile.getAbsolutePath());
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            thumbnail.compress(CompressFormat.JPEG, 85, stream);
-            byte[] bytes = stream.toByteArray();
-            FileOutputStream outputStream = new FileOutputStream(thumbnailFile);
-            outputStream.write(bytes);
-            outputStream.close();
-            Response res = Response.newFixedLengthResponse(Status.OK,
-                    "image/jpeg", bytes);
-            return res;
-        } catch (Exception e) {
-            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-                    "text/plain", e.getMessage());
-        }
     }
 }
