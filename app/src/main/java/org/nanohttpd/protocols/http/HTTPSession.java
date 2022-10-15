@@ -33,6 +33,8 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
+import android.util.Log;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -643,6 +645,7 @@ public class HTTPSession implements IHTTPSession {
                     if (boundary == null) {
                         throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                     }
+
                     decodeMultipartFormData(contentType, fbuf, this.parms, files);
                 } else {
                     byte[] postBytes = new byte[fbuf.remaining()];
@@ -675,13 +678,13 @@ public class HTTPSession implements IHTTPSession {
         if (len > 0) {
             FileOutputStream fileOutputStream = null;
             try {
-                ITempFile tempFile = this.tempFileManager.createTempFile(filename_hint);
+                //ITempFile tempFile = this.tempFileManager.createTempFile(filename_hint);
                 ByteBuffer src = b.duplicate();
-                fileOutputStream = new FileOutputStream(tempFile.getName());
+                fileOutputStream = new FileOutputStream(filename_hint);
                 FileChannel dest = fileOutputStream.getChannel();
                 src.position(offset).limit(offset + len);
                 dest.write(src.slice());
-                path = tempFile.getName();
+                path = filename_hint;
             } catch (Exception e) { // Catch exception if any
                 throw new Error(e); // we won't recover, so throw an error
             } finally {

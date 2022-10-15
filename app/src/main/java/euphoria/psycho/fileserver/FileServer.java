@@ -17,6 +17,11 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.util.Streams;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.nanohttpd.protocols.http.IHTTPSession;
@@ -32,9 +37,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 
@@ -312,7 +319,32 @@ public class FileServer extends NanoHTTPD {
                 }
             }
         }
+        if (uri.equals("/post")) {
+            Map<String, String> files = new HashMap<String, String>();
+            try {
+                session.parseBody(files);
+            } catch (Exception e) {
+            }
+
+            return Utils.ok();
+        }
         return Utils.notFound();
     }
 
+    private String toString(Map<String, ? extends Object> map) {
+        if (map.size() == 0) {
+            return "";
+        }
+        return unsortedList(map);
+    }
+
+    private String unsortedList(Map<String, ? extends Object> map) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<ul>");
+        for (Map.Entry<String, ? extends Object> entry : map.entrySet()) {
+            Log.e("B5aOx2", String.format("unsortedList, %s = %s", entry.getKey(), entry.getValue()));
+        }
+        sb.append("</ul>");
+        return sb.toString();
+    }
 }
