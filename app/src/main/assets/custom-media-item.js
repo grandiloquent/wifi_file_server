@@ -64,12 +64,12 @@ class CustomMediaItem extends HTMLElement {
 {
     color: currentColor;
     text-decoration: none;
-    display: block;
-    -webkit-box-flex: 1;
     flex-grow: 1;
     min-width: 0;
     overflow: hidden;
     padding: 0 8px;
+    display: flex;
+    flex-direction: column;
 }
 #media-item-headline
 {
@@ -95,6 +95,10 @@ class CustomMediaItem extends HTMLElement {
     text-overflow: ellipsis;
     font-weight: normal;
     opacity: .6;
+}
+#icon-check_box
+{
+    fill: rgba(0,0,0,.25);
 }</style>
     <div style="padding: 12px 12px 0; display: flex;">
       <a id="media-item-image">
@@ -111,6 +115,16 @@ class CustomMediaItem extends HTMLElement {
           </div>
           <div id="subhead">
             <div id="media-item-byline">
+            </div>
+          </div>
+          <div style="flex-grow: 1;">
+          </div>
+          <div style="display: flex;">
+            <div  id="icon-check_box" style="width: 24px; height: 24px;">
+              <svg viewBox="0 0 24 24">
+                <path d="M18.984 3q0.797 0 1.406 0.609t0.609 1.406v13.969q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.797 0-1.406-0.609t-0.609-1.406v-13.969q0-0.797 0.609-1.406t1.406-0.609h13.969zM18.984 5.016h-13.969v13.969h13.969v-13.969z">
+                </path>
+              </svg>
             </div>
           </div>
         </a>
@@ -144,13 +158,26 @@ class CustomMediaItem extends HTMLElement {
       customImageViewer.setAttribute('src', thumbnailImg.src);
       document.body.appendChild(customImageViewer);
     });
+    const iconCheckBox = this.root.querySelector('#icon-check_box');
+    iconCheckBox.addEventListener('click', evt => {
+      evt.stopPropagation();
+      evt.preventDefault();
+      if (this.root.className === "selected") {
+        this.root.className = "";
+        iconCheckBox.querySelector('path').setAttribute('d', 'M18.984 3q0.797 0 1.406 0.609t0.609 1.406v13.969q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.797 0-1.406-0.609t-0.609-1.406v-13.969q0-0.797 0.609-1.406t1.406-0.609h13.969zM18.984 5.016h-13.969v13.969h13.969v-13.969z');
 
+      }
+      else {
+        this.root.className = "selected";
+        iconCheckBox.querySelector('path').setAttribute('d', 'M9.984 17.016l9-9-1.406-1.453-7.594 7.594-3.563-3.563-1.406 1.406zM18.984 3q0.844 0 1.43 0.586t0.586 1.43v13.969q0 0.844-0.586 1.43t-1.43 0.586h-13.969q-0.844 0-1.43-0.586t-0.586-1.43v-13.969q0-0.844 0.586-1.43t1.43-0.586h13.969z');
+      }
+    })
 
   }
 
 
   static get observedAttributes() {
-    return ['src', "title", "href","subhead"];
+    return ['src', "title", "href", "subhead"];
   }
 
 
@@ -176,10 +203,10 @@ class CustomMediaItem extends HTMLElement {
       this.root.querySelector('#media-item-headline').textContent = newVal;
     } else if (attrName === "href") {
       this.root.querySelector('#media-item-metadata-content').href = newVal;
-    }else if (attrName === "subhead") {
+    } else if (attrName === "subhead") {
       this.root.querySelector('#media-item-byline').textContent = newVal;
     }
-   
+
   }
 
 }
