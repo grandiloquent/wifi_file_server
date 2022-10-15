@@ -280,6 +280,18 @@ public class Shared {
         return s.substring(0, index);
     }
 
+    public static long getDirectorySize(File f) {
+        long size = 0;
+        if (f.isDirectory()) {
+            for (File file : f.listFiles()) {
+                size += getDirectorySize(file);
+            }
+        } else {
+            size = f.length();
+        }
+        return size;
+    }
+
     public static class FileInfo {
         public String Name;
         public boolean IsDir;

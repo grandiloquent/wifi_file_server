@@ -203,32 +203,45 @@ public class FileServer extends NanoHTTPD {
         return null;
     }
 
-    @Override
-    protected Response serve(IHTTPSession session) {
-        String uri = session.getUri();
-        if (uri.equals("/favicon.ico")) {
+    private static Response handleNotFound(String uri) {
+        if (uri.equals("/favicon.ico"))
             return Utils.notFound();
-        } else if (uri.equals("/")) {
-            String filename = "index.html";
-            if (mHashMap.containsKey(uri)) {
-                return Response.newFixedLengthResponse(Status.OK, "text/html", mHashMap.get(uri));
-            }
-            Response response = readAsset(filename, uri, "text/html");
-            if (response != null)
-                return response;
-        } else if (uri.endsWith(".js") || uri.endsWith(".css")
+        return null;
+    }
+
+    private Response handleStaticFiles(String uri) {
+        if (uri.equals("/") || uri.endsWith(".js") || uri.endsWith(".css")
                 || uri.endsWith(".svg")) {
             String mimeType = "application/javascript";
             if (uri.endsWith(".svg")) {
                 mimeType = "image/svg+xml";
+            } else if (uri.equals("/")) {
+                mimeType = "text/html";
             }
             if (mHashMap.containsKey(uri)) {
                 return Response.newFixedLengthResponse(Status.OK, mimeType, mHashMap.get(uri));
             }
-            Response response = readAsset(uri.substring(1), uri, mimeType);
-            if (response != null)
-                return response;
-        } else if (uri.equals("/api/files")) {
+            String fileName = uri.substring(1);
+            if (uri.equals("/")) {
+                fileName = "index.html";
+            }
+            return readAsset(fileName, uri, mimeType);
+        }
+        return null;
+    }
+
+    @Override
+    protected Response serve(IHTTPSession session) {
+        String uri = session.getUri();
+        Response res = handleNotFound(uri);
+        if (res != null) {
+            return res;
+        }
+        res = handleStaticFiles(uri);
+        if (res != null) {
+            return res;
+        }
+        if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);
             if (parameters[2].equals("delete") && parameters[0].startsWith("/")) {
                 if (parameters[0].startsWith("/Android/data")) {

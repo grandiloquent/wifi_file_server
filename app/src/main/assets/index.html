@@ -144,6 +144,11 @@
                 container.appendChild(customMediaItem);
                 customMediaItem.addEventListener('submit', evt => {
                     customBottomSheet.style.display = 'block';
+                    document.querySelectorAll('[data-active]')
+                        .forEach(x => {
+                            x.removeAttribute('data-active')
+                        })
+                    customMediaItem.dataset.active = 'true';
                     customBottomSheet.dataset.path = `?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
                 });
                 io.observe(customMediaItem)
@@ -161,8 +166,14 @@
             let name = substringBeforeLast(path, "&");
             customDialog.setAttribute('message', `您确定要删除 ${substringAfterLast(decodeURIComponent(name), "/")} 吗？`);
             customDialog.addEventListener('submit', async evt => {
+                customDialog.remove();
+                document.querySelectorAll('[data-active]')
+                    .forEach(x => {
+                        x.remove();
+                    })
                 await fetch(`${baseUri}/api/files${path}&action=delete`);
-                location.reload();
+                
+                //location.reload();
             });
             document.body.appendChild(customDialog);
         });
@@ -174,8 +185,13 @@
             let name = substringBeforeLast(path, "&");
             customDialog.setAttribute('message', `您确定要移动 ${substringAfterLast(decodeURIComponent(name), "/")} 吗？`);
             customDialog.addEventListener('submit', async evt => {
+                customDialog.remove();
+                document.querySelectorAll('[data-active]')
+                    .forEach(x => {
+                        x.remove();
+                    });
                 await fetch(`${baseUri}/api/files${path}&action=move`);
-                location.reload();
+               
             });
             document.body.appendChild(customDialog);
         });
