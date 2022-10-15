@@ -610,13 +610,16 @@ public class HTTPSession implements IHTTPSession {
             DataOutput requestDataOutput = null;
 
             // Store the request in memory or a file, depending on size
-            if (size < MEMORY_STORE_LIMIT) {
-                baos = new ByteArrayOutputStream();
-                requestDataOutput = new DataOutputStream(baos);
-            } else {
-                randomAccessFile = getTmpBucket();
-                requestDataOutput = randomAccessFile;
-            }
+            baos = new ByteArrayOutputStream();
+            requestDataOutput = new DataOutputStream(baos);
+//
+//            if (size < MEMORY_STORE_LIMIT) {
+//                baos = new ByteArrayOutputStream();
+//                requestDataOutput = new DataOutputStream(baos);
+//            } else {
+//                randomAccessFile = getTmpBucket();
+//                requestDataOutput = randomAccessFile;
+//            }
 
             // Read all the body and write it to request_data_output
             byte[] buf = new byte[REQUEST_BUFFER_LEN];
@@ -645,7 +648,6 @@ public class HTTPSession implements IHTTPSession {
                     if (boundary == null) {
                         throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                     }
-
                     decodeMultipartFormData(contentType, fbuf, this.parms, files);
                 } else {
                     byte[] postBytes = new byte[fbuf.remaining()];
