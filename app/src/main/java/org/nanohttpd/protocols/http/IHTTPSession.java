@@ -81,7 +81,7 @@ public interface IHTTPSession {
      *
      * @param files map to modify
      */
-    void parseBody(Map<String, String> files) throws IOException, ResponseException;
+    void parseBody(Map<String, String> files, String dir) throws IOException, ResponseException;
 
     /**
      * Get the remote ip address of the requester.

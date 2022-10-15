@@ -322,9 +322,11 @@ public class FileServer extends NanoHTTPD {
         if (uri.equals("/post")) {
             Map<String, String> files = new HashMap<String, String>();
             try {
-                session.parseBody(files);
+                session.parseBody(files,mDirectory);
             } catch (Exception e) {
+                Log.e("B5aOx2", String.format("serve, %s", e.getMessage()));
             }
+
 
             return Utils.ok();
         }

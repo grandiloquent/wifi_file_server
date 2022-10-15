@@ -8,18 +8,18 @@ package org.nanohttpd.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -139,20 +139,15 @@ public class HTTPSession implements IHTTPSession {
             if (inLine == null) {
                 return;
             }
-
             StringTokenizer st = new StringTokenizer(inLine);
             if (!st.hasMoreTokens()) {
                 throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
             }
-
             pre.put("method", st.nextToken());
-
             if (!st.hasMoreTokens()) {
                 throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
             }
-
             String uri = st.nextToken();
-
             // Decode parameters from the URI
             int qmi = uri.indexOf('?');
             if (qmi >= 0) {
@@ -161,7 +156,6 @@ public class HTTPSession implements IHTTPSession {
             } else {
                 uri = NanoHTTPD.decodePercent(uri);
             }
-
             // If there's another token, its protocol version,
             // followed by HTTP headers.
             // NOTE: this now forces header names lower case since they are
@@ -180,7 +174,6 @@ public class HTTPSession implements IHTTPSession {
                 }
                 line = in.readLine();
             }
-
             pre.put("uri", uri);
         } catch (IOException ioe) {
             throw new ResponseException(Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage(), ioe);
@@ -197,7 +190,6 @@ public class HTTPSession implements IHTTPSession {
             if (boundaryIdxs.length < 2) {
                 throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
             }
-
             byte[] partHeaderBuff = new byte[MAX_HEADER_SIZE];
             for (int boundaryIdx = 0; boundaryIdx < boundaryIdxs.length - 1; boundaryIdx++) {
                 fbuf.position(boundaryIdxs[boundaryIdx]);
@@ -205,7 +197,6 @@ public class HTTPSession implements IHTTPSession {
                 fbuf.get(partHeaderBuff, 0, len);
                 BufferedReader in =
                         new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len), Charset.forName(contentType.getEncoding())), len);
-
                 int headerLines = 0;
                 // First line is boundary string
                 String mpline = in.readLine();
@@ -213,7 +204,6 @@ public class HTTPSession implements IHTTPSession {
                 if (mpline == null || !mpline.contains(contentType.getBoundary())) {
                     throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                 }
-
                 String partName = null, fileName = null, partContentType = null;
                 // Parse the reset of the header lines
                 mpline = in.readLine();
@@ -257,20 +247,16 @@ public class HTTPSession implements IHTTPSession {
                 }
                 int partDataStart = boundaryIdxs[boundaryIdx] + partHeaderLength;
                 int partDataEnd = boundaryIdxs[boundaryIdx + 1] - 4;
-
                 fbuf.position(partDataStart);
-
                 List<String> values = parms.get(partName);
                 if (values == null) {
                     values = new ArrayList<String>();
                     parms.put(partName, values);
                 }
-
                 if (partContentType == null) {
                     // Read the part into a string
                     byte[] data_bytes = new byte[partDataEnd - partDataStart];
                     fbuf.get(data_bytes);
-
                     values.add(new String(data_bytes, contentType.getEncoding()));
                 } else {
                     // Read it into a file
@@ -310,7 +296,6 @@ public class HTTPSession implements IHTTPSession {
             this.queryParameterString = "";
             return;
         }
-
         this.queryParameterString = parms;
         StringTokenizer st = new StringTokenizer(parms, "&");
         while (st.hasMoreTokens()) {
@@ -318,7 +303,6 @@ public class HTTPSession implements IHTTPSession {
             int sep = e.indexOf('=');
             String key = null;
             String value = null;
-
             if (sep >= 0) {
                 key = NanoHTTPD.decodePercent(e.substring(0, sep)).trim();
                 value = NanoHTTPD.decodePercent(e.substring(sep + 1));
@@ -326,13 +310,11 @@ public class HTTPSession implements IHTTPSession {
                 key = NanoHTTPD.decodePercent(e).trim();
                 value = "";
             }
-
             List<String> values = p.get(key);
             if (values == null) {
                 values = new ArrayList<String>();
                 p.put(key, values);
             }
-
             values.add(value);
         }
     }
@@ -349,7 +331,6 @@ public class HTTPSession implements IHTTPSession {
             byte[] buf = new byte[HTTPSession.BUFSIZE];
             this.splitbyte = 0;
             this.rlen = 0;
-
             int read = -1;
             this.inputStream.mark(HTTPSession.BUFSIZE);
             try {
@@ -375,52 +356,40 @@ public class HTTPSession implements IHTTPSession {
                 }
                 read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
             }
-
             if (this.splitbyte < this.rlen) {
                 this.inputStream.reset();
                 this.inputStream.skip(this.splitbyte);
             }
-
             this.parms = new HashMap<String, List<String>>();
             if (null == this.headers) {
                 this.headers = new HashMap<String, String>();
             } else {
                 this.headers.clear();
             }
-
             // Create a BufferedReader for parsing the header.
             BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
-
             // Decode the header into parms and header java properties
             Map<String, String> pre = new HashMap<String, String>();
             decodeHeader(hin, pre, this.parms, this.headers);
-
             if (null != this.remoteIp) {
                 this.headers.put("remote-addr", this.remoteIp);
                 this.headers.put("http-client-ip", this.remoteIp);
             }
-
             this.method = Method.lookup(pre.get("method"));
             if (this.method == null) {
                 throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb " + pre.get("method") + " unhandled.");
             }
-
             this.uri = pre.get("uri");
-
             this.cookies = new CookieHandler(this.headers);
-
             String connection = this.headers.get("connection");
             boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches("(?i).*close.*"));
-
             // Ok, now do the serve()
-
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = this.inputStream.totalRead()
             // (requires implementation for totalRead())
             r = httpd.handle(this);
             // TODO: this.inputStream.skip(body_size -
             // (this.inputStream.totalRead() - pos_before_serve))
-
             if (r == null) {
                 throw new ResponseException(Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
             } else {
@@ -469,12 +438,10 @@ public class HTTPSession implements IHTTPSession {
     private int findHeaderEnd(final byte[] buf, int rlen) {
         int splitbyte = 0;
         while (splitbyte + 1 < rlen) {
-
             // RFC2616
             if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' && splitbyte + 3 < rlen && buf[splitbyte + 2] == '\r' && buf[splitbyte + 3] == '\n') {
                 return splitbyte + 4;
             }
-
             // tolerance
             if (buf[splitbyte] == '\n' && buf[splitbyte + 1] == '\n') {
                 return splitbyte + 2;
@@ -494,14 +461,11 @@ public class HTTPSession implements IHTTPSession {
         if (b.remaining() < boundary.length) {
             return res;
         }
-
         int search_window_pos = 0;
         byte[] search_window = new byte[4 * 1024 + boundary.length];
-
         int first_fill = (b.remaining() < search_window.length) ? b.remaining() : search_window.length;
         b.get(search_window, 0, first_fill);
         int new_bytes = first_fill - boundary.length;
-
         do {
             // Search the search_window
             for (int j = 0; j < new_bytes; j++) {
@@ -518,10 +482,8 @@ public class HTTPSession implements IHTTPSession {
                 }
             }
             search_window_pos += new_bytes;
-
             // Copy the end of the buffer to the start
             System.arraycopy(search_window, search_window.length - boundary.length, search_window, 0, boundary.length);
-
             // Refill search_window
             new_bytes = search_window.length - boundary.length;
             new_bytes = (b.remaining() < new_bytes) ? b.remaining() : new_bytes;
@@ -560,7 +522,6 @@ public class HTTPSession implements IHTTPSession {
         for (String key : this.parms.keySet()) {
             result.put(key, this.parms.get(key).get(0));
         }
-
         return result;
     }
 
@@ -602,25 +563,20 @@ public class HTTPSession implements IHTTPSession {
     }
 
     @Override
-    public void parseBody(Map<String, String> files) throws IOException, ResponseException {
+    public void parseBody(Map<String, String> files, String dir) throws IOException, ResponseException {
         RandomAccessFile randomAccessFile = null;
         try {
             long size = getBodySize();
             ByteArrayOutputStream baos = null;
             DataOutput requestDataOutput = null;
-
             // Store the request in memory or a file, depending on size
-            baos = new ByteArrayOutputStream();
-            requestDataOutput = new DataOutputStream(baos);
-//
-//            if (size < MEMORY_STORE_LIMIT) {
-//                baos = new ByteArrayOutputStream();
-//                requestDataOutput = new DataOutputStream(baos);
-//            } else {
-//                randomAccessFile = getTmpBucket();
-//                requestDataOutput = randomAccessFile;
-//            }
-
+            if (size < MEMORY_STORE_LIMIT) {
+                baos = new ByteArrayOutputStream();
+                requestDataOutput = new DataOutputStream(baos);
+            } else {
+                randomAccessFile = new RandomAccessFile(dir + "/" + System.currentTimeMillis(), "rw");
+                requestDataOutput = randomAccessFile;
+            }
             // Read all the body and write it to request_data_output
             byte[] buf = new byte[REQUEST_BUFFER_LEN];
             while (this.rlen >= 0 && size > 0) {
@@ -630,7 +586,6 @@ public class HTTPSession implements IHTTPSession {
                     requestDataOutput.write(buf, 0, this.rlen);
                 }
             }
-
             ByteBuffer fbuf = null;
             if (baos != null) {
                 fbuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
@@ -638,7 +593,6 @@ public class HTTPSession implements IHTTPSession {
                 fbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
                 randomAccessFile.seek(0);
             }
-
             // If the method is POST, there may be parameters
             // in data section, too, read it:
             if (Method.POST.equals(this.method)) {
