@@ -181,6 +181,7 @@ public class Shared {
         while (c.moveToNext()) {
             FileInfo fileInfo = new FileInfo();
             fileInfo.Name = c.getString(0);
+            fileInfo.Parent = "/Android/data"+Uri.decode(path);
             fileInfo.IsDir = c.getString(1).equals(Document.MIME_TYPE_DIR);
             fileInfo.LastModified = c.getLong(2);
             fileInfo.Length = c.getLong(3);
@@ -294,6 +295,7 @@ public class Shared {
 
     public static class FileInfo {
         public String Name;
+        public String Parent;
         public boolean IsDir;
         public long LastModified;
         public long Length;

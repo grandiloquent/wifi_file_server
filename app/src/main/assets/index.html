@@ -68,7 +68,7 @@
     <script src="custom-dialog.js"></script>
 
     <script>
-        let baseUri = window.location.host === "127.0.0.1:5000" ? "http://192.168.8.55:8089" : "";
+        let baseUri = window.location.host === "127.0.0.1:5500" ? "http://192.168.8.55:8089" : "";
         async function loadFiles() {
             const res = await fetch(`${baseUri}/api/files?path=${new URL(window.location).searchParams.get("path") || ''}`);
             const files = await res.json();
@@ -127,7 +127,7 @@
                     customMediaItem.setAttribute('src', `icon-audio-m.svg`);
                 } else if (/\.(?:mp4)$/.test(element.name)) {
                     customMediaItem.setAttribute('src', `icon-video-m.svg`);
-                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(uri + "/" + element.name)}`);
+                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(element.parent + "/" + element.name)}`);
                 } else {
                     customMediaItem.setAttribute('src', "icon-nor-m.svg");
                 }
@@ -149,7 +149,7 @@
                             x.removeAttribute('data-active')
                         })
                     customMediaItem.dataset.active = 'true';
-                    customBottomSheet.dataset.path = `?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+                    customBottomSheet.dataset.path = `?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
                 });
                 io.observe(customMediaItem)
 

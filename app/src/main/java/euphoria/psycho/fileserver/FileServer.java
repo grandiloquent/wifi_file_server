@@ -137,6 +137,7 @@ public class FileServer extends NanoHTTPD {
             try {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("name", f.Name);
+                jsonObject.put("parent", f.Parent);
                 jsonObject.put("isDir", f.IsDir);
                 jsonObject.put("lastModified", f.LastModified);
                 jsonObject.put("length", f.Length);
@@ -149,12 +150,10 @@ public class FileServer extends NanoHTTPD {
         return response;
     }
 
-    private static Response serveNormalFile(IHTTPSession session, String storagePath, String directory, String path) {
+    private static Response serveNormalFile(IHTTPSession session, String path) {
         try {
             Response response =
-                    Utils.serveFile(session.getHeaders(), new File(
-                            Utils.processPath(storagePath, directory, path)
-                    ), getMimeType(path));
+                    Utils.serveFile(session.getHeaders(), new File(path), getMimeType(path));
             response.addHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", Uri.encode(Shared.substringAfterLast(path, "/"))));
             return response;
             //serverFile(stream, parameters[0]);
@@ -163,12 +162,13 @@ public class FileServer extends NanoHTTPD {
         }
     }
 
-    private static Response serveNormalFiles(String storagePath, String directory, String path) {
-        File dir = new File(Utils.processPath(storagePath, directory, path));
+    private static Response serveNormalFiles(String path) {
+        File dir = new File(path);
         File[] fileArray = dir.listFiles();
         List<FileInfo> files = new ArrayList<>();
         for (int i = 0; i < fileArray.length; i++) {
             FileInfo fileInfo = new FileInfo();
+            fileInfo.Parent = path;
             fileInfo.Name = fileArray[i].getName();
             fileInfo.LastModified = fileArray[i].lastModified();
             fileInfo.IsDir = fileArray[i].isDirectory();
@@ -256,14 +256,13 @@ public class FileServer extends NanoHTTPD {
                                 "text/plain", e.getMessage());
                     }
                 } else {
-                    return Utils.deleteFileSystem(new File(
-                            Utils.processPath(mStoragePath, mDirectory, parameters[0])
+                    return Utils.deleteFileSystem(new File(parameters[0]
                     ));
                 }
             } else if (parameters[2].equals("move") && parameters[0].startsWith("/")) {
-                if (parameters[0].startsWith("/Android/data")) {
+                if (parameters[0].contains("/Android/data")) {
                 } else {
-                    String path = Utils.processPath(mStoragePath, mDirectory, parameters[0]);
+                    String path = parameters[0];
                     if (path.startsWith(mStoragePath)) {
                     } else {
                         File dir = new File(mDirectory, ".Recycle");
@@ -277,17 +276,16 @@ public class FileServer extends NanoHTTPD {
                     return Utils.notFound();
                 }
             } else if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
-                if (parameters[0].startsWith("/Android/data")) {
+                if (parameters[0].contains("/Android/data")) {
                     // getDocumentThumbnail site:googlesource.com
                     try {
                         String name = Shared.substringBeforeLast(Shared.substringAfterLast(parameters[0], "Android/data"),
                                 "/files")
                                 + "/files/Documents/"
                                 + Shared.md5(mDirectory + parameters[0]);
-
                         return Response.newChunkedResponse(Status.OK,
                                 "image/jpeg", mContext.getContentResolver().openInputStream(
-                                        Utils.buildDocumentUri(mTreeUri,name)
+                                        Utils.buildDocumentUri(mTreeUri, name)
                                 ));
 
                     } catch (Exception e) {
@@ -295,18 +293,22 @@ public class FileServer extends NanoHTTPD {
                         return Utils.internalError(e);
                     }
                 } else
-                    return getThumbnail(Utils.processPath(mStoragePath, mDirectory, parameters[0]));
+                    return getThumbnail(parameters[0]);
             } else if (parameters[1].equals("1"))
-                if (parameters[0].startsWith("/Android/data"))
+                if (parameters[0].contains("/Android/data"))
                     return listAndroidData(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
                 else {
-                    return serveNormalFiles(mStoragePath, mDirectory, parameters[0]);
+                    String p = parameters[0];
+                    if (p.length() == 0) {
+                        p = mDirectory;
+                    }
+                    return serveNormalFiles(p);
                 }
             else {
-                if (parameters[0].startsWith("/Android/data"))
+                if (parameters[0].contains("/Android/data"))
                     return serveFile(mContext, mTreeUri, parameters[0]);
                 else {
-                    return serveNormalFile(session, mStoragePath, mDirectory, parameters[0]);
+                    return serveNormalFile(session, parameters[0]);
                 }
             }
         }
