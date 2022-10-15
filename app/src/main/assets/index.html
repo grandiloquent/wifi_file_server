@@ -68,7 +68,7 @@
     <script src="custom-dialog.js"></script>
 
     <script>
-        let baseUri = window.location.hostname === "127.0.0.1" ? "http://192.168.8.55:8089" : "";
+        let baseUri = window.location.host === "127.0.0.1:5000" ? "http://192.168.8.55:8089" : "";
         async function loadFiles() {
             const res = await fetch(`${baseUri}/api/files?path=${new URL(window.location).searchParams.get("path") || ''}`);
             const files = await res.json();
@@ -114,7 +114,7 @@
                     customMediaItem.setAttribute('src', `icon-${/\.(apk|pdf|zip|txt)$/.exec(element.name)[1]}-m.svg`);
                 } else if (element.name.endsWith('.jpg') || element.name.endsWith('.png')) {
                     customMediaItem.setAttribute('src', `icon-pic-m.svg`);
-                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=0`);
+                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=0`);
                 } else if (element.name.endsWith('.xlsx')) {
                     customMediaItem.setAttribute('src', `icon-xls-m.svg`);
                 } else if (element.name.endsWith('.7z')) {
@@ -134,9 +134,9 @@
                 customMediaItem.setAttribute('title', element.name);
                 let path;
                 if (element.isDir) {
-                    path = `?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+                    path = `?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
                 } else {
-                    path = `${baseUri}/api/files?path=${encodeURIComponent(uri + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+                    path = `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
                 }
                 customMediaItem.setAttribute('href', path);
                 if (!element.isDir)
