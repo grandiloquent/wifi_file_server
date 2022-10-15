@@ -1,6 +1,10 @@
 package euphoria.psycho.fileserver;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.MediaStore;
+import android.util.Log;
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.IStatus;
@@ -164,5 +168,32 @@ public class Utils {
         return Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(
                 Shared.substringAfterLast(path, "/Android/data")
         ));
+    }
+
+    public static String getRealPathFromURI(Context context, Uri contentURI, String type) {
+        String result = null;
+        try {
+            Cursor cursor = context.getContentResolver().query(contentURI, null, null, null, null);
+            if (cursor == null) { // Source is Dropbox or other similar local file path
+                result = contentURI.getPath();
+                Log.d("TAG", "result******************" + result);
+            } else {
+                cursor.moveToFirst();
+                int idx = 0;
+                if (type.equalsIgnoreCase("IMAGE")) {
+                    idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+                } else if (type.equalsIgnoreCase("VIDEO")) {
+                    idx = cursor.getColumnIndex(MediaStore.Video.VideoColumns.DATA);
+                } else if (type.equalsIgnoreCase("AUDIO")) {
+                    idx = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA);
+                }
+                result = cursor.getString(idx);
+                Log.d("TAG", "result*************else*****" + result);
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e("TAG", "Exception ", e);
+        }
+        return result;
     }
 }

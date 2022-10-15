@@ -1,16 +1,19 @@
 package euphoria.psycho.fileserver;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Point;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.CancellationSignal;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -275,23 +278,17 @@ public class FileServer extends NanoHTTPD {
                 }
             } else if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
                 if (parameters[0].startsWith("/Android/data")) {
-                    // site:googlesource.com
+                    // getDocumentThumbnail site:googlesource.com
                     try {
-                        Bitmap thumbnail = DocumentsContract.getDocumentThumbnail(
-                                mContext.getContentResolver(),
-                                Utils.buildDocumentUri(mTreeUri, parameters[0]),
-                                new Point(600, 600), null
-                        );
-                        if (thumbnail == null) {
-                            Log.e("B5aOx2", String.format("serve,>>>>>>>>>>>> %s", parameters[0]));
-                            return Utils.notFound();
-                        }
-                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        thumbnail.compress(CompressFormat.JPEG, 85, stream);
-                        byte[] bytes = stream.toByteArray();
-                        Log.e("B5aOx2", String.format("serve, %s", bytes.length));
-                        return Response.newFixedLengthResponse(Status.OK,
-                                "image/jpeg", bytes);
+                        String name = Shared.substringBeforeLast(Shared.substringAfterLast(parameters[0], "Android/data"),
+                                "/files")
+                                + "/files/Documents/"
+                                + Shared.md5(mDirectory + parameters[0]);
+
+                        return Response.newChunkedResponse(Status.OK,
+                                "image/jpeg", mContext.getContentResolver().openInputStream(
+                                        Utils.buildDocumentUri(mTreeUri,name)
+                                ));
 
                     } catch (Exception e) {
                         Log.e("B5aOx2", String.format("serve, %s", e.getMessage()));
