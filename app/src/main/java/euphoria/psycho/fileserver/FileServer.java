@@ -5,7 +5,9 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Point;
 import android.net.Uri;
+import android.os.CancellationSignal;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
@@ -22,6 +24,7 @@ import org.nanohttpd.protocols.http.response.Status;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -113,13 +116,10 @@ public class FileServer extends NanoHTTPD {
         return serveFiles(files);
     }
 
-    private static Response serveFile(Context context, String treeUri, String path) {
+    public static Response serveFile(Context context, String treeUri, String path) {
         try {
             InputStream stream = context.getContentResolver()
-                    .openInputStream(Uri.parse(
-                            //"content://content%3A%2F%2Fcom.android.externalstorage.documents%2Ftree%2Fprimary%253AAndroid%252Fdata/" +
-                            treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(path)
-                    ));
+                    .openInputStream(Utils.buildDocumentUri(treeUri, path));
             return serverFile(stream, path);
         } catch (Exception e) {
             Log.e("B5aOx2", String.format("serveFile, %s", e.getMessage()));
@@ -247,10 +247,7 @@ public class FileServer extends NanoHTTPD {
                 if (parameters[0].startsWith("/Android/data")) {
                     try {
                         // TODO a very dangerous operation, if the wrong path is passed will completely wipe the whole folder
-                        DocumentsContract.deleteDocument(mContext.getContentResolver(),
-                                Uri.parse(mTreeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(
-                                        Shared.substringAfterLast(parameters[0], "/Android/data")
-                                )));
+                        DocumentsContract.deleteDocument(mContext.getContentResolver(), Utils.buildDocumentUri(mTreeUri, parameters[0]));
                     } catch (Exception e) {
                         return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
                                 "text/plain", e.getMessage());
@@ -277,7 +274,31 @@ public class FileServer extends NanoHTTPD {
                     return Utils.notFound();
                 }
             } else if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
-                return getThumbnail(Utils.processPath(mStoragePath, mDirectory, parameters[0]));
+                if (parameters[0].startsWith("/Android/data")) {
+                    // site:googlesource.com
+                    try {
+                        Bitmap thumbnail = DocumentsContract.getDocumentThumbnail(
+                                mContext.getContentResolver(),
+                                Utils.buildDocumentUri(mTreeUri, parameters[0]),
+                                new Point(600, 600), null
+                        );
+                        if (thumbnail == null) {
+                            Log.e("B5aOx2", String.format("serve,>>>>>>>>>>>> %s", parameters[0]));
+                            return Utils.notFound();
+                        }
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        thumbnail.compress(CompressFormat.JPEG, 85, stream);
+                        byte[] bytes = stream.toByteArray();
+                        Log.e("B5aOx2", String.format("serve, %s", bytes.length));
+                        return Response.newFixedLengthResponse(Status.OK,
+                                "image/jpeg", bytes);
+
+                    } catch (Exception e) {
+                        Log.e("B5aOx2", String.format("serve, %s", e.getMessage()));
+                        return Utils.internalError(e);
+                    }
+                } else
+                    return getThumbnail(Utils.processPath(mStoragePath, mDirectory, parameters[0]));
             } else if (parameters[1].equals("1"))
                 if (parameters[0].startsWith("/Android/data"))
                     return listAndroidData(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
@@ -286,7 +307,7 @@ public class FileServer extends NanoHTTPD {
                 }
             else {
                 if (parameters[0].startsWith("/Android/data"))
-                    return serveFile(mContext, mTreeUri, Shared.substringAfterLast(parameters[0], "/Android/data"));
+                    return serveFile(mContext, mTreeUri, parameters[0]);
                 else {
                     return serveNormalFile(session, mStoragePath, mDirectory, parameters[0]);
                 }

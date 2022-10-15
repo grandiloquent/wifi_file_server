@@ -1,5 +1,7 @@
 package euphoria.psycho.fileserver;
 
+import android.net.Uri;
+
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -155,5 +157,12 @@ public class Utils {
         res = Response.newFixedLengthResponse(Status.OK, mime, new FileInputStream(file), (int) file.length());
         res.addHeader("Accept-Ranges", "bytes");
         return res;
+    }
+
+
+    public static Uri buildDocumentUri(String treeUri, String path) {
+        return Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(
+                Shared.substringAfterLast(path, "/Android/data")
+        ));
     }
 }
