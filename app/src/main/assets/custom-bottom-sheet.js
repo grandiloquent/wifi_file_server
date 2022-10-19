@@ -61,35 +61,62 @@ class CustomBottomSheet extends HTMLElement {
     margin-left: 12px;
     font-size: 1.6rem;
     line-height: 2.2rem;
+}
+.layout
+{
+    border-radius: 12px;
+    background-color: #fff;
+    display: block;
+    overflow: hidden;
+    position: fixed;
+    margin: 0 8px 24px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+}
+.header
+{
+    overflow: hidden;
+    -webkit-box-flex: 0;
+    flex: none;
+    border-bottom: 1px solid #fff;
+}
+.body
+{
+    flex: 1;
+    overflow-y: hidden;
+    max-height: 325.2px;
+    display: flex;
+    flex-direction: column;
+    color: #030303;
 }</style>
     <div id="overlay">
       <button id="hidden-button">
       </button>
     </div>
-    <div style="border-radius: 12px; background-color: #fff; display: block; overflow: hidden; position: fixed; margin: 0 8px 24px; bottom: 0; left: 0; right: 0; z-index: 20;">
-      <div style="overflow: hidden; -webkit-box-flex: 0; flex: none; border-bottom: 1px solid #fff;">
+    <div class="layout">
+      <div class="header">
         <div style="background: #030303; opacity: .15; border-radius: 4px; height: 4px; margin: 0 auto; width: 40px; margin-top: 8px;">
         </div>
         <div style="-webkit-box-pack: justify; justify-content: space-between; display: flex; margin-top: 8px;">
         </div>
       </div>
-      <div style="-webkit-box-flex: 1; flex: 1; overflow-y: hidden; max-height: 325.2px;">
-        <div style="display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; flex-direction: column; color: #030303;">
-          <div class="menu-item">
-            <button id="delete-action" class="menu-item-button">
-              删除
-            </button>
-          </div>
-          <div class="menu-item">
-            <button id="move-action" class="menu-item-button">
-              移动
-            </button>
-          </div>
-          <div class="menu-item">
-            <button id="close-action" class="menu-item-button">
-              取消
-            </button>
-          </div>
+      <div class="body">
+        <div class="menu-item">
+          <button id="delete-action" class="menu-item-button">
+            删除
+          </button>
+        </div>
+        <div class="menu-item">
+          <button id="move-action" class="menu-item-button">
+            移动
+          </button>
+        </div>
+        <div class="menu-item">
+          <button id="close-action" class="menu-item-button">
+            取消
+          </button>
         </div>
       </div>
     </div>`;

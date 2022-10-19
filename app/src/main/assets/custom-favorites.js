@@ -61,27 +61,63 @@ class CustomFavorites extends HTMLElement {
     margin-left: 12px;
     font-size: 1.6rem;
     line-height: 2.2rem;
+}
+.layout
+{
+    border-radius: 12px;
+    background-color: #fff;
+    display: block;
+    overflow: hidden;
+    position: fixed;
+    margin: 0 8px 24px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+}
+.header
+{
+    overflow: hidden;
+    -webkit-box-flex: 0;
+    flex: none;
+    border-bottom: 1px solid #fff;
+}
+.body
+{
+    flex: 1;
+    overflow-y: hidden;
+    max-height: 325.2px;
+    display: flex;
+    flex-direction: column;
+    color: #030303;
+}
+.button-clear
+{
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }</style>
     <div id="overlay">
       <button id="hidden-button">
       </button>
     </div>
-    <div style="border-radius: 12px; background-color: #fff; display: block; overflow: hidden; position: fixed; margin: 0 8px 24px; bottom: 0; left: 0; right: 0; z-index: 20;">
-      <div style="overflow: hidden; -webkit-box-flex: 0; flex: none; border-bottom: 1px solid #fff;">
+    <div class="layout">
+      <div class="header">
         <div style="background: #030303; opacity: .15; border-radius: 4px; height: 4px; margin: 0 auto; width: 40px; margin-top: 8px;">
         </div>
         <div style="-webkit-box-pack: justify; justify-content: space-between; display: flex; margin-top: 8px;">
         </div>
       </div>
-      <div style="-webkit-box-flex: 1; flex: 1; overflow-y: hidden; max-height: 325.2px;">
-        <div style="display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; flex-direction: column; color: #030303;">
-          <div id="items">
-          </div>
-          <div class="menu-item">
-            <button id="close-action" class="menu-item-button">
-              取消
-            </button>
-          </div>
+      <div class="body">
+        <div id="items">
+        </div>
+        <div class="menu-item">
+          <button id="close-action" class="menu-item-button">
+            取消
+          </button>
         </div>
       </div>
     </div>`;
@@ -94,22 +130,62 @@ class CustomFavorites extends HTMLElement {
       this.remove();
     })
 
-    const items = [
-      "/storage/emulated/0/Movies/TikTok",
-      "/storage/emulated/0/Pictures/Screenshots",
-      "/storage/FD12-1F1D"
-    ];
-    const buffer = [];
+    let favorites = localStorage.getItem('favorites');
+    if (!favorites) {
+      favorites = JSON.stringify([
+        "/storage/emulated/0/Movies/TikTok",
+        "/storage/emulated/0/Pictures/Screenshots",
+        "/storage/FD12-1F1D"
+      ]);
+      localStorage.setItem('favorites', favorites);
+    }
+    const items = JSON.parse(favorites);
+    const is = this.root.querySelector('#items');
     for (let index = 0; index < items.length; index++) {
       const element = items[index];
-      const template = `<div class="menu-item" data-src="${encodeURIComponent(element)}">
-          <button id="delete-action" class="menu-item-button">
-            ${substringAfterLast(element, "/")}
-          </button>
-        </div>`;
-      buffer.push(template);
+      const menuItem = document.createElement('div');
+      menuItem.setAttribute("class", "menu-item");
+      menuItem.setAttribute("data-src", "${encodeURIComponent(element)}");
+      this.root.appendChild(menuItem);
+      const deleteAction = document.createElement('button');
+      deleteAction.setAttribute("id", "delete-action");
+      deleteAction.setAttribute("class", "menu-item-button");
+      menuItem.appendChild(deleteAction);
+      deleteAction.textContent = `${substringAfterLast(element, "/")}`;
+
+      const buttonClear = document.createElement('div');
+      buttonClear.setAttribute("class", "button-clear");
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      svg.setAttribute("height", "24px");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("width", "24px");
+      svg.setAttribute("fill", "#000000");
+      buttonClear.appendChild(svg);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute("d", "M0 0h24v24H0V0z");
+      path.setAttribute("fill", "none");
+      svg.appendChild(path);
+      const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path1.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z");
+      svg.appendChild(path1);
+      menuItem.appendChild(buttonClear);
+
+      buttonClear.addEventListener('click', evt => {
+        evt.stopPropagation();
+        localStorage.setItem('favorites', JSON.stringify(
+          JSON.parse(
+            localStorage.getItem('favorites')
+          ).filter(x => x !== element)
+        ));
+        menuItem.remove();
+      });
+      
+
+      is.appendChild(menuItem);
     }
-    this.root.querySelector('#items').innerHTML = buffer.join('');
+
 
     this.root.querySelectorAll('.menu-item[data-src]')
       .forEach(x => {

@@ -3,7 +3,7 @@ class CustomImageViewer extends HTMLElement {
     constructor() {
         super();
 
-        this.root = this.attachShadow({ mode: 'open' });
+        this.root = this.attachShadow({mode: 'open'});
 
         this.root.innerHTML = `<style>.overlay
 {
@@ -52,6 +52,7 @@ img
               }));
               */
     }
+
     disconnectedCallback() {
 
     }
@@ -64,16 +65,18 @@ img
                 const rw = img.naturalWidth / window.innerWidth;
                 const rh = img.naturalHeight / window.innerHeight;
                 const ratio = Math.max(rw, rh);
-                img.style.width = `${ img.naturalWidth  / ratio}px`;
+                img.style.width = `${img.naturalWidth / ratio}px`;
                 img.style.height = `${img.naturalHeight / ratio}px`;
                 img.style.marginTop = `${(window.innerHeight - img.naturalHeight / ratio) / 2}px`
                 img.style.marginLeft = `${(window.innerWidth - img.naturalWidth / ratio) / 2}px`
             })
             img.textContent = this.getAttribute('src') || '';
+
         }
     }
 
 }
+
 customElements.define('custom-image-viewer', CustomImageViewer);
 /*
 <!--\
