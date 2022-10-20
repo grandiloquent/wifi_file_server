@@ -93,12 +93,15 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, REQUEST_CODE, 0, "帮助");
+        menu.add(0, REQUEST_CODE, 0, "刷新");
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == REQUEST_CODE) {
+            mWebView.reload();
+        }
         return super.onOptionsItemSelected(item);
     }
 
