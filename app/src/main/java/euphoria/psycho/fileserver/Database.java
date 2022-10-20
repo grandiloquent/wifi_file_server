@@ -67,12 +67,13 @@ public class Database extends SQLiteOpenHelper {
 //    }
 
     public String queryNotes() throws JSONException {
-        Cursor c = getReadableDatabase().rawQuery("select title,update_at from notes", null);
+        Cursor c = getReadableDatabase().rawQuery("select _id,title,update_at from notes", null);
         JSONArray jsonArray = new JSONArray();
         while (c.moveToNext()) {
             JSONObject object = new JSONObject();
-            object.put("title", c.getString(0));
-            object.put("update_at", c.getLong(1));
+            object.put("id", c.getInt(0));
+            object.put("title", c.getString(1));
+            object.put("update_at", c.getLong(2));
             jsonArray.put(object);
         }
         c.close();

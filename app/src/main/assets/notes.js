@@ -13,20 +13,7 @@ async function render() {
     const container = document.getElementById('items');
     container.innerHTML = '';
     for (const item of items) {
-        const template = mode === '1' ?
-            `<div class="text-line-container" data-type="${item.isDir}" data-path="${item.path}" data-name="${item.name}" >
-    <div class="text-line-wrapper">
-        <div class="text-line">
-            ${item.name}
-        </div>
-        <div class="icon-more_vert" style="width: 24px">
-        <svg  viewBox="0 0 24 24">
-<path d="M12 15.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM12 9.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM12 8.016q-0.797 0-1.406-0.609t-0.609-1.406 0.609-1.406 1.406-0.609 1.406 0.609 0.609 1.406-0.609 1.406-1.406 0.609z"></path>
-</svg>
-        </div>
-    </div>
-</div>
-` : `<div class="text-line-container" data-id="${item.id}"  data-hidden="${item.hidden}">
+        const template =  `<div class="text-line-container" data-id="${item.id}"  data-hidden="${item.hidden}">
     <div class="text-line-wrapper">
         <div class="text-line" style="${item.hidden === 0 ? '' : 'color: red'}">
             ${item.title}
@@ -47,7 +34,7 @@ async function render() {
     document.querySelectorAll('.text-line-container')
         .forEach(x => {
             x.addEventListener('click', ev => {
-                window.location = `../editor?id=${ev.currentTarget.dataset.id}&hidden=${ev.currentTarget.dataset.hidden}`;
+                window.location = `editor.html?id=${ev.currentTarget.dataset.id}`;
             })
             x.querySelector('.icon-more_vert')
                 .addEventListener('click', ev => {

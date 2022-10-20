@@ -116,9 +116,7 @@
             input.placeholder = '文件名';
             customDialog.appendChild(input);
             customDialog.addEventListener('submit', async ev => {
-                const response = await fetch(`/api/source/6?p=${new URL(window.location).searchParams.get('p') || ''
-                    }/${input.value}`);
-                document.getElementById('toast').setAttribute('message', '成功');
+                window.location = "editor.html";
             })
             document.body.appendChild(customDialog);
         });

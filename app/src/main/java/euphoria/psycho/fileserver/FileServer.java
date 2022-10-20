@@ -34,6 +34,7 @@ import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
+import euphoria.psycho.fileserver.handlers.NoteHandler;
 
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
@@ -224,6 +225,8 @@ public class FileServer extends NanoHTTPD {
                 mimeType = "image/svg+xml";
             } else if (uri.equals("/") || uri.endsWith(".html")) {
                 mimeType = "text/html";
+            } else if (uri.endsWith(".css")) {
+                mimeType = "text/css";
             }
             if (mHashMap.containsKey(uri)) {
                 return Response.newFixedLengthResponse(Status.OK, mimeType, mHashMap.get(uri));
@@ -333,6 +336,9 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/notes")) {
             return ListNotesHandler.handle(mDatabase);
+        }
+        if (uri.equals("/api/note")) {
+            return NoteHandler.handle(mDatabase,session);
         }
         return Utils.notFound();
     }

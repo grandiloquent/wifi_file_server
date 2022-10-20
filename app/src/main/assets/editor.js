@@ -57,11 +57,11 @@ createToolItem('M14.578 16.594l4.641-4.594-4.641-4.594 1.406-1.406 6 6-6 6zM9.42
     textarea.value = textarea.value.split('.').map(x => x.trim() + ".").join('\n\n');
 })
 createToolItem('M14.578 16.594l4.641-4.594-4.641-4.594 1.406-1.406 6 6-6 6zM9.422 16.594l-1.406 1.406-6-6 6-6 1.406 1.406-4.641 4.594z', '代码块', async () => {
-//     const p = findExtendPosition(textarea);
-//     console.log(p, textarea.value.substring(p[0], p[1]))
-//     textarea.setRangeText(`\`\`\`${language || 'pgsql'}
-// ${textarea.value.substring(p[0], p[1])}
-// \`\`\``, p[0], p[1]);
+    //     const p = findExtendPosition(textarea);
+    //     console.log(p, textarea.value.substring(p[0], p[1]))
+    //     textarea.setRangeText(`\`\`\`${language || 'pgsql'}
+    // ${textarea.value.substring(p[0], p[1])}
+    // \`\`\``, p[0], p[1]);
     const uri = await navigator.clipboard.readText();
     if (uri.startsWith("http://") || uri.startsWith("https://"))
         await uploadUri(uri, textarea)
@@ -98,32 +98,21 @@ createToolItem("M15 9v-3.984h-9.984v3.984h9.984zM12 18.984q1.219 0 2.109-0.891t0
 
     saveData();
 })
-render();
+if (id)
+    render();
 
 
 async function submitData() {
     const firstLine = textarea.value.trim().split("\n", 2)[0];
     const obj = {
-        id: id ? parseInt(id) : 0,
+
         content: substringAfter(textarea.value.trim(), "\n"),
         title: firstLine.split('|')[0].replace(/^#+ +/, ''),
-        hidden: parseInt(searchParams.get("hidden") || '0'),
     };
-
-    const tags = JSON.parse(firstLine.split('|')[1] || '[]');
-    if (tags.length) {
-        obj.tags = tags;
+    if (id) {
+        obj.id = parseInt(id);
     }
-
-    const m = /!\[]\(([^)]*?)\)/.exec(textarea.value);
-    if (m) {
-        const thumbnail = m[1];
-        if (thumbnail) {
-            obj.thumbnail = thumbnail;
-        }
-    }
-
-    const response = await fetch(`${baseUri}/api/article.insert`, {
+    const response = await fetch(`${baseUri}/api/note`, {
         method: 'POST',
         body: JSON.stringify(obj)
     });
@@ -131,7 +120,7 @@ async function submitData() {
 }
 
 async function loadData() {
-    const response = await fetch(`${baseUri}/api/article.query?id=${id}`);
+    const response = await fetch(`${baseUri}/api/note?id=${id}`);
     return await response.json();
 }
 
@@ -139,7 +128,7 @@ async function render() {
     textarea.value = localStorage.getItem("content");
     const obj = await loadData();
     document.title = obj.title;
-    textarea.value = `# ${obj.title}|${JSON.stringify(obj.tags)}
+    textarea.value = `# ${obj.title}
     
 ${obj.content.trim()}
     `
@@ -294,7 +283,7 @@ async function formatCode(editor) {
         const regex = new RegExp((localStorage.getItem('formatPattern') || '[a-zA-Z0-9*+?|{\\[()^$._#=\\]!]'));
 
         while (offsetStart > 0 &&
-        regex.test(string.charAt(offsetStart - 1))) {
+            regex.test(string.charAt(offsetStart - 1))) {
             /*&& string.charAt(offsetStart - 1) !== '\n'
             && string.charAt(offsetStart - 1) !== '/'
             && string.charAt(offsetStart - 1) <= 'z') {*/
@@ -531,7 +520,7 @@ async function saveData() {
     if (id)
         document.getElementById('toast').setAttribute('message', '成功');
     else
-        window.location = `${window.location.origin}${window.location.pathname}?id=${res}&hidden=${searchParams.get("hidden") || 0}`
+        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
 
 }
 
