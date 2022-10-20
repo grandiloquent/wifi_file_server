@@ -67,6 +67,17 @@ class CustomBarRenderer extends HTMLElement {
             菜单
           </div>
         </div>
+        <div class="item" id="action-sort">
+          <div class="image">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0V0z" fill="none" />
+              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" />
+            </svg>
+          </div>
+          <div class="text">
+            排序
+          </div>
+        </div>
       </div>
     </div>`;
     const menu = this.root.querySelector('#menu');
@@ -78,6 +89,10 @@ class CustomBarRenderer extends HTMLElement {
     home.addEventListener('click', evt => {
       window.location = "/"
     })
+    this.root.getElementById('action-sort').addEventListener('click', evt => {
+      evt.stopPropagation();
+      this.dispatchEvent(new CustomEvent('submit'));
+    });
 
 
 

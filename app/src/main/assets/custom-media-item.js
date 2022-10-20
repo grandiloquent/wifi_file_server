@@ -165,13 +165,24 @@ class CustomMediaItem extends HTMLElement {
       if (this.root.className === "selected") {
         this.root.className = "";
         iconCheckBox.querySelector('path').setAttribute('d', 'M18.984 3q0.797 0 1.406 0.609t0.609 1.406v13.969q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.797 0-1.406-0.609t-0.609-1.406v-13.969q0-0.797 0.609-1.406t1.406-0.609h13.969zM18.984 5.016h-13.969v13.969h13.969v-13.969z');
-        this.root.host.removeAttribute('data-active')
+        this.root.host.removeAttribute('data-active');
+        localStorage.setItem('files', JSON.stringify(
+          JSON.parse(
+            localStorage.getItem('files')
+          ).filter(x => x !== this.root.host.dataset.path)
+        ));
       }
       else {
         this.root.className = "selected";
         iconCheckBox.querySelector('path').setAttribute('d', 'M9.984 17.016l9-9-1.406-1.453-7.594 7.594-3.563-3.563-1.406 1.406zM18.984 3q0.844 0 1.43 0.586t0.586 1.43v13.969q0 0.844-0.586 1.43t-1.43 0.586h-13.969q-0.844 0-1.43-0.586t-0.586-1.43v-13.969q0-0.844 0.586-1.43t1.43-0.586h13.969z');
         this.root.host.setAttribute('data-active', '')
-
+        let obj = JSON.parse(
+          localStorage.getItem('files')
+        ) || [];
+        obj.push(this.root.host.dataset.path);
+        obj = [...new Set(obj)];
+        localStorage.setItem('files', JSON.stringify(obj
+        ));
       }
     })
 
@@ -211,9 +222,21 @@ class CustomMediaItem extends HTMLElement {
       if (newVal === 'true') {
         this.root.querySelector('#icon-check_box').querySelector('path').setAttribute('d', 'M9.984 17.016l9-9-1.406-1.453-7.594 7.594-3.563-3.563-1.406 1.406zM18.984 3q0.844 0 1.43 0.586t0.586 1.43v13.969q0 0.844-0.586 1.43t-1.43 0.586h-13.969q-0.844 0-1.43-0.586t-0.586-1.43v-13.969q0-0.844 0.586-1.43t1.43-0.586h13.969z');
         this.root.host.setAttribute('data-active', '')
+        let obj = JSON.parse(
+          localStorage.getItem('files')
+        ) || [];
+        obj.push(this.root.host.dataset.path);
+        obj = [...new Set(obj)];
+        localStorage.setItem('files', JSON.stringify(obj
+        ));
       } else {
         this.root.querySelector('#icon-check_box').querySelector('path').setAttribute('d', 'M18.984 3q0.797 0 1.406 0.609t0.609 1.406v13.969q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.797 0-1.406-0.609t-0.609-1.406v-13.969q0-0.797 0.609-1.406t1.406-0.609h13.969zM18.984 5.016h-13.969v13.969h13.969v-13.969z');
         this.root.host.removeAttribute('data-active')
+        localStorage.setItem('files', JSON.stringify(
+          JSON.parse(
+            localStorage.getItem('files')
+          ).filter(x => x !== this.root.host.dataset.path)
+        ));
       }
     }
 
