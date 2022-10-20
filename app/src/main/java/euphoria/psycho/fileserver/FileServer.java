@@ -23,6 +23,7 @@ import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.util.Streams;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
@@ -44,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
+import euphoria.psycho.fileserver.handlers.DeleteHandler;
 
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
@@ -173,16 +175,18 @@ public class FileServer extends NanoHTTPD {
         File dir = new File(path);
         File[] fileArray = dir.listFiles();
         List<FileInfo> files = new ArrayList<>();
-        for (int i = 0; i < fileArray.length; i++) {
-            FileInfo fileInfo = new FileInfo();
-            fileInfo.Parent = path;
-            fileInfo.Name = fileArray[i].getName();
-            fileInfo.LastModified = fileArray[i].lastModified();
-            fileInfo.IsDir = fileArray[i].isDirectory();
-            if (!fileInfo.IsDir) {
-                fileInfo.Length = fileArray[i].length();
+        if (fileArray != null) {
+            for (File file : fileArray) {
+                FileInfo fileInfo = new FileInfo();
+                fileInfo.Parent = path;
+                fileInfo.Name = file.getName();
+                fileInfo.LastModified = file.lastModified();
+                fileInfo.IsDir = file.isDirectory();
+                if (!fileInfo.IsDir) {
+                    fileInfo.Length = file.length();
+                }
+                files.add(fileInfo);
             }
-            files.add(fileInfo);
         }
         return serveFiles(files);
     }
@@ -319,15 +323,16 @@ public class FileServer extends NanoHTTPD {
                 }
             }
         }
+        if (uri.equals("/api/delete")) {
+            return DeleteHandler.handle(mContext, mTreeUri, session);
+        }
         if (uri.equals("/post")) {
             Map<String, String> files = new HashMap<String, String>();
             try {
-                session.parseBody(files,mDirectory);
+                session.parseBody(files, mDirectory);
             } catch (Exception e) {
                 Log.e("B5aOx2", String.format("serve, %s", e.getMessage()));
             }
-
-
             return Utils.ok();
         }
         return Utils.notFound();
@@ -349,4 +354,6 @@ public class FileServer extends NanoHTTPD {
         sb.append("</ul>");
         return sb.toString();
     }
+
+
 }

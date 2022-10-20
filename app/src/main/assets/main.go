@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,7 +23,7 @@ func main() {
 }
 
 func listFiles(w http.ResponseWriter, r *http.Request) bool {
-
+	println(r.URL.Path)
 	if r.URL.Path == "/api/files" {
 
 		p := r.URL.Query().Get("path")
@@ -51,6 +54,53 @@ func listFiles(w http.ResponseWriter, r *http.Request) bool {
 				http.NotFound(w, r)
 			} else {
 				w.Write(b)
+			}
+		}
+		return true
+	} else if r.URL.Path == "/api/delete" {
+		var paths []string
+		buf, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.NotFound(w, nil)
+			return true
+		}
+		err = json.Unmarshal(buf, &paths)
+		if err != nil {
+			http.NotFound(w, nil)
+			return true
+		}
+		for _, p := range paths {
+			os.RemoveAll(p)
+		}
+		w.Write([]byte("Sucess"))
+		return true
+	} else if r.URL.Path == "/api/tidy" {
+		p := r.URL.Query().Get("path")
+		if len(p) == 0 {
+			http.NotFound(w, nil)
+			return true
+		}
+		fs, err := os.ReadDir(p)
+		if err != nil {
+			println(err.Error())
+			http.NotFound(w, nil)
+			return true
+		}
+		for _, f := range fs {
+			if !f.IsDir() {
+				ext := filepath.Ext(f.Name())
+
+				if len(ext) == 0 {
+					ext = ".unknown"
+				}
+
+				ext = strings.ToUpper(ext)
+
+				ext = path.Join(p, ext)
+				if _, err = os.Stat(ext); os.IsNotExist(err) {
+					os.MkdirAll(ext, 0666)
+				}
+				os.Rename(path.Join(p, f.Name()), path.Join(ext, f.Name()))
 			}
 		}
 		return true

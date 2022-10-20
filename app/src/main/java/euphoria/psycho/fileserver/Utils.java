@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -16,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 public class Utils {
 
@@ -195,5 +197,11 @@ public class Utils {
             Log.e("TAG", "Exception ", e);
         }
         return result;
+    }
+    public static String readString(IHTTPSession session) throws IOException {
+        int contentLength = Integer.parseInt(Objects.requireNonNull(session.getHeaders().get("content-length")));
+        byte[] buffer = new byte[contentLength];
+        session.getInputStream().read(buffer, 0, contentLength);
+        return new String(buffer);
     }
 }
