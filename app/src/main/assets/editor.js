@@ -1,4 +1,4 @@
-let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:9000' : '';
+let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
 const textarea = document.querySelector('textarea');
 const customLayout = document.querySelector('custom-layout');
 const bottomBar = document.querySelector('.bottom-bar');
@@ -120,18 +120,23 @@ async function submitData() {
 }
 
 async function loadData() {
+
     const response = await fetch(`${baseUri}/api/note?id=${id}`);
     return await response.json();
 }
 
 async function render() {
     textarea.value = localStorage.getItem("content");
-    const obj = await loadData();
-    document.title = obj.title;
-    textarea.value = `# ${obj.title}
+    try {
+        const obj = await loadData();
+        document.title = obj.title;
+        textarea.value = `# ${obj.title}
     
 ${obj.content.trim()}
     `
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 function formatHead(editor, count) {

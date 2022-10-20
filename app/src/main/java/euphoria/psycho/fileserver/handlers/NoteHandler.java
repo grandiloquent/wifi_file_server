@@ -1,5 +1,7 @@
 package euphoria.psycho.fileserver.handlers;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.nanohttpd.protocols.http.IHTTPSession;
@@ -41,7 +43,8 @@ public class NoteHandler {
                 return Utils.crossOrigin(Response.newFixedLengthResponse(Status.OK,
                         "application/json",
                         js));
-            } catch (JSONException ignored) {
+            } catch (Exception ignored) {
+                Log.e("B5aOx2", String.format("handle, %s", ignored.getMessage()));
             }
         }
         return Utils.crossOrigin(Utils.notFound());

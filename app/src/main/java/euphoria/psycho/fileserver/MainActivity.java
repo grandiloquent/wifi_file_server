@@ -16,6 +16,8 @@ import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebSettings.LayoutAlgorithm;
@@ -44,11 +46,10 @@ public class MainActivity extends Activity {
         if (treeUri == null) {
             Shared.requestDocumentPermission(this, "data", REQUEST_CODE_DOCUMENT);
         }
-        FileServer fileServer = new FileServer(MainActivity.this);
-        try {
-            fileServer.start();
-        } catch (IOException ignored) {
-        }
+
+
+        Intent service=new Intent(this,FileService.class);
+        startService(service);
         WebView webView = new WebView(this);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -63,6 +64,12 @@ public class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 webView.loadUrl(request.getUrl().toString());
                 return true;
+            }
+        });
+        webView.setWebChromeClient(new WebChromeClient(){
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                return super.onConsoleMessage(consoleMessage);
             }
         });
         mWebView = webView;

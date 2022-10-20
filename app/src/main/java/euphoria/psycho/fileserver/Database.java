@@ -82,7 +82,7 @@ public class Database extends SQLiteOpenHelper {
     }
 
     public String queryNote(int id) throws JSONException {
-        Cursor c = getReadableDatabase().rawQuery("select title,content,update_at from ntoes where _id = ?", new String[]{
+        Cursor c = getReadableDatabase().rawQuery("select title,content,update_at from notes where _id = ?", new String[]{
                 Integer.toString(id)
         });
         JSONObject object = new JSONObject();
