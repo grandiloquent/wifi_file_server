@@ -81,10 +81,11 @@
             return files;
         }
 
-        async function render() {
-            const files = await loadFiles();
+        async function render(sort) {
+            let files = await loadFiles();
             const container = document.querySelector('div');
 
+            container.innerHTML = '';
             const io = new IntersectionObserver((entries, observer) => {
                 entries.forEach((entry) => {
                     // Each entry describes an intersection change for one observed
@@ -105,15 +106,24 @@
             });
 
             const uri = new URL(window.location).searchParams.get("path") || '';
-            files.sort((x, y) => {
-                if (x.isDir === y.isDir)
-                    return y.length - x.length; //x.name.localeCompare(y.name);
-                    //  y.lastModified - x.lastModified; 
-                if (x.isDir)
+
+            files = files.sort((x, y) => {
+                if (x.isDir === y.isDir) {
+                    if (sort === 1) {
+                        return x.name.localeCompare(y.name);
+                    } else if (sort === 1) {
+                        return y.length - x.length;
+                    } else {
+                        return y.lastModified - x.lastModified;
+                    }
+                }
+                else if (x.isDir)
                     return -1;
                 else
                     return 1;
-            }).forEach(element => {
+            })
+
+            files.forEach(element => {
                 const customMediaItem = document.createElement('custom-media-item');
                 if (element.isDir)
                     customMediaItem.setAttribute('src', "icon-folder-m.svg");
@@ -171,13 +181,13 @@
             const path = evt.currentTarget.dataset.path;
             let name = substringBeforeLast(path, "&");
             const elements = [...document.querySelectorAll('[data-active]')];
-            customDialog.setAttribute('message', `您确定要删除 ${elements.map(x => substringAfterLast(x.dataset.path,"/"))} 吗？`);
+            customDialog.setAttribute('message', `您确定要删除 ${elements.map(x => substringAfterLast(x.dataset.path, "/"))} 吗？`);
             customDialog.addEventListener('submit', async evt => {
                 customDialog.remove();
 
                 await fetch(`${baseUri}/api/delete`, {
                     method: 'POST',
-                    body: JSON.stringify(elements.map(x=>x.dataset.path))
+                    body: JSON.stringify(elements.map(x => x.dataset.path))
                 });
                 elements.forEach(x => {
                     x.remove();
