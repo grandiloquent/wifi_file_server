@@ -16,6 +16,11 @@ import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebSettings.LayoutAlgorithm;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,19 +47,37 @@ public class MainActivity extends Activity {
         FileServer fileServer = new FileServer(MainActivity.this);
         try {
             fileServer.start();
-        } catch (IOException e) {
-            Log.e("B5aOx2", String.format("initialize, %s", e.getMessage()));
+        } catch (IOException ignored) {
         }
+        WebView webView = new WebView(this);
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setLayoutAlgorithm(LayoutAlgorithm.SINGLE_COLUMN);
+        webSettings.setAllowFileAccess(true);
+        webSettings.setDomStorageEnabled(true);
+        setContentView(webView);
+        webView.loadUrl("http://" + Shared.getDeviceIP(this) + ":8089/notes.html");
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                webView.loadUrl(request.getUrl().toString());
+                return true;
+            }
+        });
+        mWebView = webView;
     }
+
+    private WebView mWebView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         List<String> needPermissions = Arrays.stream(new String[]{
-                permission.INTERNET,
-                permission.ACCESS_WIFI_STATE,
-                permission.READ_EXTERNAL_STORAGE,
-        }).filter(permission -> checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
+                        permission.INTERNET,
+                        permission.ACCESS_WIFI_STATE,
+                        permission.READ_EXTERNAL_STORAGE,
+                }).filter(permission -> checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
                 .collect(Collectors.toList());
         if (VERSION.SDK_INT <= 28 && checkSelfPermission(permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             needPermissions.add(permission.WRITE_EXTERNAL_STORAGE);
@@ -133,5 +156,12 @@ public class MainActivity extends Activity {
             Log.e("B5aOx2", String.format("onActivityResult, %s",
                     DocumentsContract.buildDocumentUri(uri.toString(), "primary:Movies/123/123")));
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mWebView.canGoBack())
+            mWebView.goBack();
+        super.onBackPressed();
     }
 }
