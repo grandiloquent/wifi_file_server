@@ -56,7 +56,6 @@ public class Database extends SQLiteOpenHelper {
                 Integer.toString(id)
         });
     }
-
 //    public List<Pair<String, Long>> queryNotes() {
 //        Cursor c = getReadableDatabase().rawQuery("select title,update_at from ntoes", null);
 //        List<Pair<String, Long>> notes = new ArrayList<>();
@@ -68,7 +67,7 @@ public class Database extends SQLiteOpenHelper {
 //    }
 
     public String queryNotes() throws JSONException {
-        Cursor c = getReadableDatabase().rawQuery("select title,update_at from ntoes", null);
+        Cursor c = getReadableDatabase().rawQuery("select title,update_at from notes", null);
         JSONArray jsonArray = new JSONArray();
         while (c.moveToNext()) {
             JSONObject object = new JSONObject();
@@ -77,6 +76,7 @@ public class Database extends SQLiteOpenHelper {
             jsonArray.put(object);
         }
         c.close();
+        if (jsonArray.length() == 0) return null;
         return jsonArray.toString();
     }
 
