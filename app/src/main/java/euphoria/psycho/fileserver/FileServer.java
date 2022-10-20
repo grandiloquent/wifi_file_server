@@ -32,6 +32,7 @@ import java.util.Map;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
+import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
 
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
@@ -43,6 +44,7 @@ public class FileServer extends NanoHTTPD {
     private Context mContext;
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
+    private Database mDatabase;
 
     public FileServer(Context context) {
         super(Shared.getDeviceIP(context), 8089);
@@ -53,6 +55,10 @@ public class FileServer extends NanoHTTPD {
         mTreeUri = sharedPreferences.getString(TREE_URI, null);
         mStoragePath = Shared.getExternalStoragePath(mContext);
         mDirectory = Shared.substringBeforeLast(mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath(), "/Android/data");
+        mDatabase = new Database(mContext, new File(
+                mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+                "notes.db"
+        ).getAbsolutePath());
     }
 
     private static String getMimeType(String path) {
@@ -324,6 +330,9 @@ public class FileServer extends NanoHTTPD {
                 Log.e("B5aOx2", String.format("serve, %s", e.getMessage()));
             }
             return Utils.ok();
+        }
+        if (uri.equals("/api/notes")) {
+            return ListNotesHandler.handle(mDatabase);
         }
         return Utils.notFound();
     }

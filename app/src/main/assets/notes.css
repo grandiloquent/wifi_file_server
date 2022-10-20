@@ -1,0 +1,239 @@
+html, body, h1 {
+    font-family: Roboto, Helvetica Neue, Arial, sans-serif
+}
+
+body, h1 {
+    font-size: small;
+}
+
+h3 {
+    font-weight: normal;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+}
+
+body {
+    margin: 0;
+    background: #fff;
+    color: #4d5156;
+    -webkit-text-size-adjust: none;
+}
+
+a {
+    color: #1558d6;
+    text-decoration: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, .10)
+}
+
+a:visited {
+    color: #681da8
+}
+
+cite, cite a:link, cite a:visited {
+    color: #202124;
+    font-style: normal
+}
+
+button {
+    margin: 0
+}
+
+ol li {
+    list-style: none
+}
+
+ol, ul, li {
+    margin: 0;
+    padding: 0
+}
+
+input {
+    -webkit-text-size-adjust: 100%;
+    word-wrap: break-word;
+    word-break: break-word;
+    padding: 0;
+    font-family: inherit;
+    margin: 0;
+    overflow: visible;
+    display: inline-block;
+    box-sizing: border-box;
+    height: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 12px;
+    border-radius: 0;
+    background-color: #fff;
+    transition: .2s ease-in-out;
+    transition-property: color, background-color, border;
+    vertical-align: middle;
+    color: rgba(0, 0, 0, .9);
+    border: 1px solid #cfd5de;
+    z-index: 1;
+}
+
+input:focus {
+    border-color: #006eff;
+    outline: 0;
+}
+
+/*======================================================================*/
+.text-line-container {
+    -webkit-tap-highlight-color: transparent;
+    align-items: center;
+    display: flex;
+    margin: 3px 16px 0;
+}
+
+.text-line-wrapper {
+    -webkit-tap-highlight-color: transparent;
+    border-bottom: solid 1px #e5e5e5;
+    display: flex;
+    flex: 1 1 auto;
+    padding: 9px 0;
+    max-width: 100%;
+    justify-content: space-between;
+    color: #70757a;
+}
+
+.text-line-wrapper  svg {
+    fill: currentColor;
+}
+
+.text-line {
+    -webkit-tap-highlight-color: transparent;
+    font: 400 14px/20px Roboto, Arial, sans-serif;
+    letter-spacing: .2px;
+    color: #70757a;
+    text-overflow: ellipsis;
+    overflow: hidden
+}
+
+.sub-text-line {
+    color: #dadce0;
+}
+
+/*======================================================================*/
+textarea {
+    outline: none;
+    border: 0;
+    flex-grow: 1;
+    font-family: Consolas;
+    font-size: 18px;
+    padding: 16px;
+}
+
+.bottom-bar {
+    display: flex;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    z-index: 3;
+    height: 48px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.98);
+    color: #030303;
+    font-size: 12px;
+}
+
+.bottom-bar-item {
+    display: flex;
+    -webkit-box-flex: 1;
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+.bottom-bar-item-wrapper {
+    display: flex;
+    -webkit-box-flex: 1;
+    flex: 1 1 0%;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #030303;
+
+}
+
+.c3-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+    stroke: none;
+    color: #030303;
+    display: block;
+}
+
+.c3-icon > svg {
+    width: 100%;
+    height: 100%;
+}
+
+.bottom-bar-item-text {
+    max-width: 100%;
+    padding: 0 4px;
+    box-sizing: border-box;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #030303;
+}
+/*------------------------------*/
+
+.overlay{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 2003;
+}
+
+.popup{
+
+    position: fixed;
+    max-height: 100%;
+    overflow-y: auto;
+    background-color: #fff;
+    transition: transform 0.3s, -webkit-transform 0.3s;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-radius: 16px 16px 0 0;
+    z-index: 2004;
+}
+
+.popup-item{
+
+    color: inherit;
+    font: inherit;
+    display: block;
+    width: 100%;
+    padding: 0;
+    font-size: 16px;
+    line-height: 48px;
+    text-align: center;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.popup-options{
+    position: relative;
+    display: flex;
+    padding: 16px 0 16px 8px;
+    overflow-x: auto;
+    overflow-y: visible;
+    flex-direction: column;
+}
