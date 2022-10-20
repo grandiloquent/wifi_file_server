@@ -19,11 +19,18 @@ import android.provider.DocumentsContract.Document;
 import android.provider.Settings;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,6 +47,28 @@ import java.util.List;
 
 public class Shared {
     private static final String TAG = "";
+
+    public static void close(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+
+    public static void copyFile(File origFile, File destFile) throws IOException {
+        writeToFile(new FileInputStream(origFile), destFile);
+    }
+
+    public static void copyStreams(InputStream inStream, OutputStream outStream)
+            throws IOException {
+        int data = -1;
+        while ((data = inStream.read()) != -1) {
+            outStream.write(data);
+        }
+    }
 
     public static Bitmap createVideoThumbnail(String filePath) {
         // MediaMetadataRetriever is available on API Level 8
@@ -108,6 +137,18 @@ public class Shared {
             Log.e("TAG", e.getMessage());
             return null;
         }
+    }
+
+    public static long getDirectorySize(File f) {
+        long size = 0;
+        if (f.isDirectory()) {
+            for (File file : f.listFiles()) {
+                size += getDirectorySize(file);
+            }
+        } else {
+            size = f.length();
+        }
+        return size;
     }
 
     public static String getExternalStoragePath(Context context) {
@@ -225,6 +266,27 @@ public class Shared {
         return stringBuilder.toString();
     }
 
+    public static void recursiveCopy(File sourceDir, File destDir) throws IOException {
+        File[] childFiles = sourceDir.listFiles();
+        if (childFiles == null) {
+            throw new IOException(String.format(
+                    "Failed to recursively copy. Could not determine contents for directory '%s'",
+                    sourceDir.getAbsolutePath()));
+        }
+        for (File childFile : childFiles) {
+            File destChild = new File(destDir, childFile.getName());
+            if (childFile.isDirectory()) {
+                if (!destChild.mkdir()) {
+                    throw new IOException(String.format("Could not create directory %s",
+                            destChild.getAbsolutePath()));
+                }
+                recursiveCopy(childFile, destChild);
+            } else if (childFile.isFile()) {
+                copyFile(childFile, destChild);
+            }
+        }
+    }
+
     public static void recursiveDelete(File rootDir) {
         if (rootDir.isDirectory()) {
             File[] childFiles = rootDir.listFiles();
@@ -281,16 +343,21 @@ public class Shared {
         return s.substring(0, index);
     }
 
-    public static long getDirectorySize(File f) {
-        long size = 0;
-        if (f.isDirectory()) {
-            for (File file : f.listFiles()) {
-                size += getDirectorySize(file);
-            }
-        } else {
-            size = f.length();
+    public static void writeToFile(String inputString, File destFile) throws IOException {
+        writeToFile(new ByteArrayInputStream(inputString.getBytes()), destFile);
+    }
+
+    public static void writeToFile(InputStream input, File destFile) throws IOException {
+        InputStream origStream = null;
+        OutputStream destStream = null;
+        try {
+            origStream = new BufferedInputStream(input);
+            destStream = new BufferedOutputStream(new FileOutputStream(destFile));
+           copyStreams(origStream, destStream);
+        } finally {
+            close(origStream);
+            close(destStream);
         }
-        return size;
     }
 
     public static class FileInfo {

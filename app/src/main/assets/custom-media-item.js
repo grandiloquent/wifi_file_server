@@ -141,7 +141,8 @@ class CustomMediaItem extends HTMLElement {
           </button>
         </div>
       </div>
-    </div>`;
+    </div>
+    `;
 
     const thumbnailImg = this.root.querySelector('#thumbnail-img');
     thumbnailImg.src = this.getAttribute('src') || '';
@@ -241,6 +242,8 @@ class CustomMediaItem extends HTMLElement {
     }
 
   }
+
+  
 
 }
 customElements.define('custom-media-item', CustomMediaItem);

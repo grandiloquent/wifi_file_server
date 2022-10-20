@@ -32,6 +32,7 @@ import java.util.Map;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
+import euphoria.psycho.fileserver.handlers.MoveHandler;
 
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
@@ -311,6 +312,9 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/delete")) {
             return DeleteHandler.handle(mContext, mTreeUri, session);
+        }
+        if (uri.equals("/api/move")) {
+            return MoveHandler.handle(mContext, mTreeUri, session);
         }
         if (uri.equals("/post")) {
             Map<String, String> files = new HashMap<String, String>();

@@ -33,7 +33,6 @@ public class Utils {
             response = ok();
         } catch (Exception e) {
             response = internalError(e);
-
         }
         return crossOrigin(response);
     }

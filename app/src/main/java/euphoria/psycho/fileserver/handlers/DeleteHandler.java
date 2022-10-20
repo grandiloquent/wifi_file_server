@@ -9,6 +9,7 @@ import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.File;
 
+import euphoria.psycho.fileserver.Shared;
 import euphoria.psycho.fileserver.Utils;
 
 public class DeleteHandler {
@@ -33,11 +34,11 @@ public class DeleteHandler {
                 if (deleteDocument(context, treeUri, path)) {
                     continue;
                 }
-                Utils.deleteFileSystem(new File(path));
+                Shared.recursiveDelete(new File(path));
             }
-            return Utils.ok();
+            return Utils.crossOrigin(Utils.ok());
         } catch (Exception ignored) {
         }
-        return Utils.notFound();
+        return Utils.crossOrigin(Utils.notFound());
     }
 }
