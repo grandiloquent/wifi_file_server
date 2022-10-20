@@ -212,11 +212,11 @@ public class FileServer extends NanoHTTPD {
 
     private Response handleStaticFiles(String uri) {
         if (uri.equals("/") || uri.endsWith(".js") || uri.endsWith(".css")
-                || uri.endsWith(".svg")) {
+                || uri.endsWith(".svg") || uri.endsWith(".html")) {
             String mimeType = "application/javascript";
             if (uri.endsWith(".svg")) {
                 mimeType = "image/svg+xml";
-            } else if (uri.equals("/")) {
+            } else if (uri.equals("/") || uri.endsWith(".html")) {
                 mimeType = "text/html";
             }
             if (mHashMap.containsKey(uri)) {
@@ -314,7 +314,7 @@ public class FileServer extends NanoHTTPD {
             return DeleteHandler.handle(mContext, mTreeUri, session);
         }
         if (uri.equals("/api/move")) {
-            return MoveHandler.handle(mContext, mTreeUri, session);
+            return MoveHandler.handle(mContext, mTreeUri, mDirectory, session);
         }
         if (uri.equals("/post")) {
             Map<String, String> files = new HashMap<String, String>();

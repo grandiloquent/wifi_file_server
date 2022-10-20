@@ -145,7 +145,7 @@ class CustomFavorites extends HTMLElement {
       const element = items[index];
       const menuItem = document.createElement('div');
       menuItem.setAttribute("class", "menu-item");
-      menuItem.setAttribute("data-src", "${encodeURIComponent(element)}");
+      menuItem.setAttribute("data-src", `${encodeURIComponent(element)}`);
       this.root.appendChild(menuItem);
       const deleteAction = document.createElement('button');
       deleteAction.setAttribute("id", "delete-action");

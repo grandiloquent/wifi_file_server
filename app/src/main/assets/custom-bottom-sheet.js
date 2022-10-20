@@ -114,6 +114,11 @@ class CustomBottomSheet extends HTMLElement {
           </button>
         </div>
         <div class="menu-item">
+          <button id="play-action" class="menu-item-button">
+            播放
+          </button>
+        </div>
+        <div class="menu-item">
           <button id="close-action" class="menu-item-button">
             取消
           </button>
@@ -137,7 +142,10 @@ class CustomBottomSheet extends HTMLElement {
     moveAction.addEventListener('click', evt => {
       this.dispatchEvent(new CustomEvent('move'));
     })
-
+    this.root.querySelector('#play-action')
+      .addEventListener('click', evt => {
+        window.open(`video.html${this.root.host.dataset.path}`,'_blank')
+      });
 
   }
 

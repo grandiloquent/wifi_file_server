@@ -70,7 +70,6 @@
     <script src="custom-bar-renderer.js"></script>
     <script src="custom-media-item.js"></script>
     <script src="custom-image-viewer.js"></script>
-    <script src="custom-dialog.js"></script>
     <script src="custom-files.js"></script>
     <script>
         let baseUri = window.location.host === "127.0.0.1:5500" ? "http://192.168.8.55:8089" : "";
@@ -214,21 +213,21 @@
         });
         customBottomSheet.addEventListener('move', async evt => {
             customBottomSheet.style.display = 'none';
-            const customDialog = document.createElement('custom-dialog');
-            customDialog.setAttribute('title', "询问");
-            const path = evt.currentTarget.dataset.path;
-            let name = substringBeforeLast(path, "&");
-            customDialog.setAttribute('message', `您确定要移动 ${substringAfterLast(decodeURIComponent(name), "/")} 吗？`);
-            customDialog.addEventListener('submit', async evt => {
-                customDialog.remove();
-                document.querySelectorAll('[data-active]')
-                    .forEach(x => {
-                        x.remove();
+            const customFiles = document.createElement('custom-files');
+            document.body.appendChild(customFiles);
+            customFiles.addEventListener('submit', async evt => {
+                evt.stopPropagation();
+                try {
+                    await fetch(`${baseUri}/api/move?dst=${new URL(window.location).searchParams.get('path')}`, {
+                        method: 'POST',
+                        body: localStorage.getItem('files')
                     });
-                await fetch(`${baseUri}/api/files${path}&action=move`);
+                } catch (error) {
 
+                }
+                localStorage.setItem('files', '[]')
+                location.reload();
             });
-            document.body.appendChild(customDialog);
         });
     </script>
     <script src="custom-favorites.js"></script>
