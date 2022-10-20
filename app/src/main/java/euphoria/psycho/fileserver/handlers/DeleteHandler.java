@@ -35,6 +35,7 @@ public class DeleteHandler {
                 }
                 Utils.deleteFileSystem(new File(path));
             }
+            return Utils.ok();
         } catch (Exception ignored) {
         }
         return Utils.notFound();
