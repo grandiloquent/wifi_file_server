@@ -8,7 +8,6 @@ import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.File;
-import java.util.Objects;
 
 import euphoria.psycho.fileserver.Utils;
 
