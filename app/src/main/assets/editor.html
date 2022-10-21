@@ -26,6 +26,161 @@
     <script src="toast.js"></script>
     <script src="layout.js"></script>
     <script src="editor.js"></script>
+
+    <template>
+        <style>
+            .menu-item {
+                -webkit-box-direction: normal;
+                color: #030303;
+                padding: 0;
+                height: 48px;
+                display: flex;
+                -webkit-box-align: center;
+                align-items: center;
+            }
+
+            #overlay {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 10;
+                cursor: pointer;
+                background-color: rgba(0, 0, 0, .6);
+            }
+
+            #hidden-button {
+                word-wrap: break-word;
+                -webkit-text-size-adjust: 100%;
+                padding: 0;
+                border: none;
+                outline: none;
+                font: inherit;
+                text-transform: inherit;
+                color: inherit;
+                background: transparent;
+                cursor: pointer;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 1px;
+                width: 1px;
+            }
+
+            .menu-item-button {
+                border: none;
+                outline: none;
+                font: inherit;
+                color: inherit;
+                background: transparent;
+                cursor: pointer;
+                box-sizing: border-box;
+                text-align: initial;
+                text-transform: unset;
+                width: 100%;
+                display: flex;
+                padding: 0;
+                margin-left: 12px;
+                font-size: 16px;
+                line-height: 22px;
+            }
+
+            .layout {
+                border-radius: 12px;
+                background-color: #fff;
+                display: block;
+                overflow: hidden;
+                position: fixed;
+                margin: 0 8px 24px;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 20;
+            }
+
+            .header {
+                overflow: hidden;
+                -webkit-box-flex: 0;
+                flex: none;
+                border-bottom: 1px solid #fff;
+            }
+
+            .body {
+                flex: 1;
+                overflow-y: hidden;
+                max-height: 325.2px;
+                display: flex;
+                flex-direction: column;
+                color: #030303;
+            }
+
+            .button-clear {
+                width: 48px;
+                height: 48px;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        </style>
+        <div id="overlay">
+            <button id="hidden-button">
+            </button>
+        </div>
+        <div class="layout">
+            <div class="header">
+                <div
+                    style="background: #030303; opacity: .15; border-radius: 4px; height: 4px; margin: 0 auto; width: 40px; margin-top: 8px;">
+                </div>
+                <div style="-webkit-box-pack: justify; justify-content: space-between; display: flex; margin-top: 8px;">
+                </div>
+            </div>
+            <div class="body">
+                <div id="items">
+                    <div data-index="0" class="menu-item" data-src="${encodeURIComponent(element)}"><button
+                            id="delete-action" class="menu-item-button">名称</button></div>
+                    <div data-index="1" class="menu-item" data-src="${encodeURIComponent(element)}"><button
+                            id="delete-action" class="menu-item-button">大小</button></div>
+                    <div data-index="2" class="menu-item" data-src="${encodeURIComponent(element)}"><button
+                            id="delete-action" class="menu-item-button">上传图片</button></div>
+                </div>
+                <div class="menu-item">
+                    <button id="close-action" class="menu-item-button">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <div id="menu"></div>
+    <script>
+        createToolItem("M15 9v-3.984h-9.984v3.984h9.984zM12 18.984q1.219 0 2.109-0.891t0.891-2.109-0.891-2.109-2.109-0.891-2.109 0.891-0.891 2.109 0.891 2.109 2.109 0.891zM17.016 3l3.984 3.984v12q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.844 0-1.43-0.586t-0.586-1.43v-13.969q0-0.844 0.586-1.43t1.43-0.586h12z", '保存', async () => {
+            saveData();
+            this.root.host.style.display = 'block';
+        })
+        this.root = document.getElementById('menu').attachShadow({ mode: "closed" })
+        this.root.appendChild(document.querySelector('template').content.cloneNode(true));
+        this.root.host.style.display = 'none';
+        this.root.getElementById('overlay').addEventListener('click', evt => {
+            this.root.host.style.display = 'none';
+        });
+        this.root.getElementById('overlay').addEventListener('click', evt => {
+            this.root.host.style.display = 'none';
+        });
+        this.root.querySelectorAll('.menu-item').forEach(x => {
+            x.addEventListener('click', async evt => {
+                const index = evt.currentTarget.dataset.index;
+                if (index === '0') {
+                    textarea.value = await navigator.clipboard.readText();
+                }
+                if (index === '2') {
+                    this.root.host.style.display = 'none';
+                    uploadHanlder(textarea);
+                }
+            })
+        })
+    </script>
 </body>
 
 </html>
