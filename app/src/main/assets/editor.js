@@ -499,7 +499,7 @@ document.addEventListener('keydown', async ev => {
             textarea.value = parse(textarea.value).split('.').map(x => x.trim() + '.\n').join('\n')
         } else if (ev.ctrlKey && ev.key.toLowerCase() === 'p') {
             ev.preventDefault();
-            window.open(`https://wxyoga.cn/article?id=${id}`, '_blank')
+            window.open(`article.html?id=${id}`, '_blank')
         }
     }
 });
