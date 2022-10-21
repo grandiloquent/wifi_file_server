@@ -138,10 +138,10 @@
             </div>
             <div class="body">
                 <div id="items">
-                    <div data-index="0" class="menu-item" data-src="${encodeURIComponent(element)}"><button
-                            id="delete-action" class="menu-item-button">名称</button></div>
-                    <div data-index="1" class="menu-item" data-src="${encodeURIComponent(element)}"><button
-                            id="delete-action" class="menu-item-button">大小</button></div>
+                    <div data-index="0" class="menu-item"><button id="delete-action"
+                            class="menu-item-button">保存</button></div>
+                    <div data-index="1" class="menu-item"><button id="delete-action"
+                            class="menu-item-button">预览</button></div>
                     <div data-index="2" class="menu-item" data-src="${encodeURIComponent(element)}"><button
                             id="delete-action" class="menu-item-button">上传图片</button></div>
                 </div>
@@ -156,7 +156,7 @@
     <div id="menu"></div>
     <script>
         createToolItem("M15 9v-3.984h-9.984v3.984h9.984zM12 18.984q1.219 0 2.109-0.891t0.891-2.109-0.891-2.109-2.109-0.891-2.109 0.891-0.891 2.109 0.891 2.109 2.109 0.891zM17.016 3l3.984 3.984v12q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.844 0-1.43-0.586t-0.586-1.43v-13.969q0-0.844 0.586-1.43t1.43-0.586h12z", '保存', async () => {
-            saveData();
+            //saveData();
             this.root.host.style.display = 'block';
         })
         this.root = document.getElementById('menu').attachShadow({ mode: "closed" })
@@ -172,14 +172,49 @@
             x.addEventListener('click', async evt => {
                 const index = evt.currentTarget.dataset.index;
                 if (index === '0') {
-                    textarea.value = await navigator.clipboard.readText();
+                    saveData();
+                }else if (index === '1') {
+                    window.open(`article.html?id=${id}`, '_blank')
                 }
                 if (index === '2') {
                     this.root.host.style.display = 'none';
                     uploadHanlder(textarea);
                 }
             })
-        })
+        });
+        function copyToClipboard(textToCopy) {
+            // navigator clipboard api needs a secure context (https)
+            if (navigator.clipboard && window.isSecureContext) {
+                // navigator clipboard api method'
+                return navigator.clipboard.writeText(textToCopy);
+            } else {
+                // text area method
+                let textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                // make the textarea out of viewport
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                return new Promise((res, rej) => {
+                    // here the magic happens
+                    document.execCommand('copy') ? res() : rej();
+                    textArea.remove();
+                });
+            }
+        }
+        function getClipboard() {
+            var pasteTarget = document.createElement("div");
+            pasteTarget.contentEditable = true;
+            var actElem = document.activeElement.appendChild(pasteTarget).parentNode;
+            pasteTarget.focus();
+            document.execCommand("Paste", null, null);
+            var paste = pasteTarget.innerText;
+            actElem.removeChild(pasteTarget);
+            return paste;
+        };
     </script>
 </body>
 
