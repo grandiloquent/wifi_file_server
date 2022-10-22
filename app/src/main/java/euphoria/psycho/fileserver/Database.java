@@ -80,7 +80,22 @@ public class Database extends SQLiteOpenHelper {
         if (jsonArray.length() == 0) return null;
         return jsonArray.toString();
     }
-
+    public String queryAll() throws JSONException {
+        Cursor c = getReadableDatabase().rawQuery("select * from notes", null);
+        JSONArray jsonArray = new JSONArray();
+        while (c.moveToNext()) {
+            JSONObject object = new JSONObject();
+            object.put("id", c.getInt(0));
+            object.put("title", c.getString(1));
+            object.put("content", c.getString(2));
+            object.put("create_at", c.getLong(3));
+            object.put("update_at", c.getLong(4));
+            jsonArray.put(object);
+        }
+        c.close();
+        if (jsonArray.length() == 0) return null;
+        return jsonArray.toString();
+    }
     public String queryNote(int id) throws JSONException {
         Cursor c = getReadableDatabase().rawQuery("select title,content,update_at from notes where _id = ?", new String[]{
                 Integer.toString(id)

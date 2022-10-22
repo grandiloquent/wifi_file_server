@@ -32,6 +32,7 @@ import java.util.Map;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
+import euphoria.psycho.fileserver.handlers.ExportHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
 import euphoria.psycho.fileserver.handlers.NoteHandler;
@@ -339,6 +340,9 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/note")) {
             return NoteHandler.handle(mDatabase,session);
+        }
+        if (uri.equals("/api/export")) {
+            return ExportHandler.handle(mDatabase);
         }
         return Utils.notFound();
     }
