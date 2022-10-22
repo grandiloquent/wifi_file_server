@@ -113,5 +113,5 @@ class CustomToast extends HTMLElement {
 }
 customElements.define('custom-toast', CustomToast);
 // <custom-toast id="toast"></custom-toast>
-// <script src="./components/toast.js"></script>
+// <script src="toast.js"></script>
 // document.getElementById('toast').setAttribute('message','');

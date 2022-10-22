@@ -138,6 +138,16 @@ class CustomEditorMenu extends HTMLElement {
               设置模板
             </button>
           </div>
+          <div data-index="5" class="menu-item">
+            <button class="menu-item-button">
+              复制代码
+            </button>
+          </div>
+          <div data-index="6" class="menu-item">
+            <button class="menu-item-button">
+              粘贴代码
+            </button>
+          </div>
         </div>
         <div class="menu-item">
           <button class="menu-item-button">

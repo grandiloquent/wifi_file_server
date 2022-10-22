@@ -122,7 +122,7 @@ class CustomEditorBar extends HTMLElement {
         });
         this.root.querySelector('#save').addEventListener('click', async evt => {
             evt.stopPropagation();
-            saveData();
+            saveData(textarea);
         });
         this.root.querySelector('#menu').addEventListener('click', async evt => {
             evt.stopPropagation();
@@ -145,6 +145,51 @@ class CustomEditorBar extends HTMLElement {
                         const customDialogTextarea = document.createElement('custom-dialog-textarea');
                         document.body.appendChild(customDialogTextarea);
                         break
+                    case '5':
+                        const array = textarea.value.split('\n');
+                        const buf = [];
+                        let entered = false;
+                        for (let index = 0; index < array.length; index++) {
+                            const element = array[index];
+
+                            if (element.startsWith("```")) {
+                                entered = true;
+                                continue;
+                            }
+                            if (entered) {
+                                if (element.startsWith("```")) {
+                                    entered = false;
+                                    break;
+                                }
+                                buf.push(element)
+                            }
+
+                        }
+                        navigator.clipboard.writeText(buf.join('\n'))
+                        break;
+                    case '6':
+                        const value = textarea.value;
+                        let start = textarea.selectionStart;
+                        let end = textarea.selectionEnd;
+                        while (start > -1) {
+                            if (value[start] === '`' && value[start - 1] === '`' && value[start - 2] === '`') {
+                                start += 1;
+                                while (start < value.length) {
+                                    if (value[start] === '\n') break;
+                                    start++;
+                                }
+                                break;
+                            }
+                            start--;
+                        }
+                        while (end < value.length) {
+                            if (value[end] === '`' && value[end + 1] === '`' && value[end + 2] === '`') {
+                                break;
+                            }
+                            end++;
+                        }
+                        textarea.setRangeText(await navigator.clipboard.readText(), start, end);
+                        break;
                 }
             });
             document.body.appendChild(customEditorMenu);
@@ -171,10 +216,10 @@ class CustomEditorBar extends HTMLElement {
             } else {
                 if (ev.altKey && ev.key.toLowerCase() === 's') {
                     ev.preventDefault();
-                    saveData();
+                    saveData(textarea);
                 } else if (ev.ctrlKey && ev.key.toLowerCase() === 's') {
                     ev.preventDefault();
-                    saveData();
+                    saveData(textarea);
                 } else if (ev.ctrlKey && ev.key.toLowerCase() === 'p') {
                     ev.preventDefault();
                     preview();
@@ -468,21 +513,21 @@ async function google(value, english) {
     }
     return [lines1, lines2];
 }
-async function saveData() {
-    const res = await submitData();
-    if (id)
-        document.getElementById('toast').setAttribute('message', '成功');
-    else
-        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
+async function saveData(textarea) {
+    await submitData(textarea);
 
 }
-async function submitData() {
+async function submitData(textarea) {
     const firstLine = textarea.value.trim().split("\n", 2)[0];
     const obj = {
 
         content: substringAfter(textarea.value.trim(), "\n"),
         title: firstLine.split('|')[0].replace(/^#+ +/, ''),
     };
+    const searchParams = new URL(window.location.href).searchParams;
+    const id = searchParams.get('id');
+    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
+
     if (id) {
         obj.id = parseInt(id);
     }
@@ -490,7 +535,12 @@ async function submitData() {
         method: 'POST',
         body: JSON.stringify(obj)
     });
-    return await response.text();
+    const res = await response.text();
+    if (id)
+        document.getElementById('toast').setAttribute('message', '成功');
+    else
+        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
+
 }
 async function loadData(baseUri, id) {
 
@@ -509,7 +559,7 @@ async function render(textarea) {
             document.title = obj.title;
             textarea.value = `# ${obj.title}
         
-    ${obj.content.trim()}
+${obj.content.trim()}
         `
         } catch (error) {
             console.log(error)
@@ -523,4 +573,12 @@ function preview() {
         window.open(`https://wxyoga.cn/article?id=${id}`, '_blank');
     else
         window.open(`article.html?id=${id}`, '_blank')
+}
+function substringAfter(string, delimiter, missingDelimiterValue) {
+    const index = string.indexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(index + delimiter.length);
+    }
 }
