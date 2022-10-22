@@ -517,6 +517,7 @@ async function render(textarea) {
     }
 }
 function preview() {
+    const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
     if (window.location.protocol === 'https:')
         window.open(`https://wxyoga.cn/article?id=${id}`, '_blank');
