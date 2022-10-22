@@ -142,7 +142,8 @@ class CustomEditorBar extends HTMLElement {
                         await trans(textarea, 0);
                         break;
                     case '4':
-
+                        const customDialogTextarea = document.createElement('custom-dialog-textarea');
+                        document.body.appendChild(customDialogTextarea);
                         break
                 }
             });
