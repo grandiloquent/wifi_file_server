@@ -150,6 +150,37 @@ class CustomEditorBar extends HTMLElement {
             document.body.appendChild(customEditorMenu);
         });
         render(textarea);
+        document.addEventListener('keydown', async ev => {
+            if (ev.key === 'F1') {
+                ev.preventDefault();
+                // textarea.setRangeText(
+                //     `\`${textarea.value.substring(textarea.selectionStart, textarea.selectionEnd)}\``
+                //     , textarea.selectionStart, textarea.selectionEnd)
+
+                textarea.setRangeText(localStorage.getItem('template'))
+            } else if (ev.key === 'F3') {
+                ev.preventDefault();
+                await trans(textarea, 1);
+            } else if (ev.key === 'F5') {
+                ev.preventDefault();
+                saveData();
+            } else if (ev.key === 'F10') {
+                ev.preventDefault();
+                //removeLines();
+                uploadHanlder(textarea);
+            } else {
+                if (ev.altKey && ev.key.toLowerCase() === 's') {
+                    ev.preventDefault();
+                    saveData();
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 's') {
+                    ev.preventDefault();
+                    saveData();
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'p') {
+                    ev.preventDefault();
+                    preview();
+                }
+            }
+        });
     }
     disconnectedCallback() {
 

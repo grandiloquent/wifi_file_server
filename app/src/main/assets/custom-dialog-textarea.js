@@ -2,10 +2,10 @@ class CustomDialogTextarea extends HTMLElement {
 
     constructor() {
         super();
-				
-        this.root = this.attachShadow({mode: 'open'});
 
-this.root.innerHTML=`
+        this.root = this.attachShadow({ mode: 'open' });
+
+        this.root.innerHTML = `
 <style>.layout
 {
     position: fixed;
@@ -122,33 +122,46 @@ textarea
 		`;
     }
 
- 
+
     static get observedAttributes() {
         return ['title'];
     }
-  
+
 
     connectedCallback() {
-		
-this.root.host.style.userSelect='none';
-        
-      // this.dispatchEvent(new CustomEvent());
-	  /*
-	  this.dispatchEvent(new CustomEvent('submit', {
-                detail: 0
-            }));
-			*/
+
+        this.root.host.style.userSelect = 'none';
+        this.root.querySelectorAll('.layout,.dialog-button:first-child')
+            .forEach(x => {
+                x.addEventListener('click', evt => {
+                    this.root.host.remove();
+                });
+            });
+        this.root.querySelector('.dialog-button:last-child')
+            .addEventListener('click', evt => {
+                this.root.host.remove();
+                localStorage.setItem('template', this.root.querySelector('textarea').value)
+            });
+        this.root.querySelector('textarea').addEventListener('click', evt => {
+            evt.stopPropagation();
+        })
+        // this.dispatchEvent(new CustomEvent());
+        /*
+        this.dispatchEvent(new CustomEvent('submit', {
+                  detail: 0
+              }));
+              */
     }
     disconnectedCallback() {
-       
+
     }
-    
+
     attributeChangedCallback(attrName, oldVal, newVal) {
         if (attrName === 'title') {
             this.root.querySelector('.title').textContent = newVal;
         }
     }
-   
+
 }
 customElements.define('custom-dialog-textarea', CustomDialogTextarea);
 /*
