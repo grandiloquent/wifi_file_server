@@ -15,6 +15,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Environment;
 import android.os.storage.StorageManager;
+import android.preference.PreferenceManager;
 import android.provider.DocumentsContract.Document;
 import android.provider.Settings;
 import android.util.Log;
@@ -366,6 +367,18 @@ public class Shared {
         public boolean IsDir;
         public long LastModified;
         public long Length;
+    }
+
+    public static void setString(Context context, String key, String value) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putString(key, value)
+                .apply();
+    }
+
+    public static String getString(Context context, String key, String defValue) {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+                .getString(key, defValue);
     }
 }
 // https://android.googlesource.com/platform/tools/tradefederation/+/dfd83b4c73cdb2ac0c2459f90b6caed8642cf684/src/com/android/tradefed/util/FileUtil.java

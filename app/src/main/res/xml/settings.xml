@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:dialogTitle="设置起始页"
+        android:inputType="text"
+        android:key="start-page"
+        android:summary="设置起始页"
+        android:title="设置起始页" />
+
+</PreferenceScreen>

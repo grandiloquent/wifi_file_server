@@ -121,10 +121,10 @@ class CustomFiles extends HTMLElement {
     max-height: 154px;
     overflow-y: auto;
 }
-#items::-webkit-scrollbar{
-            display:none;
-}
-</style>
+#items::-webkit-scrollbar
+{
+    display: none;
+}</style>
     <div id="overlay">
       <button id="hidden-button">
       </button>

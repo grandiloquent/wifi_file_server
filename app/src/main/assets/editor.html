@@ -5,233 +5,213 @@
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,shrink-to-fit=no" name="viewport">
     <title>Title</title>
-    <link rel="stylesheet" href="notes.css">
-    <link rel="stylesheet" type="text/css" href="editor.css">
-    <script src="shared.js"></script>
 
-</head>
+    <style>
+        html {
+            word-wrap: break-word;
+            color: #030303;
+            background-color: #fff;
+            -webkit-text-size-adjust: 100%;
+            font-size: 10px;
+            font-family: Roboto, Arial, sans-serif
+        }
 
-<body style="height: 100%">
-    <div style="display: flex;flex-direction: column;height: 100%">
-        <textarea></textarea>
-        <div style="height:56px"></div>
-        <div class="bottom-bar">
+        body {
+            margin: 0;
+            padding: 0;
+            padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            font-size: 1.2rem;
+            overflow-x: hidden
+        }
 
+        [hidden][hidden] {
+            display: none;
+            visibility: hidden
+        }
 
-        </div>
-    </div>
-    <script src="dialog.js"></script>
-    <custom-layout style='display: none;'></custom-layout>
-    <custom-toast id="toast"></custom-toast>
-    <script src="toast.js"></script>
-    <script src="layout.js"></script>
-    <script src="editor.js"></script>
-
-    <template>
-        <style>
-            .menu-item {
-                -webkit-box-direction: normal;
-                color: #030303;
-                padding: 0;
-                height: 48px;
-                display: flex;
-                -webkit-box-align: center;
-                align-items: center;
+        @keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg)
             }
 
-            #overlay {
-                position: fixed;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 10;
-                cursor: pointer;
-                background-color: rgba(0, 0, 0, .6);
-            }
-
-            #hidden-button {
-                word-wrap: break-word;
-                -webkit-text-size-adjust: 100%;
-                padding: 0;
-                border: none;
-                outline: none;
-                font: inherit;
-                text-transform: inherit;
-                color: inherit;
-                background: transparent;
-                cursor: pointer;
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 1px;
-                width: 1px;
-            }
-
-            .menu-item-button {
-                border: none;
-                outline: none;
-                font: inherit;
-                color: inherit;
-                background: transparent;
-                cursor: pointer;
-                box-sizing: border-box;
-                text-align: initial;
-                text-transform: unset;
-                width: 100%;
-                display: flex;
-                padding: 0;
-                margin-left: 12px;
-                font-size: 16px;
-                line-height: 22px;
-            }
-
-            .layout {
-                border-radius: 12px;
-                background-color: #fff;
-                display: block;
-                overflow: hidden;
-                position: fixed;
-                margin: 0 8px 24px;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 20;
-            }
-
-            .header {
-                overflow: hidden;
-                -webkit-box-flex: 0;
-                flex: none;
-                border-bottom: 1px solid #fff;
-            }
-
-            .body {
-                flex: 1;
-                overflow-y: hidden;
-                max-height: 325.2px;
-                display: flex;
-                flex-direction: column;
-                color: #030303;
-            }
-
-            .button-clear {
-                width: 48px;
-                height: 48px;
-                flex-shrink: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        </style>
-        <div id="overlay">
-            <button id="hidden-button">
-            </button>
-        </div>
-        <div class="layout">
-            <div class="header">
-                <div
-                    style="background: #030303; opacity: .15; border-radius: 4px; height: 4px; margin: 0 auto; width: 40px; margin-top: 8px;">
-                </div>
-                <div style="-webkit-box-pack: justify; justify-content: space-between; display: flex; margin-top: 8px;">
-                </div>
-            </div>
-            <div class="body">
-                <div id="items">
-                    <div data-index="0" class="menu-item"><button id="delete-action"
-                            class="menu-item-button">列表</button></div>
-                    <div data-index="1" class="menu-item"><button id="delete-action"
-                            class="menu-item-button">预览</button></div>
-                    <div data-index="2" class="menu-item" data-src="${encodeURIComponent(element)}"><button
-                            id="delete-action" class="menu-item-button">上传图片</button></div>
-                </div>
-                <div class="menu-item">
-                    <button id="close-action" class="menu-item-button">
-                        取消
-                    </button>
-                </div>
-            </div>
-        </div>
-    </template>
-    <div id="menu"></div>
-    <script>
-        createToolItem("M15 9v-3.984h-9.984v3.984h9.984zM12 18.984q1.219 0 2.109-0.891t0.891-2.109-0.891-2.109-2.109-0.891-2.109 0.891-0.891 2.109 0.891 2.109 2.109 0.891zM17.016 3l3.984 3.984v12q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.844 0-1.43-0.586t-0.586-1.43v-13.969q0-0.844 0.586-1.43t1.43-0.586h12z", '保存', async () => {
-            saveData();
-
-        })
-        createToolItem('M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z',
-            '菜单', async () => {
-                this.root.host.style.display = 'block';
-
-            })
-        this.root = document.getElementById('menu').attachShadow({ mode: "closed" })
-        this.root.appendChild(document.querySelector('template').content.cloneNode(true));
-        this.root.host.style.display = 'none';
-        this.root.getElementById('overlay').addEventListener('click', evt => {
-            this.root.host.style.display = 'none';
-        });
-        this.root.getElementById('overlay').addEventListener('click', evt => {
-            this.root.host.style.display = 'none';
-        });
-        this.root.querySelectorAll('.menu-item').forEach(x => {
-            x.addEventListener('click', async evt => {
-                const index = evt.currentTarget.dataset.index;
-                this.root.host.style.display = 'none';
-                if (index === '0') {
-                    formatList(textarea)
-                } else if (index === '1') {
-                    window.open(`article.html?id=${id}`, '_blank')
-                } else
-                    if (index === '2') {
-                        const editor=textarea;
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.addEventListener('change', async ev => {
-                            const file = input.files[0];
-                            const imageFile = await uploadImage(file, file.name);
-                            const string = `![](https://static.lucidu.cn/images/${imageFile})\n\n`;
-                            editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
-                        });
-                        input.click();
-                        console.log('==============')
-
-                    }
-            })
-        });
-        function copyToClipboard(textToCopy) {
-            // navigator clipboard api needs a secure context (https)
-            if (navigator.clipboard && window.isSecureContext) {
-                // navigator clipboard api method'
-                return navigator.clipboard.writeText(textToCopy);
-            } else {
-                // text area method
-                let textArea = document.createElement("textarea");
-                textArea.value = textToCopy;
-                // make the textarea out of viewport
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                textArea.style.top = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                return new Promise((res, rej) => {
-                    // here the magic happens
-                    document.execCommand('copy') ? res() : rej();
-                    textArea.remove();
-                });
+            100% {
+                -webkit-transform: rotate(1turn);
+                transform: rotate(1turn)
             }
         }
-        function getClipboard() {
-            var pasteTarget = document.createElement("div");
-            pasteTarget.contentEditable = true;
-            var actElem = document.activeElement.appendChild(pasteTarget).parentNode;
-            pasteTarget.focus();
-            document.execCommand("Paste", null, null);
-            var paste = pasteTarget.innerText;
-            actElem.removeChild(pasteTarget);
-            return paste;
-        };
-    </script>
+
+        .spinner {
+            display: block;
+            box-sizing: border-box;
+            margin: 12px auto;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #eee;
+            border-top-color: #666;
+            -webkit-animation: spinner .8s linear infinite;
+            animation: spinner .8s linear infinite
+        }
+
+        .spinner:not([hidden]) {
+            color: #333;
+            font-size: 1.6rem
+        }
+
+
+        input,
+        textarea {
+            background-color: transparent;
+            padding-bottom: 4px;
+            outline: none;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 0;
+            margin-bottom: 1px;
+            font: inherit;
+            color: #030303
+        }
+
+        input::-webkit-input-placeholder,
+        textarea::-webkit-input-placeholder {
+            color: #606060;
+            opacity: 1
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #606060;
+            opacity: 1
+        }
+
+        textarea {
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 8.4rem;
+            width: 100%;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 8px
+        }
+
+        input {
+            border-bottom: 1px solid #737373;
+            text-overflow: ellipsis
+        }
+
+        input:focus {
+            margin-bottom: 0;
+            border-bottom-width: 2px;
+            border-bottom-color: #030303
+        }
+
+        form {
+            margin: 0
+        }
+
+        a {
+            color: currentColor;
+            text-decoration: none
+        }
+
+        strong,
+        b {
+            font-weight: 500
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin: 0 0 3px
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .subhead {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            max-height: 2.5em;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            line-height: 1.25;
+            text-overflow: ellipsis;
+            font-weight: normal
+        }
+
+        h2 {
+            font-size: 1.8rem
+        }
+
+        h3 {
+            font-size: 1.4rem
+        }
+
+        h4 {
+            font-size: 1.3rem
+        }
+
+        .subhead {
+            opacity: .6
+        }
+
+        img {
+            min-width: 1px;
+            min-height: 1px;
+            -webkit-filter: none;
+            filter: none
+        }
+
+        img:not([src]) {
+            visibility: hidden
+        }
+
+        :focus {
+            outline: none
+        }
+
+        p {
+            margin: 8px 0;
+            line-height: 1.25
+        }
+
+        button,
+        select,
+        [role=button],
+        input[type=checkbox] {
+            cursor: pointer
+        }
+
+        .hidden-button {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 1px;
+            width: 1px
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.8)
+        }
+    </style>
+</head>
+
+<body style="height: 100%;">
+    <div style="height: 100%;display:flex;align-items: center;justify-content: center;flex-direction: column;padding-bottom: 49px;box-sizing: border-box;">
+        <textarea style="flex-grow: 1;resize: none;border: none;font-size: 18px;"></textarea>
+        <custom-editor-bar></custom-editor-bar>
+    </div>
+    <script src="custom-editor-bar.js"></script>
+
 </body>
 
 </html>

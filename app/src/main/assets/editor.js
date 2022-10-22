@@ -1,31 +1,11 @@
-let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
 const textarea = document.querySelector('textarea');
 const customLayout = document.querySelector('custom-layout');
 const bottomBar = document.querySelector('.bottom-bar');
 let translate = 'https://kingpunch.cn';
 let language = new URL(window.location).searchParams.get('language');
-const searchParams = new URL(window.location.href).searchParams;
-const id = searchParams.get('id');
 
-textarea.addEventListener('keydown', function (e) {
-    if (e.keyCode === 9) {
-        const p = findExtendPosition(textarea);
-        textarea.setRangeText(
-            textarea.value.substring(p[0], p[1])
-                .split('\n')
-                .map(i => {
-                    return '\t' + i;
-                })
-                .join('\n'), p[0], p[1]);
-        this.selectionStart = this.selectionEnd = start + 1;
-        // prevent the focus lose
-        e.preventDefault();
-    }
-}, false);
-document.addEventListener('visibilitychange', async ev => {
-    localStorage.setItem('content', textarea.value);
 
-});
+
 
 function createToolItem(d, title, callback) {
     const template = `<div  class="bottom-bar-item" style="height:100%">
@@ -47,10 +27,7 @@ function createToolItem(d, title, callback) {
 }
 
 
-createToolItem("M5.016 3.984h13.969v3h-5.484v12h-3v-12h-5.484v-3z", "标题", () => {
-    formatHead(textarea, 2);
-
-})
+ 
 
 createToolItem('M14.578 16.594l4.641-4.594-4.641-4.594 1.406-1.406 6 6-6 6zM9.422 16.594l-1.406 1.406-6-6 6-6 1.406 1.406-4.641 4.594z', '分行', () => {
     //formatCode(textarea)
@@ -71,9 +48,7 @@ createToolItem('M14.578 16.594l4.641-4.594-4.641-4.594 1.406-1.406 6 6-6 6zM9.42
 
 
 
-createToolItem('M21.516 20.484v-13.969q0-0.422-0.305-0.727t-0.727-0.305h-9.047l1.313 3.797h1.453v-1.266h1.266v1.266h4.547v1.313h-1.922q-0.703 2.344-2.391 4.219l3.281 3.281-0.938 0.891-3.094-3.094 1.031 3.094-1.969 2.531h6.469q0.422 0 0.727-0.305t0.305-0.727zM13.172 10.594l0.797 2.344 0.844 1.125q1.453-1.594 2.063-3.469h-3.703zM6.984 15.984q2.156 0 3.492-1.359t1.336-3.516q0-0.047-0.141-1.031h-4.688v1.734h2.953q-0.094 0.891-0.844 1.641t-2.109 0.75q-1.313 0-2.227-0.938t-0.914-2.25q0-1.359 0.914-2.297t2.227-0.938q1.266 0 2.063 0.797l1.313-1.266q-1.453-1.313-3.375-1.313-2.063 0-3.516 1.477t-1.453 3.539 1.453 3.516 3.516 1.453zM21 3.984q0.797 0 1.406 0.609t0.609 1.406v15q0 0.797-0.609 1.406t-1.406 0.609h-9l-0.984-3h-8.016q-0.797 0-1.406-0.609t-0.609-1.406v-15q0-0.797 0.609-1.406t1.406-0.609h6.984l1.031 3h9.984z', '翻译', async () => {
-    await trans(textarea, 1);
-})
+ 
 createToolItem('M18.984 6.422l-5.578 5.578 5.578 5.578-1.406 1.406-5.578-5.578-5.578 5.578-1.406-1.406 5.578-5.578-5.578-5.578 1.406-1.406 5.578 5.578 5.578-5.578z', '删除', async () => {
 
     removeLines();
@@ -86,91 +61,10 @@ if (id)
     render();
 
 
-async function submitData() {
-    const firstLine = textarea.value.trim().split("\n", 2)[0];
-    const obj = {
 
-        content: substringAfter(textarea.value.trim(), "\n"),
-        title: firstLine.split('|')[0].replace(/^#+ +/, ''),
-    };
-    if (id) {
-        obj.id = parseInt(id);
-    }
-    const response = await fetch(`${baseUri}/api/note`, {
-        method: 'POST',
-        body: JSON.stringify(obj)
-    });
-    return await response.text();
-}
 
-async function loadData() {
 
-    const response = await fetch(`${baseUri}/api/note?id=${id}`);
-    return await response.json();
-}
 
-async function render() {
-    textarea.value = localStorage.getItem("content");
-    try {
-        const obj = await loadData();
-        document.title = obj.title;
-        textarea.value = `# ${obj.title}
-    
-${obj.content.trim()}
-    `
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-function formatHead(editor, count) {
-    // console.log("formatHead, ");
-    // let start = editor.selectionStart;
-    // const string = editor.value;
-    // while (start - 1 > -1 && string.charAt(start - 1) !== '\n') {
-    //     start--;
-    // }
-    // editor.setRangeText('#'.repeat(count || 2) + " ", start, start);
-    const start = editor.selectionStart;
-    const end = editor.selectionEnd;
-    const string = editor.value;
-    let offsetStart = start;
-    while (offsetStart > 0) {
-        if (string[offsetStart - 1] !== '\n')
-            offsetStart--;
-        else {
-            while (offsetStart > 0) {
-                if (/\s/.test(string[offsetStart - 1]))
-                    offsetStart--;
-                else break;
-            }
-            break;
-        }
-    }
-    let offsetEnd = end;
-    while (offsetEnd < string.length) {
-        if (string[offsetEnd + 1] !== '\n')
-            offsetEnd++;
-        else {
-            /* while (offsetEnd < string.length) {
-                 if (/\s/.test(string[offsetEnd + 1]))
-                     offsetEnd++;
-                 else break;
-             }*/
-            offsetEnd++;
-            break;
-        }
-    }
-    const str = string.substring(offsetStart, offsetEnd).trim();
-    if (str.startsWith('#')) {
-        editor.setRangeText(`\n\n#${str}\n`, offsetStart,
-            offsetEnd);
-    } else {
-        editor.setRangeText(`\n\n${'#'.repeat(count)} ${str}\n`, offsetStart,
-            offsetEnd);
-    }
-    editor.selectionStart = offsetStart + 1;
-}
 
 function formatIndent(editor) {
     let start = editor.selectionStart;
@@ -325,119 +219,7 @@ async function formatCode(editor) {
     }
 }
 
-function findExtendPosition(editor) {
-    const start = editor.selectionStart;
-    const end = editor.selectionEnd;
-    let string = editor.value;
-    let offsetStart = start;
-    while (offsetStart > 0) {
-        if (!/\s/.test(string[offsetStart - 1]))
-            offsetStart--;
-        else {
-            let os = offsetStart;
-            while (os > 0 && /\s/.test(string[os - 1])) {
-                os--;
-            }
-            if ([...string.substring(offsetStart, os).matchAll(/\n/g)].length > 1) {
-                break;
-            }
-            offsetStart = os;
-        }
-    }
-    let offsetEnd = end;
-    while (offsetEnd < string.length) {
-        if (!/\s/.test(string[offsetEnd + 1])) {
 
-            offsetEnd++;
-        } else {
-
-            let oe = offsetEnd;
-            while (oe < string.length && /\s/.test(string[oe + 1])) {
-                oe++;
-            }
-            if ([...string.substring(offsetEnd, oe + 1).matchAll(/\n/g)].length > 1) {
-                offsetEnd++;
-
-                break;
-            }
-            offsetEnd = oe + 1;
-
-        }
-    }
-    while (offsetStart > 0 && string[offsetStart - 1] !== '\n') {
-        offsetStart--;
-    }
-    // if (/\s/.test(string[offsetEnd])) {
-    //     offsetEnd--;
-    // }
-    return [offsetStart, offsetEnd];
-}
-
-async function trans(editor, english) {
-    // let start = editor.selectionStart;
-    // let end = editor.selectionEnd;
-    // const string = editor.value;
-    // while (start > 0 && string[start - 1] !== '\n') {
-    //     start--;
-    // }
-    // while (end < string.length) {
-    //     end++;
-    //     if (string[end] === '\n') break;
-    // }
-    // const value = string.substring(start, end);
-    // if (!value.trim()) return;
-    // const lines = await google(value, english);
-    // editor.setRangeText(`${lines[0].join(' ')}\n\n${lines[1].join(' ')}`, start, end);
-    const points = findExtendPosition(editor);
-    const string = editor.value.substring(points[0], points[1]);
-
-    const value = string.replaceAll(/\n/g, ' ');
-    if (!value.trim()) return;
-    const lines = await google(value, english);
-    let results = lines[1].join(' ');
-    const pattern = localStorage.getItem('string');
-    if (pattern && pattern.trim().length) {
-        const values = pattern.split('\n').filter(i => i.trim().length).map(i => i.trim());
-        console.log(values);
-        for (let i = 0; i < values.length; i += 2) {
-            if (i + 1 < values.length) {
-                results = results.replaceAll(values[i], values[i + 1]);
-            }
-        }
-    }
-    let year = '';
-    let matchYear = /\d{4}/.exec(value);
-    if (matchYear) {
-        year = matchYear[0] + '年'
-    }
-    editor.setRangeText(`${english ? string : (lines[0].join(' '))}\n\n${results}\n\n${year}`, points[0], points[1]);
-}
-
-async function google(value, english) {
-    // https://service-mayeka3y-1258705152.hk.apigw.tencentcs.com/release/
-    // https://service-ehkp0lyi-1301282710.hk.apigw.tencentcs.com/release/
-    const response = await fetch(`${translate}/translate?q=${encodeURIComponent(value.trim())}&to=${english ? "zh" : "en"}`);
-    const obj = await response.text();
-    const lines1 = [];
-    const lines2 = [];
-    const translated = JSON.parse(obj.replaceAll(/您/g, '你').replaceAll(/ - /g, "——"));
-    if (translated.sentences) {
-        const sentences = translated.sentences;
-        for (let index = 0; index < sentences.length; index++) {
-            const element = sentences[index];
-            lines1.push(element.orig);
-            lines2.push(element.trans);
-        }
-    } else {
-        const trans = translated.trans_result;
-        for (let index = 0; index < trans.length; index++) {
-            const element = trans[index];
-            lines1.push(element.src);
-            lines2.push(element.dst);
-        }
-    }
-    return [lines1, lines2];
-}
 
 
 textarea.value = localStorage.getItem('content');
@@ -504,14 +286,7 @@ function parse(text) {
     return transcript.join(' ');
 }
 
-async function saveData() {
-    const res = await submitData();
-    if (id)
-        document.getElementById('toast').setAttribute('message', '成功');
-    else
-        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
 
-}
 
 async function removeLines() {
     if (textarea.selectionStart === textarea.selectionEnd) {
