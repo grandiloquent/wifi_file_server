@@ -124,6 +124,30 @@ class CustomEditorBar extends HTMLElement {
             evt.stopPropagation();
             saveData();
         });
+        this.root.querySelector('#menu').addEventListener('click', async evt => {
+            evt.stopPropagation();
+            const customEditorMenu = document.createElement('custom-editor-menu');
+            customEditorMenu.addEventListener('submit', async evt => {
+                switch (evt.detail) {
+                    case '0':
+                        preview();
+                        break;
+                    case '1':
+                        formatList(textarea);
+                        break
+                    case '2':
+                        uploadHanlder(textarea);
+                        break
+                    case '3':
+                        await trans(textarea, 0);
+                        break;
+                    case '4':
+
+                        break
+                }
+            });
+            document.body.appendChild(customEditorMenu);
+        });
         render(textarea);
     }
     disconnectedCallback() {
@@ -156,6 +180,57 @@ detail: evt.currentTarget.dataset.index
 }))
 -->
 */
+
+function uploadHanlder(editor) {
+    tryUploadImageFromClipboard((ok) => {
+        const string = `![](https://static.lucidu.cn/images/${ok})\n\n`;
+        editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
+    }, () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.addEventListener('change', async ev => {
+            const file = input.files[0];
+            const imageFile = await uploadImage(file, file.name);
+            const string = `![](https://static.lucidu.cn/images/${imageFile})\n\n`;
+            editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
+        });
+        input.click();
+    });
+}
+
+function tryUploadImageFromClipboard(success, error) {
+    navigator.permissions.query({
+        name: "clipboard-read"
+    }).then(result => {
+        if (result.state === "granted" || result.state === "prompt") {
+            navigator.clipboard.read().then(data => {
+                console.log(data[0].types);
+                const blob = data[0].getType("image/png");
+                console.log(blob.then(res => {
+                    const formData = new FormData();
+                    formData.append("images", res, "1.png");
+                    fetch(`https://lucidu.cn/api/article/2`, {
+                        method: "POST",
+                        body: formData
+                    }).then(res => {
+                        return res.text();
+                    }).then(obj => {
+                        success(obj);
+                    })
+                }).catch(err => {
+                    console.log(err)
+                    error(err);
+                }))
+            })
+                .catch(err => {
+                    error(err);
+                });
+        } else {
+            error(new Error());
+        }
+    });
+}
+
 function formatHead(editor, count) {
     // console.log("formatHead, ");
     // let start = editor.selectionStart;
@@ -204,7 +279,20 @@ function formatHead(editor, count) {
     }
     editor.selectionStart = offsetStart + 1;
 }
-
+function formatList(textarea) {
+    const p = findExtendPosition(textarea);
+    textarea.setRangeText(
+        textarea.value.substring(p[0], p[1])
+            .split('\n')
+            .map(i => {
+                // console.log(i);
+                // if (i.startsWith('*')) {
+                //     return i.substring(2);
+                // } else {}
+                return '- ' + i;
+            })
+            .join('\n'), p[0], p[1]);
+}
 function tab(textarea) {
     textarea.addEventListener('keydown', function (e) {
         if (e.keyCode === 9) {
@@ -359,7 +447,7 @@ async function submitData() {
     });
     return await response.text();
 }
-async function loadData(baseUri,id) {
+async function loadData(baseUri, id) {
 
     const response = await fetch(`${baseUri}/api/note?id=${id}`);
     return await response.json();
@@ -372,7 +460,7 @@ async function render(textarea) {
     let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
     if (id) {
         try {
-            const obj = await loadData(baseUri,id);
+            const obj = await loadData(baseUri, id);
             document.title = obj.title;
             textarea.value = `# ${obj.title}
         
@@ -382,4 +470,10 @@ async function render(textarea) {
             console.log(error)
         }
     }
+}
+function preview() {
+    if (window.location.protocol === 'https:')
+        window.open(`https://wxyoga.cn/article?id=${id}`, '_blank');
+    else
+        window.open(`article.html?id=${id}`, '_blank')
 }
