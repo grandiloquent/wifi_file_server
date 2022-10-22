@@ -214,10 +214,22 @@ detail: evt.currentTarget.dataset.index
 */
 
 function uploadHanlder(editor) {
-    tryUploadImageFromClipboard((ok) => {
-        const string = `![](https://static.lucidu.cn/images/${ok})\n\n`;
-        editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
-    }, () => {
+    if (window.location.protocol === 'https:') {
+        tryUploadImageFromClipboard((ok) => {
+            const string = `![](https://static.lucidu.cn/images/${ok})\n\n`;
+            editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
+        }, () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.addEventListener('change', async ev => {
+                const file = input.files[0];
+                const imageFile = await uploadImage(file, file.name);
+                const string = `![](https://static.lucidu.cn/images/${imageFile})\n\n`;
+                editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
+            });
+            input.click();
+        });
+    } else {
         const input = document.createElement('input');
         input.type = 'file';
         input.addEventListener('change', async ev => {
@@ -227,7 +239,8 @@ function uploadHanlder(editor) {
             editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
         });
         input.click();
-    });
+    }
+
 }
 
 function tryUploadImageFromClipboard(success, error) {
