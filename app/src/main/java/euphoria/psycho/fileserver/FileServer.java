@@ -33,6 +33,7 @@ import java.util.Map;
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
 import euphoria.psycho.fileserver.handlers.ExportHandler;
+import euphoria.psycho.fileserver.handlers.HtmlHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
 import euphoria.psycho.fileserver.handlers.NoteHandler;
@@ -248,42 +249,17 @@ public class FileServer extends NanoHTTPD {
         if (res != null) {
             return res;
         }
+        res = HtmlHandler.handle(session);
+        if (res != null) {
+            return res;
+        }
         res = handleStaticFiles(uri);
         if (res != null) {
             return res;
         }
         if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);
-            if (parameters[2].equals("delete") && parameters[0].startsWith("/")) {
-                if (parameters[0].startsWith("/Android/data")) {
-                    try {
-                        // TODO a very dangerous operation, if the wrong path is passed will completely wipe the whole folder
-                        DocumentsContract.deleteDocument(mContext.getContentResolver(), Utils.buildDocumentUri(mTreeUri, parameters[0]));
-                    } catch (Exception e) {
-                        return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-                                "text/plain", e.getMessage());
-                    }
-                } else {
-                    return Utils.deleteFileSystem(new File(parameters[0]
-                    ));
-                }
-            } else if (parameters[2].equals("move") && parameters[0].startsWith("/")) {
-                if (parameters[0].contains("/Android/data")) {
-                } else {
-                    String path = parameters[0];
-                    if (path.startsWith(mStoragePath)) {
-                    } else {
-                        File dir = new File(mDirectory, ".Recycle");
-                        if (!dir.exists()) {
-                            dir.mkdir();
-                        }
-                        File source = new File(path);
-                        source.renameTo(new File(dir, source.getName()));
-                        return Utils.crossOrigin(Utils.ok());
-                    }
-                    return Utils.notFound();
-                }
-            } else if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
+            if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
                 if (parameters[0].contains("/Android/data")) {
                     // getDocumentThumbnail site:googlesource.com
                     try {
@@ -330,8 +306,7 @@ public class FileServer extends NanoHTTPD {
             Map<String, String> files = new HashMap<String, String>();
             try {
                 session.parseBody(files, mDirectory);
-            } catch (Exception e) {
-                Log.e("B5aOx2", String.format("serve, %s", e.getMessage()));
+            } catch (Exception ignored) {
             }
             return Utils.ok();
         }
@@ -339,7 +314,7 @@ public class FileServer extends NanoHTTPD {
             return ListNotesHandler.handle(mDatabase);
         }
         if (uri.equals("/api/note")) {
-            return NoteHandler.handle(mDatabase,session);
+            return NoteHandler.handle(mDatabase, session);
         }
         if (uri.equals("/api/export")) {
             return ExportHandler.handle(mDatabase);

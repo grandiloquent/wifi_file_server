@@ -86,7 +86,6 @@ class CustomEditorMenu extends HTMLElement {
 {
     flex: 1;
     overflow-y: hidden;
-    max-height: 325.2px;
     display: flex;
     flex-direction: column;
     color: #030303;
@@ -99,7 +98,15 @@ class CustomEditorMenu extends HTMLElement {
     display: flex;
     align-items: center;
     justify-content: center;
-}</style>
+}
+#items{
+  max-height:288px;
+  overflow-y:auto;
+}
+#items::-webkit-scrollbar{
+  display:none;
+}
+</style>
     <div id="overlay">
       <button id="hidden-button">
       </button>
