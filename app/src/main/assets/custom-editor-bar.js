@@ -160,49 +160,12 @@ class CustomEditorBar extends HTMLElement {
                         document.body.appendChild(customDialogTextarea);
                         break
                     case '5':
-                        const array = textarea.value.split('\n');
-                        const buf = [];
-                        let entered = false;
-                        for (let index = 0; index < array.length; index++) {
-                            const element = array[index];
-
-                            if (element.startsWith("```")) {
-                                entered = true;
-                                continue;
-                            }
-                            if (entered) {
-                                if (element.startsWith("```")) {
-                                    entered = false;
-                                    break;
-                                }
-                                buf.push(element)
-                            }
-
-                        }
-                        navigator.clipboard.writeText(buf.join('\n'))
+                        const pv = findCodeBlock(textarea);
+                        navigator.clipboard.writeText(textarea.value.substring(pv[0], pv[1]));
                         break;
                     case '6':
-                        const value = textarea.value;
-                        let start = textarea.selectionStart;
-                        let end = textarea.selectionEnd;
-                        while (start > -1) {
-                            if (value[start] === '`' && value[start - 1] === '`' && value[start - 2] === '`') {
-                                start += 1;
-                                while (start < value.length) {
-                                    if (value[start] === '\n') break;
-                                    start++;
-                                }
-                                break;
-                            }
-                            start--;
-                        }
-                        while (end < value.length) {
-                            if (value[end] === '`' && value[end + 1] === '`' && value[end + 2] === '`') {
-                                break;
-                            }
-                            end++;
-                        }
-                        textarea.setRangeText(await navigator.clipboard.readText(), start, end);
+                        const p = findCodeBlock(textarea);
+                        textarea.setRangeText(await navigator.clipboard.readText(), p[0], p[1]);
                         break;
                 }
             });
@@ -237,6 +200,14 @@ class CustomEditorBar extends HTMLElement {
                 } else if (ev.ctrlKey && ev.key.toLowerCase() === 'p') {
                     ev.preventDefault();
                     preview();
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'd') {
+                    ev.preventDefault();
+                    const pv = findCodeBlock(textarea);
+                    navigator.clipboard.writeText(textarea.value.substring(pv[0], pv[1]));
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'f') {
+                    ev.preventDefault();
+                    const p = findCodeBlock(textarea);
+                    textarea.setRangeText(await navigator.clipboard.readText(), p[0], p[1]);
                 }
             }
         });
@@ -271,7 +242,33 @@ detail: evt.currentTarget.dataset.index
 }))
 -->
 */
-
+function findCodeBlock(textarea) {
+    const value = textarea.value;
+    let start = textarea.selectionStart;
+    let end = textarea.selectionEnd;
+    while (start > -1) {
+        if (value[start] === '`' && value[start - 1] === '`' && value[start - 2] === '`') {
+            start += 1;
+            while (start < value.length) {
+                if (value[start] === '\n') {
+                    start++;
+                    break;
+                }
+                start++;
+            }
+            break;
+        }
+        start--;
+    }
+    while (end < value.length) {
+        if (value[end] === '`' && value[end + 1] === '`' && value[end + 2] === '`') {
+            end--;
+            break;
+        }
+        end++;
+    }
+    return [start, end];
+}
 function uploadHanlder(editor) {
     if (window.location.protocol === 'https:') {
         tryUploadImageFromClipboard((ok) => {
