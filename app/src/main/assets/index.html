@@ -381,7 +381,7 @@
                 const formData = new FormData;
                 let path = new URL(location.href).searchParams.get('path') || "/storage/emulated/0";
                 console.log(path + "/" + file.name)
-                formData.append('file', file, path + "/" + file.name);
+                formData.append('file', file, encodeURIComponent(path + "/" + file.name));
                 try {
                     await fetch(`${baseUri}/post`, {
                         method: "POST",
