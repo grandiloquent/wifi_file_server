@@ -29,7 +29,7 @@
 
     </div>
     <script src="custom-drawer.js"></script>
-    <script src="notes.js"></script>
+
     <script src="toast.js"></script>
     <custom-toast id="toast"></custom-toast>
     <script>
@@ -37,9 +37,93 @@
         const customSearch = document.querySelector('custom-search');
         customSearch.addEventListener('submit', evt => {
             evt.stopPropagation();
+            render(evt.detail)
         });
 
+        let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
+        const mode = new URL(window.location).searchParams.get("m");
 
+        async function loadData() {
+            const items = await fetch(`${baseUri}/api/notes`);
+            return (await items.json()).sort((x, y) => {
+                return x.update_at - y.update_at;
+            });
+        }
+        function fuzzysearch(needle, haystack) {
+            var hlen = haystack.length;
+            var nlen = needle.length;
+            if (nlen > hlen) {
+                return false;
+            }
+            if (nlen === hlen) {
+                return needle === haystack;
+            }
+            outer: for (var i = 0, j = 0; i < nlen; i++) {
+                var nch = needle.charCodeAt(i);
+                while (j < hlen) {
+                    if (haystack.charCodeAt(j++) === nch) {
+                        continue outer;
+                    }
+                }
+                return false;
+            }
+            return true;
+        }
+        async function render(filter) {
+            document.querySelectorAll('.text-line-container')
+                .forEach(x=>x.remove());
+            const items = await loadData();
+            const container = document.getElementById('items');
+            container.innerHTML = '';
+            for (const item of items) {
+                if (filter && !fuzzysearch(filter, item.title)) continue;
+                const template = `<div class="text-line-container" data-id="${item.id}"  data-hidden="${item.hidden}">
+    <div class="text-line-wrapper">
+        <div class="text-line" style="${item.hidden === 0 ? '' : 'color: red'}">
+            ${item.title}
+        </div> 
+        <div class="icon-more_vert" style="width: 24px">
+        <svg  viewBox="0 0 24 24">
+<path d="M12 15.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM12 9.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM12 8.016q-0.797 0-1.406-0.609t-0.609-1.406 0.609-1.406 1.406-0.609 1.406 0.609 0.609 1.406-0.609 1.406-1.406 0.609z"></path>
+</svg>
+        </div>
+    </div>
+</div>
+`
+
+                container.insertAdjacentHTML('afterend', template);
+
+            }
+
+            document.querySelectorAll('.text-line-container')
+                .forEach(x => {
+                    x.addEventListener('click', ev => {
+                        window.location = `editor.html?id=${ev.currentTarget.dataset.id}`;
+                    })
+                    x.querySelector('.icon-more_vert')
+                        .addEventListener('click', ev => {
+                            ev.stopPropagation();
+                            const popup = document.getElementById('popup');
+
+                            popup.style.display = 'block';
+                            popup.querySelector('.overlay').addEventListener('click', () => {
+                                popup.style.display = 'none';
+                            });
+                            const p = ev.currentTarget.parentNode.parentNode.dataset.path + "/" + ev.currentTarget.parentNode.parentNode.dataset.name;
+                            document.getElementById('action-delete')
+                                .addEventListener('click', async () => {
+                                    const response = await fetch(`/api/source/7?p=${p}`);
+                                    popup.style.display = 'none';
+                                });
+                        })
+                });
+
+            window.onhashchange = () => {
+                render();
+            }
+        }
+
+        render();
     </script>
     <div id="popup" style="display: none">
         <div class="overlay">
