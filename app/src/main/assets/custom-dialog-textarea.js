@@ -5,8 +5,7 @@ class CustomDialogTextarea extends HTMLElement {
 
         this.root = this.attachShadow({ mode: 'open' });
 
-        this.root.innerHTML = `
-<style>.layout
+        this.root.innerHTML = `<style>.layout
 {
     position: fixed;
     top: 0;
@@ -118,8 +117,7 @@ textarea
       </div>
     </div>
     <div class="overlay">
-    </div>
-		`;
+    </div>`;
     }
 
 

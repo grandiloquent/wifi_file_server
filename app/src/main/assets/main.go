@@ -2,11 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -23,7 +26,6 @@ func main() {
 }
 
 func listFiles(w http.ResponseWriter, r *http.Request) bool {
-	println(r.URL.Path)
 	if r.URL.Path == "/api/files" {
 
 		p := r.URL.Query().Get("path")
@@ -31,6 +33,7 @@ func listFiles(w http.ResponseWriter, r *http.Request) bool {
 			p = "C:/Users/Administrator/Desktop"
 		}
 		if r.URL.Query().Get("isDir") == "0" {
+			w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, path.Base(p)))
 			http.ServeFile(w, r, p)
 			return true
 		}
@@ -80,28 +83,9 @@ func listFiles(w http.ResponseWriter, r *http.Request) bool {
 			http.NotFound(w, nil)
 			return true
 		}
-		fs, err := os.ReadDir(p)
+		err := moveFiles(p)
 		if err != nil {
-			println(err.Error())
-			http.NotFound(w, nil)
-			return true
-		}
-		for _, f := range fs {
-			if !f.IsDir() {
-				ext := filepath.Ext(f.Name())
-
-				if len(ext) == 0 {
-					ext = ".unknown"
-				}
-
-				ext = strings.ToUpper(ext)
-
-				ext = path.Join(p, ext)
-				if _, err = os.Stat(ext); os.IsNotExist(err) {
-					os.MkdirAll(ext, 0666)
-				}
-				os.Rename(path.Join(p, f.Name()), path.Join(ext, f.Name()))
-			}
+			return false
 		}
 		return true
 	}
@@ -110,17 +94,60 @@ func listFiles(w http.ResponseWriter, r *http.Request) bool {
 
 func staticFiles(w http.ResponseWriter, r *http.Request) bool {
 	var filename string
-	//var mimeType string
 	if r.URL.Path == "/" {
 		filename = "index.html"
-		//	mimeType = "text/html"
 	}
-	if strings.HasSuffix(r.URL.Path, ".js") || strings.HasSuffix(r.URL.Path, ".svg") {
+	if m, _ := regexp.MatchString("\\.(?:js|css|svg|png)$", r.URL.Path); m {
 		filename = r.URL.Path[1:]
 	}
+	referer := r.Header.Get("Referer")
+	if len(referer) > 0 && strings.Contains(referer, ".html&") {
+		u, err := url.Parse(referer)
+		if err == nil && len(filename) > 3 {
+			filename = path.Dir(u.Query().Get("path")) + "/" + filename[3:]
+		}
+	}
 	if len(filename) > 0 {
+		fmt.Println(filename)
 		http.ServeFile(w, r, filename)
 		return true
 	}
 	return false
+}
+func moveFiles(p string) error {
+	fs, err := os.ReadDir(p)
+	if err != nil {
+		return err
+	}
+	for _, f := range fs {
+		if !f.IsDir() {
+			ext := filepath.Ext(f.Name())
+
+			if len(ext) == 0 {
+				ext = ".unknown"
+			}
+
+			ext = strings.ToUpper(ext)
+
+			ext = path.Join(p, ext)
+			err := createDirectoryIfNotExists(ext)
+			if err != nil {
+				return err
+			}
+			err = os.Rename(path.Join(p, f.Name()), path.Join(ext, f.Name()))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+func createDirectoryIfNotExists(p string) error {
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		err := os.MkdirAll(p, 0666)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

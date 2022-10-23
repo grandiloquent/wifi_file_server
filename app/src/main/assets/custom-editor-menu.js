@@ -99,14 +99,15 @@ class CustomEditorMenu extends HTMLElement {
     align-items: center;
     justify-content: center;
 }
-#items{
-  max-height:288px;
-  overflow-y:auto;
+#items
+{
+    max-height: 288px;
+    overflow-y: auto;
 }
-#items::-webkit-scrollbar{
-  display:none;
-}
-</style>
+#items::-webkit-scrollbar
+{
+    display: none;
+}</style>
     <div id="overlay">
       <button id="hidden-button">
       </button>
