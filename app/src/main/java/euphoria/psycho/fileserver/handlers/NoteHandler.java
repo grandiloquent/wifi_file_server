@@ -1,23 +1,20 @@
 package euphoria.psycho.fileserver.handlers;
 
-import android.util.Log;
-
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
-import java.io.IOException;
-
 import euphoria.psycho.fileserver.Database;
+import euphoria.psycho.fileserver.FileServer;
 import euphoria.psycho.fileserver.Utils;
 
 public class NoteHandler {
-    public static Response handle(Database database, IHTTPSession session) {
+    public static Response handle(FileServer fileServer, IHTTPSession session) {
         if (session.getMethod() == Method.POST) {
             try {
+                fileServer.ensureConnection();
                 JSONObject obj = new JSONObject(Utils.readString(session));
                 long r = 0;
                 if (obj.has("id")) {
@@ -44,7 +41,6 @@ public class NoteHandler {
                         "application/json",
                         js));
             } catch (Exception ignored) {
-                Log.e("B5aOx2", String.format("handle, %s", ignored.getMessage()));
             }
         }
         return Utils.crossOrigin(Utils.notFound());

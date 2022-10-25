@@ -203,8 +203,8 @@ function tocPlugin (md, options) {
 
 
 
-let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:9000' : '';
-;
+let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
+     
 
 function writeText(message) {
     const textarea = document.createElement("textarea");

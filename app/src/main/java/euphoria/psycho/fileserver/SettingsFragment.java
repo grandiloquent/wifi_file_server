@@ -13,6 +13,9 @@ import euphoria.psycho.fileserver.R;
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
 
     public static final String KEY_START_PAGE = "start-page";
+    public static final String KEY_HOST = "host";
+    public static final String KEY_PORT = "port";
+    public static final String KEY_PASSWORD = "password";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

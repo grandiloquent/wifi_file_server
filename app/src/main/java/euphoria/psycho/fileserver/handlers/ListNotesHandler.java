@@ -1,21 +1,20 @@
 package euphoria.psycho.fileserver.handlers;
 
-import android.util.Log;
-
-import org.json.JSONException;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
 import euphoria.psycho.fileserver.Database;
+import euphoria.psycho.fileserver.FileServer;
 import euphoria.psycho.fileserver.Utils;
 
 public class ListNotesHandler {
-    public static Response handle(Database database) {
+    public static Response handle(FileServer fileServer) {
         try {
-            String js = database.queryNotes();
+            fileServer.ensureConnection();
+            String js = fileServer.executeJSON("select * from _query_notes()");
             if (js != null)
-                return Response.newFixedLengthResponse(Status.OK,
-                        "application/json", js);
+                return Utils.crossOrigin(Response.newFixedLengthResponse(Status.OK,
+                        "application/json", js));
         } catch (Exception ignored) {
         }
         return Utils.crossOrigin(Utils.notFound());

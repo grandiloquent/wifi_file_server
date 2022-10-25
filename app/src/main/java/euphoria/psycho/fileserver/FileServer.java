@@ -25,10 +25,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
@@ -41,6 +48,7 @@ import euphoria.psycho.fileserver.handlers.NoteHandler;
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
 public class FileServer extends NanoHTTPD {
+    private String mConnectString;
     private final String mDirectory;
     private final String mStoragePath;
     private final String mTreeUri;
@@ -48,6 +56,7 @@ public class FileServer extends NanoHTTPD {
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
     private Database mDatabase;
+    private Connection mConnection;
 
     public FileServer(Context context) {
         super(Shared.getDeviceIP(context), 8089);
@@ -62,6 +71,72 @@ public class FileServer extends NanoHTTPD {
                 mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
                 "notes.db"
         ).getAbsolutePath());
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        mConnectString = String.format("jdbc:postgresql://%s:%s/psycho?user=psycho&password=%s&ssl=false",
+                preferences.getString(SettingsFragment.KEY_HOST, null),
+                preferences.getString(SettingsFragment.KEY_PORT, null),
+                preferences.getString(SettingsFragment.KEY_PASSWORD, null));
+    }
+
+    public String executeJSON(String sql) {
+        try {
+            ensureConnection();
+            if (mConnection == null) {
+                return null;
+            }
+            try (Statement stmt = mConnection.createStatement()) {
+                ResultSet rs = stmt.executeQuery(sql);
+                if (rs.next()) {
+                    return rs.getObject(1).toString();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    public String executeQuery(String sql) {
+        try {
+            ensureConnection();
+            if (mConnection == null) {
+                return null;
+            }
+            try (Statement stmt = mConnection.createStatement()) {
+                ResultSet rs = stmt.executeQuery(sql);
+                JSONArray json = new JSONArray();
+                ResultSetMetaData rsmd = rs.getMetaData();
+                while (rs.next()) {
+                    int numColumns = rsmd.getColumnCount();
+                    JSONObject obj = new JSONObject();
+                    for (int i = 1; i <= numColumns; i++) {
+                        String column_name = rsmd.getColumnName(i);
+                        obj.put(column_name, rs.getObject(column_name));
+                    }
+                    json.put(obj);
+                }
+                return json.toString();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    public static Response serveFile(Context context, String treeUri, String path) {
+        try {
+            InputStream stream = context.getContentResolver()
+                    .openInputStream(Utils.buildDocumentUri(treeUri, path));
+            return serverFile(stream, path);
+        } catch (Exception e) {
+            Log.e("B5aOx2", String.format("serveFile, %s", e.getMessage()));
+            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
+                    "text/plain", e.getMessage());
+        }
     }
 
     private static String getMimeType(String path) {
@@ -119,21 +194,15 @@ public class FileServer extends NanoHTTPD {
         }
     }
 
+    private static Response handleNotFound(String uri) {
+        if (uri.equals("/favicon.ico"))
+            return Utils.notFound();
+        return null;
+    }
+
     private static Response listAndroidData(Context context, String treeUri, String uri) {
         List<FileInfo> files = Shared.listAndroidData(context, treeUri, Uri.encode(uri));
         return serveFiles(files);
-    }
-
-    public static Response serveFile(Context context, String treeUri, String path) {
-        try {
-            InputStream stream = context.getContentResolver()
-                    .openInputStream(Utils.buildDocumentUri(treeUri, path));
-            return serverFile(stream, path);
-        } catch (Exception e) {
-            Log.e("B5aOx2", String.format("serveFile, %s", e.getMessage()));
-            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
-                    "text/plain", e.getMessage());
-        }
     }
 
     private static Response serveFiles(List<FileInfo> files) {
@@ -200,23 +269,17 @@ public class FileServer extends NanoHTTPD {
 
     }
 
-    private Response readAsset(String filename, String uri, String mimeType) {
-        try {
-            InputStream in = mAssetManager.open(filename);
-            String contents = Shared.readAllText(in);
-            mHashMap.put(uri, contents);
-            in.close();
-            return Response.newFixedLengthResponse(Status.OK, mimeType, contents);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void ensureConnection() throws Exception {
+        if (mConnection == null || mConnection.isClosed()) {
+            mConnection = CompletableFuture.supplyAsync(() -> {
+                try {
+                    Class.forName("org.postgresql.Driver");
+                    return DriverManager.getConnection(mConnectString);
+                } catch (Exception ignored) {
+                }
+                return null;
+            }).get();
         }
-        return null;
-    }
-
-    private static Response handleNotFound(String uri) {
-        if (uri.equals("/favicon.ico"))
-            return Utils.notFound();
-        return null;
     }
 
     private Response handleStaticFiles(String uri) {
@@ -240,6 +303,36 @@ public class FileServer extends NanoHTTPD {
             return readAsset(fileName, uri, mimeType);
         }
         return null;
+    }
+
+    private Response readAsset(String filename, String uri, String mimeType) {
+        try {
+            InputStream in = mAssetManager.open(filename);
+            String contents = Shared.readAllText(in);
+            mHashMap.put(uri, contents);
+            in.close();
+            return Response.newFixedLengthResponse(Status.OK, mimeType, contents);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private String toString(Map<String, ? extends Object> map) {
+        if (map.size() == 0) {
+            return "";
+        }
+        return unsortedList(map);
+    }
+
+    private String unsortedList(Map<String, ? extends Object> map) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<ul>");
+        for (Map.Entry<String, ? extends Object> entry : map.entrySet()) {
+            Log.e("B5aOx2", String.format("unsortedList, %s = %s", entry.getKey(), entry.getValue()));
+        }
+        sb.append("</ul>");
+        return sb.toString();
     }
 
     @Override
@@ -311,7 +404,7 @@ public class FileServer extends NanoHTTPD {
             return Utils.ok();
         }
         if (uri.equals("/api/notes")) {
-            return ListNotesHandler.handle(mDatabase);
+            return ListNotesHandler.handle(this);
         }
         if (uri.equals("/api/note")) {
             return NoteHandler.handle(mDatabase, session);
@@ -320,23 +413,6 @@ public class FileServer extends NanoHTTPD {
             return ExportHandler.handle(mDatabase);
         }
         return Utils.notFound();
-    }
-
-    private String toString(Map<String, ? extends Object> map) {
-        if (map.size() == 0) {
-            return "";
-        }
-        return unsortedList(map);
-    }
-
-    private String unsortedList(Map<String, ? extends Object> map) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<ul>");
-        for (Map.Entry<String, ? extends Object> entry : map.entrySet()) {
-            Log.e("B5aOx2", String.format("unsortedList, %s = %s", entry.getKey(), entry.getValue()));
-        }
-        sb.append("</ul>");
-        return sb.toString();
     }
 
 

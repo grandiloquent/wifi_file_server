@@ -208,6 +208,14 @@ class CustomEditorBar extends HTMLElement {
                     ev.preventDefault();
                     const p = findCodeBlock(textarea);
                     textarea.setRangeText(await navigator.clipboard.readText(), p[0], p[1]);
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'h') {
+                    ev.preventDefault();
+                    formatHead(textarea,2);
+                }else if (ev.ctrlKey && ev.key.toLowerCase() === 'l') {
+                    ev.preventDefault();
+                    textarea.setRangeText(`\`\`\`js
+${await navigator.clipboard.readText()}
+\`\`\``)
                 }
             }
         });
@@ -537,7 +545,7 @@ async function submitData(textarea) {
     };
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
-    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
+    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
 
     if (id) {
         obj.id = parseInt(id);
@@ -563,7 +571,8 @@ async function render(textarea) {
     textarea.value = localStorage.getItem("content");
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
-    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
+    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
+
     if (id) {
         try {
             const obj = await loadData(baseUri, id);
