@@ -1,8 +1,6 @@
 package euphoria.psycho.fileserver.handlers;
 
-import android.content.ContentResolver.MimeTypeInfo;
 import android.net.Uri;
-import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import org.nanohttpd.protocols.http.IHTTPSession;

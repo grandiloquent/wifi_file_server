@@ -33,8 +33,6 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;

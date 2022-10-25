@@ -3,7 +3,6 @@ package euphoria.psycho.fileserver.handlers;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
-import euphoria.psycho.fileserver.Database;
 import euphoria.psycho.fileserver.FileServer;
 import euphoria.psycho.fileserver.Utils;
 

@@ -1,6 +1,5 @@
 package euphoria.psycho.fileserver.handlers;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 

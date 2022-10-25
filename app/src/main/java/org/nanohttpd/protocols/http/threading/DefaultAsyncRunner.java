@@ -33,13 +33,11 @@ package org.nanohttpd.protocols.http.threading;
  * #L%
  */
 
-import android.util.Log;
+import org.nanohttpd.protocols.http.ClientHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.nanohttpd.protocols.http.ClientHandler;
 
 /**
  * Default threading strategy for NanoHTTPD.

@@ -34,7 +34,15 @@ package org.nanohttpd.protocols.http;
  */
 
 import android.net.Uri;
-import android.util.Log;
+
+import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
+import org.nanohttpd.protocols.http.content.ContentType;
+import org.nanohttpd.protocols.http.content.CookieHandler;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.tempfiles.ITempFile;
+import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -64,15 +72,6 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 
 import javax.net.ssl.SSLException;
-
-import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
-import org.nanohttpd.protocols.http.content.ContentType;
-import org.nanohttpd.protocols.http.content.CookieHandler;
-import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.protocols.http.response.Status;
-import org.nanohttpd.protocols.http.tempfiles.ITempFile;
-import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 public class HTTPSession implements IHTTPSession {
 

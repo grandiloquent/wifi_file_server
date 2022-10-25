@@ -40,8 +40,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 
-import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
-
 /**
  * The runnable that will be used for every new client connection.
  */

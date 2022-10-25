@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.view.MenuItem;
 
-import euphoria.psycho.fileserver.SettingsFragment;
-
 public class SettingsActivity extends PreferenceActivity {
 
     protected void onCreate(Bundle savedInstanceState) {

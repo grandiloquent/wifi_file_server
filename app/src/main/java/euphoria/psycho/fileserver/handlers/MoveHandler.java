@@ -11,7 +11,6 @@ import org.nanohttpd.protocols.http.response.Response;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 import euphoria.psycho.fileserver.Shared;
 import euphoria.psycho.fileserver.Utils;

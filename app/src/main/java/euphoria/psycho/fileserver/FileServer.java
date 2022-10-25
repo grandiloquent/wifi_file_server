@@ -8,7 +8,6 @@ import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -39,7 +38,6 @@ import java.util.concurrent.CompletableFuture;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
-import euphoria.psycho.fileserver.handlers.ExportHandler;
 import euphoria.psycho.fileserver.handlers.HtmlHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
