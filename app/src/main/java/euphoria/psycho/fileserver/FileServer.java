@@ -55,7 +55,6 @@ public class FileServer extends NanoHTTPD {
     private Context mContext;
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
-    private Database mDatabase;
     private Connection mConnection;
 
     public FileServer(Context context) {
@@ -67,10 +66,6 @@ public class FileServer extends NanoHTTPD {
         mTreeUri = sharedPreferences.getString(TREE_URI, null);
         mStoragePath = Shared.getExternalStoragePath(mContext);
         mDirectory = Shared.substringBeforeLast(mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath(), "/Android/data");
-        mDatabase = new Database(mContext, new File(
-                mContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-                "notes.db"
-        ).getAbsolutePath());
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         mConnectString = String.format("jdbc:postgresql://%s:%s/psycho?user=psycho&password=%s&ssl=false",
                 preferences.getString(SettingsFragment.KEY_HOST, null),
@@ -407,10 +402,9 @@ public class FileServer extends NanoHTTPD {
             return ListNotesHandler.handle(this);
         }
         if (uri.equals("/api/note")) {
-            return NoteHandler.handle(mDatabase, session);
+            return NoteHandler.handle(this, session);
         }
         if (uri.equals("/api/export")) {
-            return ExportHandler.handle(mDatabase);
         }
         return Utils.notFound();
     }
