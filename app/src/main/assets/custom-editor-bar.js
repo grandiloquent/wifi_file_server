@@ -210,8 +210,8 @@ class CustomEditorBar extends HTMLElement {
                     textarea.setRangeText(await navigator.clipboard.readText(), p[0], p[1]);
                 } else if (ev.ctrlKey && ev.key.toLowerCase() === 'h') {
                     ev.preventDefault();
-                    formatHead(textarea,2);
-                }else if (ev.ctrlKey && ev.key.toLowerCase() === 'l') {
+                    formatHead(textarea, 2);
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'l') {
                     ev.preventDefault();
                     textarea.setRangeText(`\`\`\`js
 ${await navigator.clipboard.readText()}
@@ -548,7 +548,11 @@ async function submitData(textarea) {
     let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
 
     if (id) {
-        obj.id = parseInt(id);
+        obj._id = parseInt(id);
+        obj.update_at = new Date().getTime();
+    } else {
+        obj.create_at = new Date().getTime();
+        obj.update_at = new Date().getTime();
     }
     const response = await fetch(`${baseUri}/api/note`, {
         method: 'POST',
@@ -558,7 +562,7 @@ async function submitData(textarea) {
     if (id)
         document.getElementById('toast').setAttribute('message', '成功');
     else
-        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
+        window.location = `${window.location.origin}${window.location.pathname}?id=${JSON.parse(res)[0]["_insert_notes"]}`
 
 }
 async function loadData(baseUri, id) {
