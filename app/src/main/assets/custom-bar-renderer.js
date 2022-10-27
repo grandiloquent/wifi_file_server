@@ -1,11 +1,11 @@
 class CustomBarRenderer extends HTMLElement {
 
-  constructor() {
-    super();
+    constructor() {
+        super();
 
-    this.root = this.attachShadow({ mode: 'open' });
+        this.root = this.attachShadow({mode: 'open'});
 
-    this.root.innerHTML = `<style>.text
+        this.root.innerHTML = `<style>.text
 {
     max-width: 100%;
     padding: 0 4px;
@@ -56,15 +56,14 @@ class CustomBarRenderer extends HTMLElement {
             首页
           </div>
         </div>
-        <div class="item" id="menu">
+        <div class="item" id="fav">
           <div class="image">
             <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-              <path d="M3 6h18v2.016h-18v-2.016zM3 12.984v-1.969h18v1.969h-18zM3 18v-2.016h18v2.016h-18z">
-              </path>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
           </div>
           <div class="text">
-            菜单
+            收藏
           </div>
         </div>
         <div class="item" id="action-sort">
@@ -78,58 +77,70 @@ class CustomBarRenderer extends HTMLElement {
             排序
           </div>
         </div>
+        <div class="item" id="action-menu">
+          <div class="image">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M3 6h18v2.016h-18v-2.016zM3 12.984v-1.969h18v1.969h-18zM3 18v-2.016h18v2.016h-18z">
+              </path>
+            </svg>
+          </div>
+          <div class="text">
+            菜单
+          </div>
+        </div>
       </div>
     </div>`;
-    const menu = this.root.querySelector('#menu');
-    menu.addEventListener('click', evt => {
-      const customFavorites = document.createElement('custom-favorites');
-      document.body.appendChild(customFavorites);
-    })
-    const home = this.root.querySelector('#home');
-    home.addEventListener('click', evt => {
-      window.location = "/"
-    })
-    this.root.getElementById('action-sort').addEventListener('click', evt => {
-      evt.stopPropagation();
-      this.dispatchEvent(new CustomEvent('submit'));
-    });
+        this.root.querySelector('#fav').addEventListener('click', evt => {
+            const customFavorites = document.createElement('custom-favorites');
+            document.body.appendChild(customFavorites);
+        })
+        const home = this.root.querySelector('#home');
+        home.addEventListener('click', evt => {
+            window.location = "/"
+        })
+        this.root.getElementById('action-sort')
+            .addEventListener('click', evt => {
+                evt.stopPropagation();
+                this.dispatchEvent(new CustomEvent('submit-sort'));
+            });
 
-
-
-
-
-
-
-  }
-
-
-  static get observedAttributes() {
-    return ['data'];
-  }
-
-
-  connectedCallback() {
-
-    this.root.host.style.userSelect = 'none';
-
-    // this.dispatchEvent(new CustomEvent());
-    /*
-    this.dispatchEvent(new CustomEvent('submit', {
-              detail: 0
-          }));
-          */
-  }
-  disconnectedCallback() {
-
-  }
-
-  attributeChangedCallback(attrName, oldVal, newVal) {
-    if (attrName === 'data') {
-      const obj = JSON.parse(newVal);
+        this.root.getElementById('action-menu')
+            .addEventListener('click', evt => {
+                evt.stopPropagation();
+                this.dispatchEvent(new CustomEvent('submit-menu'));
+            });
     }
-  }
+
+
+    static get observedAttributes() {
+        return ['data'];
+    }
+
+
+    connectedCallback() {
+
+        this.root.host.style.userSelect = 'none';
+
+        // this.dispatchEvent(new CustomEvent());
+        /*
+        this.dispatchEvent(new CustomEvent('submit', {
+                  detail: 0
+              }));
+              */
+    }
+
+    disconnectedCallback() {
+
+    }
+
+    attributeChangedCallback(attrName, oldVal, newVal) {
+        if (attrName === 'data') {
+            const obj = JSON.parse(newVal);
+        }
+    }
 
 }
+
 customElements.define('custom-bar-renderer', CustomBarRenderer);
 /*
 <!--\

@@ -507,6 +507,8 @@ async function trans(editor, english) {
     editor.setRangeText(`${english ? string : (lines[0].join(' '))}\n\n${results}\n\n${year}`, points[0], points[1]);
 }
 
+let translate = 'https://kingpunch.cn';
+
 async function google(value, english) {
     // https://service-mayeka3y-1258705152.hk.apigw.tencentcs.com/release/
     // https://service-ehkp0lyi-1301282710.hk.apigw.tencentcs.com/release/
@@ -606,3 +608,9 @@ function substringAfter(string, delimiter, missingDelimiterValue) {
         return string.substring(index + delimiter.length);
     }
 }
+
+console.log([...document.querySelectorAll('.slide-image-wrap img')]
+    .map((x, index) => {
+        return `${x.src.split('?')[0]}\n\tout=${index + 1}.jpg`;
+    }).reverse()
+    .join('\n'))

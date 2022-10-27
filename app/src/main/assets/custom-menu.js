@@ -1,4 +1,4 @@
-class CustomBottomSheet extends HTMLElement {
+class CustomMenu extends HTMLElement {
 
     constructor() {
         super();
@@ -90,6 +90,15 @@ class CustomBottomSheet extends HTMLElement {
     display: flex;
     flex-direction: column;
     color: #030303;
+}
+.button-clear
+{
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }</style>
     <div id="overlay">
       <button id="hidden-button">
@@ -103,23 +112,10 @@ class CustomBottomSheet extends HTMLElement {
         </div>
       </div>
       <div class="body">
-        <div class="menu-item">
-          <button id="delete-action" class="menu-item-button">
-            删除
-          </button>
+        <div id="items">
         </div>
         <div class="menu-item">
-          <button id="move-action" class="menu-item-button">
-            移动
-          </button>
-        </div>
-        <div class="menu-item" id="action-rename">
-          <button class="menu-item-button">
-            重命名
-          </button>
-        </div>
-        <div class="menu-item" id="close-action">
-          <button class="menu-item-button">
+          <button id="close-action" class="menu-item-button">
             取消
           </button>
         </div>
@@ -134,36 +130,41 @@ class CustomBottomSheet extends HTMLElement {
             this.remove();
         })
 
-        const deleteAction = this.root.querySelector('#delete-action');
-        deleteAction.addEventListener('click', evt => {
-            this.dispatchEvent(new CustomEvent('delete'));
-        })
-        const moveAction = this.root.querySelector('#move-action');
-        moveAction.addEventListener('click', evt => {
-            this.dispatchEvent(new CustomEvent('move'));
-        });
+        let menu = JSON.stringify([
+            "新建文件夹",
+            "新建文件"
+        ]);
+        const items = JSON.parse(menu);
+        const is = this.root.querySelector('#items');
+        for (let index = 0; index < items.length; index++) {
+            const element = items[index];
+            const menuItem = document.createElement('div');
+            menuItem.dataset.index = index;
+            menuItem.setAttribute("class", "menu-item");
+            menuItem.setAttribute("data-src", "${encodeURIComponent(element)}");
+            this.root.appendChild(menuItem);
+            const deleteAction = document.createElement('button');
+            deleteAction.setAttribute("id", "delete-action");
+            deleteAction.setAttribute("class", "menu-item-button");
+            menuItem.appendChild(deleteAction);
+            deleteAction.textContent = `${substringAfterLast(element, "/")}`;
 
-        this.root.querySelector('#action-rename')
-            .addEventListener('click', evt => {
-                this.dispatchEvent(new CustomEvent('rename'))
+
+            is.appendChild(menuItem);
+        }
+
+
+        this.root.querySelectorAll('.menu-item[data-src]')
+            .forEach(x => {
+                x.addEventListener('click', evt => {
+                    this.dispatchEvent(new CustomEvent('submit', {
+                        detail: evt.currentTarget.dataset.index
+                    }))
+                });
             })
 
     }
 
-    appendPlayButton() {
-        const menuItem = document.createElement('div');
-        menuItem.setAttribute("class", "menu-item");
-        const menuItemButton = document.createElement('button');
-        menuItemButton.setAttribute("class", "menu-item-button");
-        menuItem.appendChild(menuItemButton);
-        menuItemButton.textContent = `播放`;
-        menuItem.addEventListener('click', evt => {
-            window.open(`video.html${this.root.host.dataset.path}`, '_blank')
-        });
-        this.root.querySelector('#close-action').insertAdjacentElement(
-            'beforebegin', menuItem
-        )
-    }
 
     static get observedAttributes() {
         return ['data'];
@@ -194,14 +195,14 @@ class CustomBottomSheet extends HTMLElement {
 
 }
 
-customElements.define('custom-bottom-sheet', CustomBottomSheet);
+customElements.define('custom-menu', CustomMenu);
 /*
 <!--\
-<custom-bottom-sheet></custom-bottom-sheet>
-<script src="custom-bottom-sheet.js"></script>
-const customBottomSheet = document.querySelector('custom-bottom-sheet');
-const customBottomSheet = document.createElement('custom-bottom-sheet');
-customBottomSheet.setAttribute('data',JSON.stringify(obj));
-document.body.appendChild(customBottomSheet);
+<custom-menu></custom-menu>
+<script src="custom-menu.js"></script>
+const customMenu = document.querySelector('custom-menu');
+const customMenu = document.createElement('custom-menu');
+customMenu.setAttribute('data',JSON.stringify(obj));
+document.body.appendChild(customMenu);
 -->
 */

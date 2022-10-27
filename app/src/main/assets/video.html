@@ -508,7 +508,7 @@ padding: .7em 0.57em;
         layout.style.height = `${window.innerWidth * 0.5625}px`;
 
         const video = document.querySelector('video');
-        video.preload = "metadata";
+        video.preload="auto"
         video.src = `/api/files?path=${new URL(document.URL).searchParams.get('path')}&isDir=0`;
 
         video.addEventListener('durationchange', evt => {

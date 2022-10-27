@@ -21,6 +21,21 @@ func main() {
 		if listFiles(w, r) {
 			return
 		}
+		if deleteFiles(w, r) {
+			return
+		}
+		if moveFiles(w, r) {
+			return
+		}
+		if renameFile(w, r) {
+			return
+		}
+		if newFolder(w, r) {
+			return
+		}
+		if newFile(w, r) {
+			return
+		}
 		http.NotFound(w, r)
 	}))
 }
@@ -60,30 +75,13 @@ func listFiles(w http.ResponseWriter, r *http.Request) bool {
 			}
 		}
 		return true
-	} else if r.URL.Path == "/api/delete" {
-		var paths []string
-		buf, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.NotFound(w, nil)
-			return true
-		}
-		err = json.Unmarshal(buf, &paths)
-		if err != nil {
-			http.NotFound(w, nil)
-			return true
-		}
-		for _, p := range paths {
-			os.RemoveAll(p)
-		}
-		w.Write([]byte("Sucess"))
-		return true
 	} else if r.URL.Path == "/api/tidy" {
 		p := r.URL.Query().Get("path")
 		if len(p) == 0 {
 			http.NotFound(w, nil)
 			return true
 		}
-		err := moveFiles(p)
+		err := tidyFiles(p)
 		if err != nil {
 			return false
 		}
@@ -97,7 +95,7 @@ func staticFiles(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path == "/" {
 		filename = "index.html"
 	}
-	if m, _ := regexp.MatchString("\\.(?:js|css|svg|png)$", r.URL.Path); m {
+	if m, _ := regexp.MatchString("\\.(?:js|css|svg|png|html)$", r.URL.Path); m {
 		filename = r.URL.Path[1:]
 	}
 	referer := r.Header.Get("Referer")
@@ -108,13 +106,13 @@ func staticFiles(w http.ResponseWriter, r *http.Request) bool {
 		}
 	}
 	if len(filename) > 0 {
-		fmt.Println(filename)
+
 		http.ServeFile(w, r, filename)
 		return true
 	}
 	return false
 }
-func moveFiles(p string) error {
+func tidyFiles(p string) error {
 	fs, err := os.ReadDir(p)
 	if err != nil {
 		return err
@@ -150,4 +148,124 @@ func createDirectoryIfNotExists(p string) error {
 		}
 	}
 	return nil
+}
+func deleteFiles(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path != "/api/delete" {
+		return false
+	}
+	var paths []string
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	err = json.Unmarshal(buf, &paths)
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	for _, p := range paths {
+		os.RemoveAll(p)
+	}
+	w.Write([]byte("Success"))
+	return true
+}
+func renameFile(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path != "/api/rename" {
+		return false
+	}
+	src := r.URL.Query().Get("src")
+	if _, err := os.Stat(src); os.IsNotExist(err) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(404)
+		fmt.Fprintf(w, "%s", src)
+		return true
+	}
+	dst := r.URL.Query().Get("dst")
+	parent := path.Dir(src)
+	dst = path.Join(parent, dst)
+	if _, err := os.Stat(dst); os.IsNotExist(err) {
+		os.Rename(src, dst)
+		w.Write([]byte("Success"))
+		return true
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(404)
+	fmt.Fprintf(w, "%s", src)
+	return true
+}
+func newFolder(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path != "/api/newfolder" {
+		return false
+	}
+	src := r.URL.Query().Get("src")
+	if _, err := os.Stat(src); os.IsNotExist(err) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(404)
+		fmt.Fprintf(w, "%s", src)
+		return true
+	}
+	dst := r.URL.Query().Get("dst")
+	dst = path.Join(src, dst)
+	if _, err := os.Stat(dst); os.IsNotExist(err) {
+		os.MkdirAll(dst, 0777)
+		w.Write([]byte("Success"))
+		return true
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(404)
+	fmt.Fprintf(w, "%s", src)
+	return true
+}
+func moveFiles(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path != "/api/move" {
+		return false
+	}
+	var paths []string
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	err = json.Unmarshal(buf, &paths)
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	parent := r.URL.Query().Get("dst")
+	for _, p := range paths {
+		os.Rename(p, path.Join(parent, path.Base(p)))
+	}
+	w.Write([]byte("Success"))
+	return true
+}
+func newFile(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path != "/api/newfile" {
+		return false
+	}
+	src := r.URL.Query().Get("src")
+	if _, err := os.Stat(src); os.IsNotExist(err) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(404)
+		fmt.Fprintf(w, "%s", src)
+		return true
+	}
+	dst := r.URL.Query().Get("dst")
+	dst = path.Join(src, dst)
+	if _, err := os.Stat(dst); os.IsNotExist(err) {
+		f, err := os.Create(dst)
+		if err != nil {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(404)
+			fmt.Fprintf(w, "%s", src)
+			return true
+		}
+		defer f.Close()
+		w.Write([]byte("Success"))
+		return true
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(404)
+	fmt.Fprintf(w, "%s", src)
+	return true
 }
