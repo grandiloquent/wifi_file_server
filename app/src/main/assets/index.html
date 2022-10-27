@@ -223,6 +223,7 @@
 
                             }
                             localStorage.setItem('files', '[]')
+                            location.reload();
                         });
                     });
                     customBottomSheet.addEventListener('rename', async evt => {
@@ -245,7 +246,7 @@
             customDialogRename.addEventListener('submit', async evt => {
                 evt.stopPropagation();
                 let path = (new URL(document.URL).searchParams.get('path') || '') + "/" + value;
-                await fetch(`/api/rename?src=${path}&dst=${evt.detail}`);
+                await fetch(`/api/rename?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
             });
         }
 

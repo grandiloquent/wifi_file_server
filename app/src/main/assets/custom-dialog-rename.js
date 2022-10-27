@@ -49,8 +49,7 @@ class CustomDialogRename extends HTMLElement {
     font-size: 1.3rem;
     color: #0f0f0f;
     border: none;
-    min-width: 250px;
-    max-width: 356px;
+    width: 356px;
     box-shadow: 0 0 24px 12px rgba(0,0,0,.25);
     border-radius: 12px;
     background-color: #fff;
@@ -130,7 +129,7 @@ input
     -webkit-box-flex: 1;
     flex-grow: 1;
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 12px;
     font-weight: normal;
     width: 100%;
     margin-top: 4px;
@@ -186,6 +185,13 @@ input
                   detail: 0
               }));
               */
+        const input = this.root.querySelector('input');
+        input.addEventListener('keydown', evt => {
+            if (evt.key === 'F1') {
+                evt.preventDefault();
+                input.value = `${input.value.substring(0, input.selectionStart)}.${substringAfterLast(input.value,".")}`;
+            }
+        })
     }
     disconnectedCallback() {
 
@@ -219,3 +225,11 @@ detail: evt.currentTarget.dataset.index
 }))
 -->
 */
+function substringAfterLast(string, delimiter, missingDelimiterValue) {
+    const index = string.lastIndexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(index + delimiter.length);
+    }
+}

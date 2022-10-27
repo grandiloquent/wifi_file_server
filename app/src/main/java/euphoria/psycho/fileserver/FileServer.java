@@ -42,6 +42,7 @@ import euphoria.psycho.fileserver.handlers.HtmlHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
 import euphoria.psycho.fileserver.handlers.NoteHandler;
+import euphoria.psycho.fileserver.handlers.RenameHandler;
 
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
@@ -401,6 +402,9 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/note")) {
             return NoteHandler.handle(this, session);
+        }
+        if (uri.equals("/api/rename")) {
+            return RenameHandler.handle(mContext, session);
         }
         if (uri.equals("/api/export")) {
         }
