@@ -443,7 +443,7 @@
                     customDialogRename.addEventListener('submit', async evt => {
                         evt.stopPropagation();
                         let path = (new URL(document.URL).searchParams.get('path') || '');
-                        await fetch(`/api/newfolder?src=${path}&dst=${evt.detail}`);
+                        await fetch(`/api/newfolder?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
                     });
                 } else if (t === 2) {
                     const customDialogRename = document.createElement('custom-dialog-rename');
@@ -452,7 +452,7 @@
                     customDialogRename.addEventListener('submit', async evt => {
                         evt.stopPropagation();
                         let path = (new URL(document.URL).searchParams.get('path') || '');
-                        await fetch(`/api/newfile?src=${path}&dst=${evt.detail}`);
+                        await fetch(`/api/newfile?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
                     });
                 }
             });

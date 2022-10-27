@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -197,10 +198,22 @@ public class Utils {
         }
         return result;
     }
+
     public static String readString(IHTTPSession session) throws IOException {
         int contentLength = Integer.parseInt(Objects.requireNonNull(session.getHeaders().get("content-length")));
         byte[] buffer = new byte[contentLength];
         session.getInputStream().read(buffer, 0, contentLength);
         return new String(buffer);
     }
+
+    public static String getParameter(Map<String, List<String>> parameters, String key) {
+        String src = null;
+        if (parameters.size() > 0) {
+            List<String> obj = parameters.get(key);
+            if (obj != null)
+                src = obj.get(0);
+        }
+        return src;
+    }
+
 }
