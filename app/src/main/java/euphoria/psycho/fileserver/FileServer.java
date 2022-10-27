@@ -41,6 +41,7 @@ import euphoria.psycho.fileserver.handlers.DeleteHandler;
 import euphoria.psycho.fileserver.handlers.HtmlHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
+import euphoria.psycho.fileserver.handlers.NewFileHandler;
 import euphoria.psycho.fileserver.handlers.NewFolderHandler;
 import euphoria.psycho.fileserver.handlers.NoteHandler;
 import euphoria.psycho.fileserver.handlers.RenameHandler;
@@ -409,6 +410,9 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/newfolder")) {
             return NewFolderHandler.handle(mContext, session);
+        }
+        if (uri.equals("/api/newfile")) {
+            return NewFileHandler.handle(mContext, session);
         }
         if (uri.equals("/api/export")) {
         }
