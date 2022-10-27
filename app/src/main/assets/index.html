@@ -247,6 +247,7 @@
                 evt.stopPropagation();
                 let path = (new URL(document.URL).searchParams.get('path') || '') + "/" + value;
                 await fetch(`/api/rename?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
+                location.reload();
             });
         }
 
