@@ -246,7 +246,7 @@
             customDialogRename.addEventListener('submit', async evt => {
                 evt.stopPropagation();
                 let path = (new URL(document.URL).searchParams.get('path') || '') + "/" + value;
-                await fetch(`/api/rename?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
+                await fetch(`/api/rename?src=${encodeURIComponent(path)}&dst=${encodeURIComponent(evt.detail)}`);
                 location.reload();
             });
         }
