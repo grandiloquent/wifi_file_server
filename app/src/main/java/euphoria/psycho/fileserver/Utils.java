@@ -22,6 +22,12 @@ import java.util.Objects;
 
 public class Utils {
 
+    public static Uri buildDocumentUri(String treeUri, String path) {
+        return Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(
+                Shared.substringAfterLast(path, "/Android/data")
+        ));
+    }
+
     public static Response crossOrigin(Response response) {
         response.addHeader("Access-Control-Allow-Origin", "*");
         return response;
@@ -38,9 +44,52 @@ public class Utils {
         return crossOrigin(response);
     }
 
+    public static String getParameter(Map<String, List<String>> parameters, String key) {
+        String src = null;
+        if (parameters.size() > 0) {
+            List<String> obj = parameters.get(key);
+            if (obj != null)
+                src = obj.get(0);
+        }
+        return src;
+    }
+
+    public static String getRealPathFromURI(Context context, Uri contentURI, String type) {
+        String result = null;
+        try {
+            Cursor cursor = context.getContentResolver().query(contentURI, null, null, null, null);
+            if (cursor == null) { // Source is Dropbox or other similar local file path
+                result = contentURI.getPath();
+                Log.d("TAG", "result******************" + result);
+            } else {
+                cursor.moveToFirst();
+                int idx = 0;
+                if (type.equalsIgnoreCase("IMAGE")) {
+                    idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+                } else if (type.equalsIgnoreCase("VIDEO")) {
+                    idx = cursor.getColumnIndex(MediaStore.Video.VideoColumns.DATA);
+                } else if (type.equalsIgnoreCase("AUDIO")) {
+                    idx = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA);
+                }
+                result = cursor.getString(idx);
+                Log.d("TAG", "result*************else*****" + result);
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e("TAG", "Exception ", e);
+        }
+        return result;
+    }
+
     public static Response internalError(Exception e) {
         return Response.newFixedLengthResponse(Status.INTERNAL_ERROR,
                 "text/plain", e.getMessage());
+    }
+
+    public static Response internalError(String message) {
+        Response response = Response.newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", message);
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        return response;
     }
 
     public static Response newFixedLengthResponse(IStatus status, String mimeType, String message) {
@@ -63,6 +112,13 @@ public class Utils {
             return path;
         }
         return directory + path;
+    }
+
+    public static String readString(IHTTPSession session) throws IOException {
+        int contentLength = Integer.parseInt(Objects.requireNonNull(session.getHeaders().get("content-length")));
+        byte[] buffer = new byte[contentLength];
+        session.getInputStream().read(buffer, 0, contentLength);
+        return new String(buffer);
     }
 
     public static Response serveFile(Map<String, String> header, File file, String mime) {
@@ -163,57 +219,6 @@ public class Utils {
         res = Response.newFixedLengthResponse(Status.OK, mime, new FileInputStream(file), (int) file.length());
         res.addHeader("Accept-Ranges", "bytes");
         return res;
-    }
-
-
-    public static Uri buildDocumentUri(String treeUri, String path) {
-        return Uri.parse(treeUri + "/document/primary%3AAndroid%2Fdata" + Uri.encode(
-                Shared.substringAfterLast(path, "/Android/data")
-        ));
-    }
-
-    public static String getRealPathFromURI(Context context, Uri contentURI, String type) {
-        String result = null;
-        try {
-            Cursor cursor = context.getContentResolver().query(contentURI, null, null, null, null);
-            if (cursor == null) { // Source is Dropbox or other similar local file path
-                result = contentURI.getPath();
-                Log.d("TAG", "result******************" + result);
-            } else {
-                cursor.moveToFirst();
-                int idx = 0;
-                if (type.equalsIgnoreCase("IMAGE")) {
-                    idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-                } else if (type.equalsIgnoreCase("VIDEO")) {
-                    idx = cursor.getColumnIndex(MediaStore.Video.VideoColumns.DATA);
-                } else if (type.equalsIgnoreCase("AUDIO")) {
-                    idx = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA);
-                }
-                result = cursor.getString(idx);
-                Log.d("TAG", "result*************else*****" + result);
-                cursor.close();
-            }
-        } catch (Exception e) {
-            Log.e("TAG", "Exception ", e);
-        }
-        return result;
-    }
-
-    public static String readString(IHTTPSession session) throws IOException {
-        int contentLength = Integer.parseInt(Objects.requireNonNull(session.getHeaders().get("content-length")));
-        byte[] buffer = new byte[contentLength];
-        session.getInputStream().read(buffer, 0, contentLength);
-        return new String(buffer);
-    }
-
-    public static String getParameter(Map<String, List<String>> parameters, String key) {
-        String src = null;
-        if (parameters.size() > 0) {
-            List<String> obj = parameters.get(key);
-            if (obj != null)
-                src = obj.get(0);
-        }
-        return src;
     }
 
 }

@@ -15,6 +15,7 @@ public class ListNotesHandler {
                 return Utils.crossOrigin(Response.newFixedLengthResponse(Status.OK,
                         "application/json", js));
         } catch (Exception ignored) {
+            return Utils.internalError(ignored.getMessage());
         }
         return Utils.crossOrigin(Utils.notFound());
     }

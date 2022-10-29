@@ -266,7 +266,7 @@ public class FileServer extends NanoHTTPD {
     }
 
     public void ensureConnection() throws Exception {
-        if (mConnection == null || mConnection.isClosed()) {
+        if (mConnection == null || !mConnection.isValid(0)) {
             mConnection = CompletableFuture.supplyAsync(() -> {
                 try {
                     Class.forName("org.postgresql.Driver");
