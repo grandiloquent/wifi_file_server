@@ -48,8 +48,20 @@ func listFiles(w http.ResponseWriter, r *http.Request) bool {
 			p = "C:/Users/Administrator/Desktop"
 		}
 		if r.URL.Query().Get("isDir") == "0" {
-			w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, path.Base(p)))
-			http.ServeFile(w, r, p)
+			if strings.HasSuffix(p, ".html") {
+				b, err := ioutil.ReadFile(p)
+				if err != nil {
+					http.NotFound(w, r)
+					return true
+				}
+				r.Header.Set("Content-Type", "text/html")
+				w.Write(b)
+
+			} else {
+
+				w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, path.Base(p)))
+				http.ServeFile(w, r, p)
+			}
 			return true
 		}
 		entries, err := os.ReadDir(p)
@@ -95,18 +107,20 @@ func staticFiles(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path == "/" {
 		filename = "index.html"
 	}
-	if m, _ := regexp.MatchString("\\.(?:js|css|svg|png|html)$", r.URL.Path); m {
+	if m, _ := regexp.MatchString("\\.(?:js|css|svg|png|html|jpg)$", r.URL.Path); m {
 		filename = r.URL.Path[1:]
-	}
-	referer := r.Header.Get("Referer")
-	if len(referer) > 0 && strings.Contains(referer, ".html&") {
-		u, err := url.Parse(referer)
-		if err == nil && len(filename) > 3 {
-			filename = path.Dir(u.Query().Get("path")) + "/" + filename[3:]
-		}
 	}
 	if len(filename) > 0 {
 
+		if !checkFileExists(filename) {
+			referer := r.Header.Get("Referer")
+			if len(referer) > 0 {
+				u, err := url.Parse(referer)
+				if err == nil && len(filename) > 3 {
+					filename = path.Dir(u.Query().Get("path")) + "/" + filename[3:]
+				}
+			}
+		}
 		http.ServeFile(w, r, filename)
 		return true
 	}
@@ -267,5 +281,11 @@ func newFile(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(404)
 	fmt.Fprintf(w, "%s", src)
+	return true
+}
+func checkFileExists(name string) bool {
+	if _, err := os.Stat(name); os.IsNotExist(err) {
+		return false
+	}
 	return true
 }

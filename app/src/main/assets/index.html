@@ -29,436 +29,448 @@
 </head>
 
 <body>
-    <custom-header></custom-header>
+<custom-header></custom-header>
 
-    <div>
+<div>
 
+</div>
+<div style="height:61px;"></div>
+<script>
+
+    function substringBeforeLast(string, delimiter, missingDelimiterValue) {
+        const index = string.lastIndexOf(delimiter);
+        if (index === -1) {
+            return missingDelimiterValue || string;
+        } else {
+            return string.substring(0, index);
+        }
+    }
+
+    function substringAfterLast(string, delimiter, missingDelimiterValue) {
+        const index = string.lastIndexOf(delimiter);
+        if (index === -1) {
+            return missingDelimiterValue || string;
+        } else {
+            return string.substring(index + delimiter.length);
+        }
+    }
+
+    function humanFileSize(size) {
+        if (size === 0)
+            return '0';
+        var i = Math.floor(Math.log(size) / Math.log(1024));
+        return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
+    }
+</script>
+
+<custom-bar-renderer></custom-bar-renderer>
+<script src="custom-header.js"></script>
+<script src="custom-bottom-sheet.js"></script>
+<script src="custom-bar-renderer.js"></script>
+<script src="custom-media-item.js"></script>
+<script src="custom-image-viewer.js"></script>
+<script src="custom-files.js"></script>
+<script src="custom-dialog-rename.js"></script>
+
+<script>
+    let baseUri = window.location.host === "127.0.0.1:5500" ? "http://192.168.8.55:8089" : "";
+
+    async function loadFiles() {
+        const res = await fetch(`${baseUri}/api/files?path=${new URL(window.location).searchParams.get("path") || ''}`);
+        const files = await res.json();
+        return files;
+    }
+
+    async function render(sort) {
+
+        let files = await loadFiles();
+        if (!files) return;
+        const container = document.querySelector('div');
+
+        container.innerHTML = '';
+        const io = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry) => {
+                // Each entry describes an intersection change for one observed
+                // target element:
+                //   entry.boundingClientRect
+                //   entry.intersectionRatio
+                //   entry.intersectionRect
+                //   entry.isIntersecting
+                //   entry.rootBounds
+                //   entry.target
+                //   entry.time
+                if (entry.isIntersecting) {
+                    if (entry.target.getAttribute('data-src'))
+                        entry.target.setAttribute('src', entry.target.getAttribute('data-src'));
+                    io.unobserve(entry.target)
+                }
+            });
+        });
+
+
+        files = files.sort((x, y) => {
+            if (x.isDir === y.isDir) {
+                if (sort === 1) {
+                    console.log(x.name, y.name)
+                    return x.name.localeCompare(y.name);
+                } else if (sort === 2) {
+                    return y.length - x.length;
+                } else {
+                    return y.lastModified - x.lastModified;
+                }
+            } else if (x.isDir)
+                return -1;
+            else
+                return 1;
+        })
+
+        files.forEach(element => {
+            const customMediaItem = document.createElement('custom-media-item');
+            if (element.isDir)
+                customMediaItem.setAttribute('src', "icon-folder-m.svg");
+            else if (/\.(?:apk|pdf|zip|txt)$/.test(element.name)) {
+
+                customMediaItem.setAttribute('src', `icon-${/\.(apk|pdf|zip|txt)$/.exec(element.name)[1]}-m.svg`);
+            } else if (/\.(?:jpg|png|svg)$/.test(element.name)) {
+                customMediaItem.setAttribute('src', `icon-pic-m.svg`);
+                customMediaItem.setAttribute('data-src', `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=0`);
+            } else if (element.name.endsWith('.xlsx')) {
+                customMediaItem.setAttribute('src', `icon-xls-m.svg`);
+            } else if (element.name.endsWith('.7z')) {
+                customMediaItem.setAttribute('src', `icon-zip-m.svg`);
+            } else if (/\.(?:txt|epub|azw3|mobi)$/.test(element.name)) {
+                customMediaItem.setAttribute('src', `icon-txt-m.svg`);
+            } else if (/\.(?:htm|xhtml|html)$/.test(element.name)) {
+                customMediaItem.setAttribute('src', `icon-code-m.svg`);
+            } else if (/\.(?:mp3)$/.test(element.name)) {
+                customMediaItem.setAttribute('src', `icon-audio-m.svg`);
+            } else if (/\.(?:mp4)$/.test(element.name)) {
+                customMediaItem.setAttribute('src', `icon-video-m.svg`);
+                customMediaItem.setAttribute('data-src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(element.parent + "/" + element.name)}`);
+            } else {
+                customMediaItem.setAttribute('src', "icon-nor-m.svg");
+            }
+            customMediaItem.setAttribute('title', element.name);
+            let path;
+            if (element.isDir) {
+                path = `?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+            } else {
+                path = `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+            }
+            customMediaItem.setAttribute('href', path);
+            customMediaItem.setAttribute('data-path', element.parent + "/" + element.name);
+            if (!element.isDir)
+                customMediaItem.setAttribute('subhead', humanFileSize(element.length))
+            container.appendChild(customMediaItem);
+            customMediaItem.addEventListener('submit', evt => {
+
+                customMediaItem.setAttribute('checked', 'true');
+                const customBottomSheet = document.createElement('custom-bottom-sheet');
+                document.body.appendChild(customBottomSheet);
+                customBottomSheet.dataset.path = `?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+
+                if (/\.(?:mp4|mp3)$/.test(element.name)) {
+                    customBottomSheet.appendPlayButton();
+                } else if (element.isDir) {
+                    customBottomSheet.appendFavorite();
+                }
+                customBottomSheet.addEventListener('delete', async evt => {
+                    customBottomSheet.remove();
+                    // const customDialog = document.createElement('custom-dialog');
+                    // customDialog.setAttribute('title', "询问");
+                    // const path = evt.currentTarget.dataset.path;
+                    // let name = substringBeforeLast(path, "&");
+                    // const elements = [...document.querySelectorAll('[data-active]')];
+                    // customDialog.setAttribute('message', `您确定要删除 ${elements.map(x => substringAfterLast(x.dataset.path, "/"))} 吗？`);
+                    // customDialog.addEventListener('submit', async evt => {
+                    //     customDialog.remove();
+
+                    //     await fetch(`${baseUri}/api/delete`, {
+                    //         method: 'POST',
+                    //         body: JSON.stringify(elements.map(x => x.dataset.path))
+                    //     });
+                    //     elements.forEach(x => {
+                    //         x.remove();
+                    //     });
+                    // });
+                    // document.body.appendChild(customDialog);
+                    const customFiles = document.createElement('custom-files');
+                    document.body.appendChild(customFiles);
+                    customFiles.addEventListener('submit', async evt => {
+                        evt.stopPropagation();
+                        try {
+                            await fetch(`${baseUri}/api/delete`, {
+                                method: 'POST',
+                                body: localStorage.getItem('files')
+                            });
+                        } catch (error) {
+
+                        }
+                        localStorage.setItem('files', '[]')
+                        location.reload();
+                    });
+                });
+                customBottomSheet.addEventListener('move', async evt => {
+                    customBottomSheet.remove();
+                    const customFiles = document.createElement('custom-files');
+                    document.body.appendChild(customFiles);
+                    customFiles.addEventListener('submit', async evt => {
+                        evt.stopPropagation();
+                        try {
+                            await fetch(`${baseUri}/api/move?dst=${new URL(window.location).searchParams.get('path')}`, {
+                                method: 'POST',
+                                body: localStorage.getItem('files')
+                            });
+                        } catch (error) {
+
+                        }
+                        localStorage.setItem('files', '[]')
+                        location.reload();
+                    });
+                });
+                customBottomSheet.addEventListener('rename', async evt => {
+                    customBottomSheet.remove();
+                    actionRename(element.name);
+                });
+                customBottomSheet.addEventListener('fav', evt => {
+                    customBottomSheet.remove();
+                    let parent = new URL(window.location).searchParams.get('path');
+                    if (!parent) return;
+                    const paths = JSON.parse(
+                        localStorage.getItem('favorites')
+                    ) || [];
+                    paths.push(parent + "/" + element.name);
+                    localStorage.setItem('favorites', JSON.stringify(paths));
+                })
+            });
+            io.observe(customMediaItem)
+
+        });
+
+    }
+
+    render((localStorage.getItem('sort') && parseInt(localStorage.getItem('sort'))) || 2);
+
+    function actionRename(value) {
+        const customDialogRename = document.createElement('custom-dialog-rename');
+        customDialogRename.setAttribute('value', value || '');
+        document.body.appendChild(customDialogRename);
+        customDialogRename.addEventListener('submit', async evt => {
+            evt.stopPropagation();
+            let path = (new URL(document.URL).searchParams.get('path') || '') + "/" + value;
+            await fetch(`/api/rename?src=${encodeURIComponent(path)}&dst=${encodeURIComponent(evt.detail)}`);
+            location.reload();
+        });
+    }
+
+
+</script>
+<script src="custom-favorites.js"></script>
+<script src="custom-sort.js"></script>
+<script src="custom-menu.js"></script>
+<style>
+    .dialog-mask {
+        position: fixed;
+        z-index: 1001;
+        right: 0;
+        bottom: -200px;
+        top: 0;
+        left: 0;
+        /* -webkit-transition: opacity .25s; */
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .dialog-show .dialog-mask {
+        background-color: #000;
+        opacity: .4;
+        visibility: inherit;
+    }
+
+    .dialog-wrapper {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        left: 0;
+        z-index: 1002;
+        text-align: center;
+        vertical-align: middle;
+        visibility: hidden;
+        white-space: nowrap;
+        max-height: 100%;
+        max-width: 100%;
+        overflow: auto;
+        transform: translateZ(0);
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    .dialog-show .dialog-wrapper {
+        opacity: 1;
+        visibility: inherit;
+    }
+
+    .dialog-wrapper::after {
+        content: '';
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+    }
+
+    .dialog-container {
+        border-radius: 8px;
+        position: relative;
+        display: inline-block;
+        z-index: 1060;
+        background-color: #fff;
+        opacity: 0;
+        text-align: left;
+        vertical-align: middle;
+        white-space: normal;
+        overflow: hidden;
+        transform: translateZ(0);
+        box-shadow: 0 5px 26px 0 rgba(0, 0, 0, .22), 0 20px 28px 0 rgba(0, 0, 0, .3);
+    }
+
+    .dialog-show .dialog-container {
+        opacity: 1;
+        visibility: inherit;
+    }
+
+    .dialog-container-wrapper {
+        max-width: 300px;
+        -webkit-user-select: none;
+    }
+
+    .dialog-content {
+        padding: 24px;
+        font-size: 16px;
+        overflow-wrap: break-word;
+    }
+
+    .dialog-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 0 8px 0;
+    }
+
+    .dialog-button {
+        margin-bottom: -1px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        flex: 0 0 auto;
+        margin-right: 8px;
+        min-width: 48px;
+        padding: 0 8px;
+        line-height: 36px !important;
+        text-align: center;
+        font-family: Roboto-Medium, HelveticaNeue-Medium, HelveticaNeue, sans-serif-medium, Arial, sans-serif !important;
+    }
+</style>
+<div class="dialog">
+    <div class="dialog-mask">
     </div>
-    <div style="height:61px;"></div>
-    <script>
-
-        function substringBeforeLast(string, delimiter, missingDelimiterValue) {
-            const index = string.lastIndexOf(delimiter);
-            if (index === -1) {
-                return missingDelimiterValue || string;
-            } else {
-                return string.substring(0, index);
-            }
-        }
-
-        function substringAfterLast(string, delimiter, missingDelimiterValue) {
-            const index = string.lastIndexOf(delimiter);
-            if (index === -1) {
-                return missingDelimiterValue || string;
-            } else {
-                return string.substring(index + delimiter.length);
-            }
-        }
-
-        function humanFileSize(size) {
-            if (size === 0)
-                return '0';
-            var i = Math.floor(Math.log(size) / Math.log(1024));
-            return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i]
-        }
-    </script>
-
-    <custom-bar-renderer></custom-bar-renderer>
-    <script src="custom-header.js"></script>
-    <script src="custom-bottom-sheet.js"></script>
-    <script src="custom-bar-renderer.js"></script>
-    <script src="custom-media-item.js"></script>
-    <script src="custom-image-viewer.js"></script>
-    <script src="custom-files.js"></script>
-    <script src="custom-dialog-rename.js"></script>
-
-    <script>
-        let baseUri = window.location.host === "127.0.0.1:5500" ? "http://192.168.8.55:8089" : "";
-
-        async function loadFiles() {
-            const res = await fetch(`${baseUri}/api/files?path=${new URL(window.location).searchParams.get("path") || ''}`);
-            const files = await res.json();
-            return files;
-        }
-
-        async function render(sort) {
-
-            let files = await loadFiles();
-            if (!files) return;
-            const container = document.querySelector('div');
-
-            container.innerHTML = '';
-            const io = new IntersectionObserver((entries, observer) => {
-                entries.forEach((entry) => {
-                    // Each entry describes an intersection change for one observed
-                    // target element:
-                    //   entry.boundingClientRect
-                    //   entry.intersectionRatio
-                    //   entry.intersectionRect
-                    //   entry.isIntersecting
-                    //   entry.rootBounds
-                    //   entry.target
-                    //   entry.time
-                    if (entry.isIntersecting) {
-                        if (entry.target.getAttribute('data-src'))
-                            entry.target.setAttribute('src', entry.target.getAttribute('data-src'));
-                        io.unobserve(entry.target)
-                    }
-                });
-            });
-
-
-            files = files.sort((x, y) => {
-                if (x.isDir === y.isDir) {
-                    if (sort === 1) {
-                        console.log(x.name, y.name)
-                        return x.name.localeCompare(y.name);
-                    } else if (sort === 2) {
-                        return y.length - x.length;
-                    } else {
-                        return y.lastModified - x.lastModified;
-                    }
-                } else if (x.isDir)
-                    return -1;
-                else
-                    return 1;
-            })
-
-            files.forEach(element => {
-                const customMediaItem = document.createElement('custom-media-item');
-                if (element.isDir)
-                    customMediaItem.setAttribute('src', "icon-folder-m.svg");
-                else if (/\.(?:apk|pdf|zip|txt)$/.test(element.name)) {
-
-                    customMediaItem.setAttribute('src', `icon-${/\.(apk|pdf|zip|txt)$/.exec(element.name)[1]}-m.svg`);
-                } else if (/\.(?:jpg|png|svg)$/.test(element.name)) {
-                    customMediaItem.setAttribute('src', `icon-pic-m.svg`);
-                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=0`);
-                } else if (element.name.endsWith('.xlsx')) {
-                    customMediaItem.setAttribute('src', `icon-xls-m.svg`);
-                } else if (element.name.endsWith('.7z')) {
-                    customMediaItem.setAttribute('src', `icon-zip-m.svg`);
-                } else if (/\.(?:txt|epub|azw3|mobi)$/.test(element.name)) {
-                    customMediaItem.setAttribute('src', `icon-txt-m.svg`);
-                } else if (/\.(?:htm|xhtml|html)$/.test(element.name)) {
-                    customMediaItem.setAttribute('src', `icon-code-m.svg`);
-                } else if (/\.(?:mp3)$/.test(element.name)) {
-                    customMediaItem.setAttribute('src', `icon-audio-m.svg`);
-                } else if (/\.(?:mp4)$/.test(element.name)) {
-                    customMediaItem.setAttribute('src', `icon-video-m.svg`);
-                    customMediaItem.setAttribute('data-src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(element.parent + "/" + element.name)}`);
-                } else {
-                    customMediaItem.setAttribute('src', "icon-nor-m.svg");
-                }
-                customMediaItem.setAttribute('title', element.name);
-                let path;
-                if (element.isDir) {
-                    path = `?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
-                } else {
-                    path = `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
-                }
-                customMediaItem.setAttribute('href', path);
-                customMediaItem.setAttribute('data-path', element.parent + "/" + element.name);
-                if (!element.isDir)
-                    customMediaItem.setAttribute('subhead', humanFileSize(element.length))
-                container.appendChild(customMediaItem);
-                customMediaItem.addEventListener('submit', evt => {
-
-                    customMediaItem.setAttribute('checked', 'true');
-                    const customBottomSheet = document.createElement('custom-bottom-sheet');
-                    document.body.appendChild(customBottomSheet);
-                    customBottomSheet.dataset.path = `?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
-                    console.log(element.name)
-                    if (/\.(?:mp4|mp3)$/.test(element.name)) {
-                        customBottomSheet.appendPlayButton();
-                    }
-                    customBottomSheet.addEventListener('delete', async evt => {
-                        customBottomSheet.remove();
-                        // const customDialog = document.createElement('custom-dialog');
-                        // customDialog.setAttribute('title', "询问");
-                        // const path = evt.currentTarget.dataset.path;
-                        // let name = substringBeforeLast(path, "&");
-                        // const elements = [...document.querySelectorAll('[data-active]')];
-                        // customDialog.setAttribute('message', `您确定要删除 ${elements.map(x => substringAfterLast(x.dataset.path, "/"))} 吗？`);
-                        // customDialog.addEventListener('submit', async evt => {
-                        //     customDialog.remove();
-
-                        //     await fetch(`${baseUri}/api/delete`, {
-                        //         method: 'POST',
-                        //         body: JSON.stringify(elements.map(x => x.dataset.path))
-                        //     });
-                        //     elements.forEach(x => {
-                        //         x.remove();
-                        //     });
-                        // });
-                        // document.body.appendChild(customDialog);
-                        const customFiles = document.createElement('custom-files');
-                        document.body.appendChild(customFiles);
-                        customFiles.addEventListener('submit', async evt => {
-                            evt.stopPropagation();
-                            try {
-                                await fetch(`${baseUri}/api/delete`, {
-                                    method: 'POST',
-                                    body: localStorage.getItem('files')
-                                });
-                            } catch (error) {
-
-                            }
-                            localStorage.setItem('files', '[]')
-                            location.reload();
-                        });
-                    });
-                    customBottomSheet.addEventListener('move', async evt => {
-                        customBottomSheet.remove();
-                        const customFiles = document.createElement('custom-files');
-                        document.body.appendChild(customFiles);
-                        customFiles.addEventListener('submit', async evt => {
-                            evt.stopPropagation();
-                            try {
-                                await fetch(`${baseUri}/api/move?dst=${new URL(window.location).searchParams.get('path')}`, {
-                                    method: 'POST',
-                                    body: localStorage.getItem('files')
-                                });
-                            } catch (error) {
-
-                            }
-                            localStorage.setItem('files', '[]')
-                            location.reload();
-                        });
-                    });
-                    customBottomSheet.addEventListener('rename', async evt => {
-                        customBottomSheet.remove();
-                        actionRename(element.name);
-                    });
-                });
-                io.observe(customMediaItem)
-
-            });
-
-        }
-
-        render((localStorage.getItem('sort') && parseInt(localStorage.getItem('sort'))) || 2);
-
-        function actionRename(value) {
-            const customDialogRename = document.createElement('custom-dialog-rename');
-            customDialogRename.setAttribute('value', value || '');
-            document.body.appendChild(customDialogRename);
-            customDialogRename.addEventListener('submit', async evt => {
-                evt.stopPropagation();
-                let path = (new URL(document.URL).searchParams.get('path') || '') + "/" + value;
-                await fetch(`/api/rename?src=${encodeURIComponent(path)}&dst=${encodeURIComponent(evt.detail)}`);
-                location.reload();
-            });
-        }
-
-
-    </script>
-    <script src="custom-favorites.js"></script>
-    <script src="custom-sort.js"></script>
-    <script src="custom-menu.js"></script>
-    <style>
-        .dialog-mask {
-            position: fixed;
-            z-index: 1001;
-            right: 0;
-            bottom: -200px;
-            top: 0;
-            left: 0;
-            /* -webkit-transition: opacity .25s; */
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .dialog-show .dialog-mask {
-            background-color: #000;
-            opacity: .4;
-            visibility: inherit;
-        }
-
-        .dialog-wrapper {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            top: 0;
-            left: 0;
-            z-index: 1002;
-            text-align: center;
-            vertical-align: middle;
-            visibility: hidden;
-            white-space: nowrap;
-            max-height: 100%;
-            max-width: 100%;
-            overflow: auto;
-            transform: translateZ(0);
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-        }
-
-        .dialog-show .dialog-wrapper {
-            opacity: 1;
-            visibility: inherit;
-        }
-
-        .dialog-wrapper::after {
-            content: '';
-            display: inline-block;
-            height: 100%;
-            vertical-align: middle;
-        }
-
-        .dialog-container {
-            border-radius: 8px;
-            position: relative;
-            display: inline-block;
-            z-index: 1060;
-            background-color: #fff;
-            opacity: 0;
-            text-align: left;
-            vertical-align: middle;
-            white-space: normal;
-            overflow: hidden;
-            transform: translateZ(0);
-            box-shadow: 0 5px 26px 0 rgba(0, 0, 0, .22), 0 20px 28px 0 rgba(0, 0, 0, .3);
-        }
-
-        .dialog-show .dialog-container {
-            opacity: 1;
-            visibility: inherit;
-        }
-
-        .dialog-container-wrapper {
-            max-width: 300px;
-            -webkit-user-select: none;
-        }
-
-        .dialog-content {
-            padding: 24px;
-            font-size: 16px;
-            overflow-wrap: break-word;
-        }
-
-        .dialog-footer {
-            display: flex;
-            justify-content: flex-end;
-            padding: 0 0 8px 0;
-        }
-
-        .dialog-button {
-            margin-bottom: -1px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-            flex: 0 0 auto;
-            margin-right: 8px;
-            min-width: 48px;
-            padding: 0 8px;
-            line-height: 36px !important;
-            text-align: center;
-            font-family: Roboto-Medium, HelveticaNeue-Medium, HelveticaNeue, sans-serif-medium, Arial, sans-serif !important;
-        }
-    </style>
-    <div class="dialog">
-        <div class="dialog-mask">
-        </div>
-        <div class="dialog-wrapper">
-            <div class="dialog-container">
-                <div class="dialog-container-wrapper">
-                    <div class="dialog-content">
-                        <div class="spinner">
-                        </div>
-                        <span>正在上传文件...
-                        </span>
+    <div class="dialog-wrapper">
+        <div class="dialog-container">
+            <div class="dialog-container-wrapper">
+                <div class="dialog-content">
+                    <div class="spinner">
                     </div>
-                    <div class="dialog-footer" style="display: none;">
-                        <div class="dialog-button">
-                            确认
-                        </div>
-                        <div class="dialog-button" style="color: #db4437;">
-                            删除
-                        </div>
+                    <span>正在上传文件...
+                        </span>
+                </div>
+                <div class="dialog-footer" style="display: none;">
+                    <div class="dialog-button">
+                        确认
+                    </div>
+                    <div class="dialog-button" style="color: #db4437;">
+                        删除
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        var dropZone = document.querySelector('body');
-        console.log(dropZone)
-        dropZone.addEventListener('dragover', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy'
-        });
-        dropZone.addEventListener('drop', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            uploadFiles(e.dataTransfer.files)
-        });
+<script>
+    var dropZone = document.querySelector('body');
+    console.log(dropZone)
+    dropZone.addEventListener('dragover', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy'
+    });
+    dropZone.addEventListener('drop', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        uploadFiles(e.dataTransfer.files)
+    });
 
-        async function uploadFiles(files) {
-            document.querySelector('.dialog').className = 'dialog dialog-show';
-            const dialogContext = document.querySelector('.dialog-content span');
-            const length = files.length;
-            let i = 1;
-            for (let file of files) {
-                dialogContext.textContent = `正在上传 (${i++}/${length}) ${file.name} ...`;
-                const formData = new FormData;
-                let path = new URL(location.href).searchParams.get('path') || "/storage/emulated/0";
-                console.log(path + "/" + file.name)
-                formData.append('file', file, encodeURIComponent(path + "/" + file.name));
-                try {
-                    await fetch(`${baseUri}/post`, {
-                        method: "POST",
-                        body: formData
-                    }).then(res => console.log(res))
-                } catch (e) {
-                }
+    async function uploadFiles(files) {
+        document.querySelector('.dialog').className = 'dialog dialog-show';
+        const dialogContext = document.querySelector('.dialog-content span');
+        const length = files.length;
+        let i = 1;
+        for (let file of files) {
+            dialogContext.textContent = `正在上传 (${i++}/${length}) ${file.name} ...`;
+            const formData = new FormData;
+            let path = new URL(location.href).searchParams.get('path') || "/storage/emulated/0";
+            console.log(path + "/" + file.name)
+            formData.append('file', file, encodeURIComponent(path + "/" + file.name));
+            try {
+                await fetch(`${baseUri}/post`, {
+                    method: "POST",
+                    body: formData
+                }).then(res => console.log(res))
+            } catch (e) {
             }
-            document.querySelector('.dialog').className = 'dialog'
         }
+        document.querySelector('.dialog').className = 'dialog'
+    }
 
-        const customBarRenderer = document.querySelector('custom-bar-renderer');
-        customBarRenderer.addEventListener('submit-sort', evt => {
-            evt.stopPropagation();
-            const customSort = document.createElement('custom-sort');
-            document.body.appendChild(customSort);
-            customSort.addEventListener('submit', evt => {
-                customSort.remove();
-                render(parseInt(evt.detail) + 1);
-                localStorage.setItem('sort', parseInt(evt.detail) + 1)
-            });
+    const customBarRenderer = document.querySelector('custom-bar-renderer');
+    customBarRenderer.addEventListener('submit-sort', evt => {
+        evt.stopPropagation();
+        const customSort = document.createElement('custom-sort');
+        document.body.appendChild(customSort);
+        customSort.addEventListener('submit', evt => {
+            customSort.remove();
+            render(parseInt(evt.detail) + 1);
+            localStorage.setItem('sort', parseInt(evt.detail) + 1)
         });
+    });
 
-        customBarRenderer.addEventListener('submit-menu', evt => {
-            evt.stopPropagation();
-            const customMenu = document.createElement('custom-menu');
-            document.body.appendChild(customMenu);
-            customMenu.addEventListener('submit', evt => {
-                customMenu.remove();
-                let t = parseInt(evt.detail) + 1;
-                if (t === 1) {
-                    const customDialogRename = document.createElement('custom-dialog-rename');
-                    customDialogRename.setAttribute('title', '新建文件夹');
-                    document.body.appendChild(customDialogRename);
-                    customDialogRename.addEventListener('submit', async evt => {
-                        evt.stopPropagation();
-                        let path = (new URL(document.URL).searchParams.get('path') || '');
-                        await fetch(`/api/newfolder?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
-                    });
-                } else if (t === 2) {
-                    const customDialogRename = document.createElement('custom-dialog-rename');
-                    customDialogRename.setAttribute('title', '新建文件');
-                    document.body.appendChild(customDialogRename);
-                    customDialogRename.addEventListener('submit', async evt => {
-                        evt.stopPropagation();
-                        let path = (new URL(document.URL).searchParams.get('path') || '');
-                        await fetch(`/api/newfile?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
-                    });
-                }
-            });
+    customBarRenderer.addEventListener('submit-menu', evt => {
+        evt.stopPropagation();
+        const customMenu = document.createElement('custom-menu');
+        document.body.appendChild(customMenu);
+        customMenu.addEventListener('submit', evt => {
+            customMenu.remove();
+            let t = parseInt(evt.detail) + 1;
+            if (t === 1) {
+                const customDialogRename = document.createElement('custom-dialog-rename');
+                customDialogRename.setAttribute('title', '新建文件夹');
+                document.body.appendChild(customDialogRename);
+                customDialogRename.addEventListener('submit', async evt => {
+                    evt.stopPropagation();
+                    let path = (new URL(document.URL).searchParams.get('path') || '');
+                    await fetch(`/api/newfolder?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
+                });
+            } else if (t === 2) {
+                const customDialogRename = document.createElement('custom-dialog-rename');
+                customDialogRename.setAttribute('title', '新建文件');
+                document.body.appendChild(customDialogRename);
+                customDialogRename.addEventListener('submit', async evt => {
+                    evt.stopPropagation();
+                    let path = (new URL(document.URL).searchParams.get('path') || '');
+                    await fetch(`/api/newfile?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
+                });
+            }
         });
+    });
 
-    </script>
+</script>
 
 </body>
 

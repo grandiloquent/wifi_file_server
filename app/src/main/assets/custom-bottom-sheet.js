@@ -165,6 +165,21 @@ class CustomBottomSheet extends HTMLElement {
         )
     }
 
+    appendFavorite() {
+        const menuItem = document.createElement('div');
+        menuItem.setAttribute("class", "menu-item");
+        const menuItemButton = document.createElement('button');
+        menuItemButton.setAttribute("class", "menu-item-button");
+        menuItem.appendChild(menuItemButton);
+        menuItemButton.textContent = `加入收藏`;
+        menuItem.addEventListener('click', evt => {
+            this.dispatchEvent(new CustomEvent('fav'));
+        });
+        this.root.querySelector('#close-action').insertAdjacentElement(
+            'beforebegin', menuItem
+        )
+    }
+
     static get observedAttributes() {
         return ['data'];
     }
