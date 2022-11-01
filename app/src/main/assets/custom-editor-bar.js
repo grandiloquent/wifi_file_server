@@ -216,6 +216,12 @@ class CustomEditorBar extends HTMLElement {
                     textarea.setRangeText(`\`\`\`js
 ${await navigator.clipboard.readText()}
 \`\`\``)
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'k') {
+                    ev.preventDefault();
+                    window.open(
+                        substringNearest(textarea.value,
+                            textarea.selectionStart, '(', ')'), '_blank'
+                    );
                 }
             }
         });
@@ -609,8 +615,28 @@ function substringAfter(string, delimiter, missingDelimiterValue) {
     }
 }
 
+/*
 console.log([...document.querySelectorAll('.slide-image-wrap img')]
     .map((x, index) => {
         return `${x.src.split('?')[0]}\n\tout=${index + 1}.jpg`;
     }).reverse()
     .join('\n'))
+    */
+function substringNearest(string, index, start, end) {
+    let j = index;
+    while (j > -1) {
+        if (string[j] === start) {
+            j++
+            break;
+        }
+        j--;
+    }
+    let k = index;
+    while (k < string.length) {
+        if (string[k] === end) {
+            break;
+        }
+        k++;
+    }
+    return string.substring(j, k);
+}
