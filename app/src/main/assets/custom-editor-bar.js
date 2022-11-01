@@ -222,6 +222,16 @@ ${await navigator.clipboard.readText()}
                         substringNearest(textarea.value,
                             textarea.selectionStart, '(', ')'), '_blank'
                     );
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'o') {
+                    ev.preventDefault();
+                    let position = findExtendPosition(textarea);
+                    const lines = textarea.value.substring(position[0], position[1])
+                        .split('\n')
+                        .map(x => x.trim())
+                        .sort((x, y) => {
+                            return x.localeCompare(y);
+                        });
+                    textarea.setRangeText(lines.join('\n'), position[0], position[1]);
                 }
             }
         });
