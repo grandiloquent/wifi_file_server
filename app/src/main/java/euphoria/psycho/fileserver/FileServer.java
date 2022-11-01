@@ -38,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
+import euphoria.psycho.fileserver.handlers.ExportHandler;
 import euphoria.psycho.fileserver.handlers.HtmlHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
@@ -415,6 +416,7 @@ public class FileServer extends NanoHTTPD {
             return NewFileHandler.handle(mContext, session);
         }
         if (uri.equals("/api/export")) {
+            return ExportHandler.handle(this, session);
         }
         return Utils.notFound();
     }
