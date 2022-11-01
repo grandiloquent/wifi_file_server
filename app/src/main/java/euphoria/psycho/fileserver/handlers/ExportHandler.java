@@ -12,7 +12,7 @@ public class ExportHandler {
     public static Response handle(FileServer fileServer, IHTTPSession session) {
         try {
             fileServer.ensureConnection();
-            String js = fileServer.executeJSON("select * from notes()");
+            String js = fileServer.executeQuery("select * from notes");
             return Utils.crossOrigin(Response.newFixedLengthResponse(Status.OK,
                     "application/json",
                     js));
