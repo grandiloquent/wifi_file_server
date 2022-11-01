@@ -82,6 +82,7 @@ public class FileServer extends NanoHTTPD {
                 return null;
             }
             try (Statement stmt = mConnection.createStatement()) {
+                stmt.setQueryTimeout(3);
                 ResultSet rs = stmt.executeQuery(sql);
                 if (rs.next()) {
                     return rs.getObject(1).toString();
@@ -102,6 +103,7 @@ public class FileServer extends NanoHTTPD {
                 return null;
             }
             try (Statement stmt = mConnection.createStatement()) {
+                stmt.setQueryTimeout(3);
                 ResultSet rs = stmt.executeQuery(sql);
                 JSONArray json = new JSONArray();
                 ResultSetMetaData rsmd = rs.getMetaData();
@@ -271,6 +273,7 @@ public class FileServer extends NanoHTTPD {
             mConnection = CompletableFuture.supplyAsync(() -> {
                 try {
                     Class.forName("org.postgresql.Driver");
+                    DriverManager.setLoginTimeout(3);
                     return DriverManager.getConnection(mConnectString);
                 } catch (Exception ignored) {
                 }
