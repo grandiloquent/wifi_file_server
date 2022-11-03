@@ -17,6 +17,7 @@ import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
+import org.postgresql.jdbc.PgConnection;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -57,7 +58,7 @@ public class FileServer extends NanoHTTPD {
     private Context mContext;
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
-    private Connection mConnection;
+    private PgConnection mConnection;
 
     public FileServer(Context context) {
         super(Shared.getDeviceIP(context), 8089);
@@ -270,8 +271,12 @@ public class FileServer extends NanoHTTPD {
 
     public void ensureConnection() throws Exception {
         if (mConnection == null || !mConnection.isValid(0)) {
-            mConnection = CompletableFuture.supplyAsync(() -> {
+            Log.e("B5aOx2", String.format("ensureConnection, %s", ""));
+            mConnection = (PgConnection) CompletableFuture.supplyAsync(() -> {
                 try {
+                    if (mConnection != null) {
+                        mConnection.close();
+                    }
                     Class.forName("org.postgresql.Driver");
                     DriverManager.setLoginTimeout(3);
                     return DriverManager.getConnection(mConnectString);
@@ -279,6 +284,7 @@ public class FileServer extends NanoHTTPD {
                 }
                 return null;
             }).get();
+            mConnection.setNetworkTimeout(null, 3000);
         }
     }
 

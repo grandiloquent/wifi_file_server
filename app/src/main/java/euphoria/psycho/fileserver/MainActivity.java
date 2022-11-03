@@ -15,6 +15,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -44,6 +45,7 @@ public class MainActivity extends Activity {
     private WebView mWebView;
 
     private void initialize() {
+
         Shared.requestManageAllFilesPermission(this);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String treeUri = sharedPreferences.getString(TREE_URI, null);
@@ -155,6 +157,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         List<String> needPermissions = Arrays.stream(new String[]{
                         permission.INTERNET,
                         permission.ACCESS_WIFI_STATE,
