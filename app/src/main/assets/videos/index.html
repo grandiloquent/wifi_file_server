@@ -22,11 +22,12 @@
             videos: "++_id,title,url,video_type,update_at"
         });
         const customSearch = document.querySelector('custom-search');
-        customSearch.addEventListener('submit', evt => {
+        customSearch.addEventListener('submit', async evt => {
             evt.stopPropagation();
             const url = evt.detail;
             if (/^https:\/\/www.tiktok.com\//.test(url)) {
-                downloadVideo(url)
+                const video = await downloadVideo(url);
+                await db.videos.add(video);
             }
         });
 

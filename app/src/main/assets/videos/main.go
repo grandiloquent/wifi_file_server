@@ -3,13 +3,15 @@ package main
 import (
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strings"
 
 	"./shared"
 )
 
 func main() {
-	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	println(exec.Command("C:/Program Files/Google/Chrome/Application/chrome.exe", "http://localhost:8080").Run())
+	_ = http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "" {
 			http.ServeFile(w, r, "index.html")
 			return
