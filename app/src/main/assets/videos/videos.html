@@ -32,11 +32,16 @@
     <div>
 
     </div>
+    <custom-bar-renderer></custom-bar-renderer>
     <script src="custom-image-viewer.js"></script>
     <script src="custom-media-item.js"></script>
     <script src="custom-bottom-sheet.js"></script>
+    <script src="custom-bar-renderer.js"></script>
+
     <script src="dialog.js"></script>
     <script src="dexie.min.js"></script>
+    <script src="utils.js"></script>
+
     <script>
         const db = new Dexie("videos");
         db.version(1).stores({
