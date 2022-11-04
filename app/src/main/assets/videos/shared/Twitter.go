@@ -5,15 +5,17 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
 func Twitter(uri string, proxy *url.URL) ([]byte, error) {
-	b, err := getTwitterPage(uri, proxy)
+
+	b, err := getTwitterPage(fmt.Sprintf("https://api.twitter.com/1.1/videos/tweet/config/%s.json"), proxy)
 	if err != nil {
 		return nil, err
 	}
-	ioutil.WriteFile("1.html", b, 0666)
+	ioutil.WriteFile("1.json", b, 0666)
 	obj := make(map[string]interface{})
 
 	title := SubstringBytes(b, []byte("property=\"og:title\""), []byte("content=\""))
@@ -54,6 +56,10 @@ func getTwitterPage(uri string, proxy *url.URL) ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+func extractKeyString(uri string) string {
+	ret := regexp.MustCompile("(status|statuses)/(\\d+)").FindStringSubmatch(uri)
+	return ret[0]
 }
 
 // https://twitter.com/i/status/1584276538530627584

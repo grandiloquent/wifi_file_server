@@ -10,8 +10,14 @@ import (
 
 const SupportedFileTypes = "\\.(?:js|html)"
 
+func extractKeyString(uri string) string {
+	ret := regexp.MustCompile("(status|statuses)/(\\d+)").FindStringSubmatch(uri)
+	return ret[0]
+}
+
 func main() {
-	shared.Twitter("https://twitter.com/i/status/1584276538530627584", getProxy())
+	extractKeyString("https://twitter.com/i/status/1584276538530627584")
+	//shared.Twitter("https://twitter.com/i/status/1584276538530627584", getProxy())
 	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "" {
 			http.ServeFile(w, r, "index.html")
