@@ -10,31 +10,59 @@
 </head>
 
 <body>
-    <custom-search></custom-search>
-    <script src="custom-search.js"></script>
-    <!-- https://github.com/dexie/Dexie.js -->
-    <!-- https://dexie.org/docs/API-Reference -->
-    <script src="dexie.min.js"></script>
-    <script src="utils.js"></script>
-    <script>
-        const db = new Dexie("videos");
-        db.version(1).stores({
-            videos: "++_id,title,url,video_type,update_at"
-        });
-        const customSearch = document.querySelector('custom-search');
-        customSearch.addEventListener('submit', async evt => {
-            evt.stopPropagation();
-            const url = evt.detail;
-            if (/^https:\/\/www.tiktok.com\//.test(url)) {
-                const video = await downloadVideo(url);
-                video.create_at = (new Date() / 1000) | 0;
-                video.update_at = (new Date() / 1000) | 0;
-                await db.videos.add(video);
-            }
-            window.open('videos.html', '_blank')
-        });
+<custom-search></custom-search>
+<script src="custom-search.js"></script>
+<!-- https://github.com/dexie/Dexie.js -->
+<!-- https://dexie.org/docs/API-Reference -->
+<script src="dexie.min.js"></script>
+<script src="utils.js"></script>
+<script>
+    const db = new Dexie("videos");
+    db.version(1).stores({
+        videos: "++_id,title,url,video_type,update_at"
+    });
+    const customSearch = document.querySelector('custom-search');
+    customSearch.addEventListener('submit', async evt => {
+        evt.stopPropagation();
+        const url = evt.detail;
+        if (/^https:\/\/www.tiktok.com\//.test(url)) {
+            const video = await downloadVideo(url);
+            video.create_at = (new Date() / 1000) | 0;
+            video.update_at = (new Date() / 1000) | 0;
+            await db.videos.add(video);
+        }
+        window.open('videos.html', '_blank')
+    });
 
-    </script>
+</script>
+<script>
+    (() => {
+        const strings = `Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en
+Cache-Control: no-cache
+Connection: keep-alive
+Cookie: session_token=40f854299f21048auyJuQXvAFWmzAvY4qqURWFYhASNg9PF2EJ3rHv2fzeYEBL525e5ZNb-41tIeKg0f3Z7SkY59SKPuGRmcUb0nBERK6MqtyuM7NIKfdhF3SBAIjWEAeCL2FTGg9U0uodrce3ceaWiFdzFmgoq1LWtUqCR3bzNZF1_ZAk9AwPOOa2bxW3c-B7Zaql2R5gwaH6nb; last_views=%5B%2273139749-1667574082%22%5D; session_ath=black; html5_pref=%7B%22SQ%22%3Afalse%2C%22MUTE%22%3Afalse%2C%22VOLUME%22%3A1%2C%22FORCENOPICTURE%22%3Afalse%2C%22FORCENOAUTOBUFFER%22%3Afalse%2C%22FORCENATIVEHLS%22%3Afalse%2C%22PLAUTOPLAY%22%3Atrue%2C%22CHROMECAST%22%3Afalse%2C%22EXPANDED%22%3Afalse%2C%22FORCENOLOOP%22%3Afalse%7D
+Host: www.xvideos.com
+Pragma: no-cache
+sec-ch-ua: "Google Chrome";v="95", "Chromium";v="95", ";Not A Brand";v="99"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Windows"
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36`;
+        const lines = strings.split('\n');
+        const buf = [];
+        for (const line of lines) {
+            const index = line.indexOf(':');
+            buf.push(`r.Header.Set("${line.substring(0,index).trim()}","${line.substring(index+1).trim().replaceAll('"','\\"')}");`)
+        }
+        console.log(buf.join('\n'))
+    })()
+</script>
 </body>
 
 </html>
