@@ -35,6 +35,7 @@
     <script src="custom-image-viewer.js"></script>
     <script src="custom-media-item.js"></script>
     <script src="custom-bottom-sheet.js"></script>
+    <script src="dialog.js"></script>
     <script src="dexie.min.js"></script>
     <script>
         const db = new Dexie("videos");
@@ -52,11 +53,26 @@
                 document.body.appendChild(customBottomSheet);
                 customBottomSheet.addEventListener('download-music', evt => {
                     evt.stopPropagation();
+                    customBottomSheet.remove();
                     window.open(v.music_play, '_blank')
                 });
                 customBottomSheet.addEventListener('download-video', evt => {
                     evt.stopPropagation();
+                    customBottomSheet.remove();
                     window.open(v.play, '_blank')
+                });
+                customBottomSheet.addEventListener('delete', evt => {
+                    evt.stopPropagation();
+                    customBottomSheet.remove();
+                    const customDialog = document.createElement('custom-dialog');
+                    customDialog.setAttribute('title', "询问");
+                    customDialog.setAttribute('message', `您确定要删除 ${v.title} 吗？`);
+                    customDialog.addEventListener('submit', async evt => {
+                        customDialog.remove();
+
+                        customMediaItem.remove();
+                    });
+                    document.body.appendChild(customDialog);
                 });
             });
             container.appendChild(customMediaItem);

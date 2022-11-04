@@ -27,8 +27,11 @@
             const url = evt.detail;
             if (/^https:\/\/www.tiktok.com\//.test(url)) {
                 const video = await downloadVideo(url);
+                video.create_at = (new Date() / 1000) | 0;
+                video.update_at = (new Date() / 1000) | 0;
                 await db.videos.add(video);
             }
+            window.open('videos.html', '_blank')
         });
 
     </script>
