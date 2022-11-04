@@ -74,7 +74,7 @@ class CustomBarRenderer extends HTMLElement {
             </svg>
           </div>
           <div class="text">
-            排序
+            导出
           </div>
         </div>
         <div class="item" id="action-menu">
@@ -85,7 +85,7 @@ class CustomBarRenderer extends HTMLElement {
             </svg>
           </div>
           <div class="text">
-            菜单
+            导入
           </div>
         </div>
       </div>

@@ -29,7 +29,7 @@
 </head>
 
 <body>
-    <div>
+    <div style="padding-bottom: 73px;">
 
     </div>
     <custom-bar-renderer></custom-bar-renderer>
@@ -37,18 +37,20 @@
     <script src="custom-media-item.js"></script>
     <script src="custom-bottom-sheet.js"></script>
     <script src="custom-bar-renderer.js"></script>
-
     <script src="dialog.js"></script>
     <script src="dexie.min.js"></script>
     <script src="utils.js"></script>
-
     <script>
+
+
         const db = new Dexie("videos");
         db.version(1).stores({
             videos: "++_id,title,url,video_type,update_at"
         });
+
+
         const container = document.querySelector('div');
-        db.videos.each(v => {
+        db.videos.orderBy('update_at').reverse().each(v => {
             const customMediaItem = document.createElement('custom-media-item');
             customMediaItem.setAttribute('src', v.cover);
             customMediaItem.setAttribute('title', v.title);
@@ -61,6 +63,11 @@
                     window.open(v.music_play, '_blank')
                 });
                 customBottomSheet.addEventListener('download-video', evt => {
+                    evt.stopPropagation();
+                    customBottomSheet.remove();
+                    window.open(v.play.replace('/hdplay', '/play'), '_blank')
+                });
+                customBottomSheet.addEventListener('download-hd-video', evt => {
                     evt.stopPropagation();
                     customBottomSheet.remove();
                     window.open(v.play, '_blank')
@@ -83,6 +90,53 @@
             });
             container.appendChild(customMediaItem);
         })
+        const customBarRenderer = document.querySelector('custom-bar-renderer');
+
+        customBarRenderer.addEventListener('submit-sort', evt => {
+            evt.stopPropagation();
+            db.open().then(function () {
+                const idbDatabase = db.backendDB();
+                exportToJsonString(idbDatabase, (error, s) => {
+                    var a = document.createElement('a');
+                    a.href = URL.createObjectURL(new Blob([s], { type: "application/json;charset=utf-8" }));
+                    a.target = '_blank';
+                    setTimeout(function () {
+                        a.click();
+                    });
+                })
+            });
+        });
+        customBarRenderer.addEventListener('submit-menu', evt => {
+            evt.stopPropagation();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = "text/plain";
+            input.style.position = 'fixed';
+            input.style.left = '-100%';
+            document.body.appendChild(input);
+            input.addEventListener('change', event => {
+                var input = event.target;
+                var reader = new FileReader();
+                reader.onload = function () {
+                    var jsonString = reader.result;
+                    db.open().then(function () {
+                        const idbDatabase = db.backendDB();
+                        clearDatabase(idbDatabase, function (err) {
+                            if (!err) { // cleared data successfully
+                                importFromJsonString(idbDatabase, jsonString, function (err) {
+                                    if (!err) {
+                                        console.log('Imported data successfully');
+                                    }
+                                });
+                            }
+                        });
+                    });
+                };
+                reader.readAsText(input.files[0]);
+            })
+            input.click();
+
+        });
     </script>
 </body>
 

@@ -109,6 +109,11 @@ class CustomBottomSheet extends HTMLElement {
           </button>
         </div>
         <div class="menu-item">
+        <button class="menu-item-button" id="action-download-hd-video" >
+          下载高清
+        </button>
+      </div>
+        <div class="menu-item">
           <button class="menu-item-button" id="action-download-video" >
             下载视频
           </button>
@@ -145,6 +150,10 @@ class CustomBottomSheet extends HTMLElement {
         this.root.querySelector('#action-download-video')
             .addEventListener('click', evt => {
                 this.dispatchEvent(new CustomEvent('download-video'))
+            })
+        this.root.querySelector('#action-download-hd-video')
+            .addEventListener('click', evt => {
+                this.dispatchEvent(new CustomEvent('download-hd-video'))
             })
 
     }
