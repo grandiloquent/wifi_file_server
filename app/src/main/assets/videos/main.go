@@ -11,7 +11,6 @@ import (
 const SupportedFileTypes = "\\.(?:js|html)"
 
 func main() {
-	shared.XVideos("https://www.xvideos.com/video73139749/pretty_girl_having_great_fuck_from_her_boyfriend", getProxy())
 
 	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "" {
@@ -41,6 +40,9 @@ func downloadVideo(w http.ResponseWriter, r *http.Request) bool {
 	if tryTikTok(w, q) {
 		return true
 	}
+	if tryXVideos(w, q) {
+		return true
+	}
 	return true
 }
 
@@ -49,6 +51,19 @@ func tryTikTok(w http.ResponseWriter, q string) bool {
 		return false
 	}
 	b, err := shared.TikTok(q, getProxy())
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	shared.WriteJSON(w, b)
+	return true
+}
+
+func tryXVideos(w http.ResponseWriter, q string) bool {
+	if !shared.IsXVideosUri(q) {
+		return false
+	}
+	b, err := shared.XVideos(q, getProxy())
 	if err != nil {
 		http.NotFound(w, nil)
 		return true

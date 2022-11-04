@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -9,16 +10,21 @@ import (
 func XVideos(uri string, proxy *url.URL) ([]byte, error) {
 	b, err := getXVideosPage(uri, proxy)
 	if err != nil {
-		println(err)
 		return nil, err
 	}
 	obj := make(map[string]interface{})
 
 	title := SubstringBytes(b, []byte("setVideoTitle('"), []byte("');"))
 	obj["title"] = string(title)
-
-	var result []byte
-	result = []byte(title)
+	obj["url"] = uri
+	cover := SubstringBytes(b, []byte("setThumbUrl169('"), []byte("');"))
+	obj["cover"] = string(cover)
+	play := SubstringBytes(b, []byte("setVideoUrlHigh('"), []byte("');"))
+	obj["play"] = string(play)
+	result, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
