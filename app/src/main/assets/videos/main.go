@@ -11,7 +11,7 @@ import (
 const SupportedFileTypes = "\\.(?:js|html)"
 
 func main() {
-
+	shared.Twitter("https://twitter.com/i/status/1584276538530627584", getProxy())
 	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "" {
 			http.ServeFile(w, r, "index.html")
