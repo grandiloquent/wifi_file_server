@@ -1,14 +1,24 @@
 package shared
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
 func XVideos(uri string, proxy *url.URL) ([]byte, error) {
-	uri = fmt.Sprintf("https://www.tikwm.com/api/?count=12&cursor=0&web=1&hd=1&url=%s", uri)
+	b, err := getXVideosPage(uri, proxy)
+	if err != nil {
+		return nil, err
+	}
+	title := SubstringBytes(b, []byte("setVideoTitle('"), []byte("');"))
+	println(title)
+	var result []byte
+	result = []byte(title)
+	return result, nil
+}
+
+func getXVideosPage(uri string, proxy *url.URL) ([]byte, error) {
 	result, err := Fetch(uri, nil, proxy, func(r *http.Request) {
 		r.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
 		r.Header.Set("Accept-Encoding", "gzip, deflate, br")

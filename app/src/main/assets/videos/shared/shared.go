@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -64,4 +65,66 @@ func Fetch(url string, buffer []byte, prxoy *url.URL, header func(r *http.Reques
 func WriteJSON(w http.ResponseWriter, b []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)
+}
+func Substring(s, start, end string) string {
+
+	p := strings.Index(s, start)
+	if p == -1 {
+		return ""
+	}
+	t := s[p+len(start):]
+	p = strings.IndexAny(t, end)
+	if p == -1 {
+		return ""
+	}
+	return t[:p]
+}
+func SubstringAfter(original string, substr string) string {
+
+	index := strings.Index(original, substr)
+	if index == -1 {
+		return original
+	}
+
+	return original[index+len(substr):]
+}
+func SubstringAfterLast(original string, substr string) string {
+
+	index := strings.LastIndex(original, substr)
+	if index == -1 {
+		return original
+	}
+
+	return original[index+len(substr):]
+}
+func SubstringBefore(original string, substr string) string {
+
+	index := strings.Index(original, substr)
+	if index == -1 {
+		return original
+	}
+
+	return original[:index]
+}
+func SubstringBeforeLast(original string, substr string) string {
+
+	index := strings.LastIndex(original, substr)
+	if index == -1 {
+		return original
+	}
+
+	return original[:index]
+}
+func SubstringBytes(s, start, end []byte) []byte {
+
+	p := bytes.Index(s, start)
+	if p == -1 {
+		return nil
+	}
+	t := s[p+len(start):]
+	p = bytes.Index(t, end)
+	if p == -1 {
+		return nil
+	}
+	return t[:p]
 }
