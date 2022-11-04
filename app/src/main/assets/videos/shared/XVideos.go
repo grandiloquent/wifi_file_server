@@ -9,10 +9,14 @@ import (
 func XVideos(uri string, proxy *url.URL) ([]byte, error) {
 	b, err := getXVideosPage(uri, proxy)
 	if err != nil {
+		println(err)
 		return nil, err
 	}
+	obj := make(map[string]interface{})
+
 	title := SubstringBytes(b, []byte("setVideoTitle('"), []byte("');"))
-	println(title)
+	obj["title"] = string(title)
+
 	var result []byte
 	result = []byte(title)
 	return result, nil

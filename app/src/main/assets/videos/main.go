@@ -12,7 +12,7 @@ const SupportedFileTypes = "\\.(?:js|html)"
 
 func main() {
 	shared.XVideos("https://www.xvideos.com/video73139749/pretty_girl_having_great_fuck_from_her_boyfriend", getProxy())
-	// http://localhost:8080
+
 	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "" {
 			http.ServeFile(w, r, "index.html")
@@ -60,5 +60,3 @@ func getProxy() *url.URL {
 	proxy, _ := url.Parse("http://127.0.0.1:10809")
 	return proxy
 }
-
-// $env:GO111MODULE="auto";go run main.go
