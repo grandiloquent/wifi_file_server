@@ -10,14 +10,8 @@ import (
 
 const SupportedFileTypes = "\\.(?:js|html)"
 
-func extractKeyString(uri string) string {
-	ret := regexp.MustCompile("(status|statuses)/(\\d+)").FindStringSubmatch(uri)
-	return ret[0]
-}
-
 func main() {
-	extractKeyString("https://twitter.com/i/status/1584276538530627584")
-	//shared.Twitter("https://twitter.com/i/status/1584276538530627584", getProxy())
+	shared.Twitter("https://twitter.com/i/status/1584276538530627584", getProxy())
 	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "" {
 			http.ServeFile(w, r, "index.html")
@@ -49,6 +43,9 @@ func downloadVideo(w http.ResponseWriter, r *http.Request) bool {
 	if tryXVideos(w, q) {
 		return true
 	}
+	if tryTwitter(w, q) {
+		return true
+	}
 	return true
 }
 
@@ -77,6 +74,20 @@ func tryXVideos(w http.ResponseWriter, q string) bool {
 	shared.WriteJSON(w, b)
 	return true
 }
+
+func tryTwitter(w http.ResponseWriter, q string) bool {
+	if !shared.IsTwitterUri(q) {
+		return false
+	}
+	b, err := shared.Twitter(q, getProxy())
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	shared.WriteJSON(w, b)
+	return true
+}
+
 func getProxy() *url.URL {
 	proxy, _ := url.Parse("http://127.0.0.1:10809")
 	return proxy

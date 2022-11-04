@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -127,4 +128,74 @@ func SubstringBytes(s, start, end []byte) []byte {
 		return nil
 	}
 	return t[:p]
+}
+func KeyString(buf []byte, key string) string {
+	re := regexp.MustCompile("\"" + key + "\"")
+	loc := re.FindIndex(buf)
+	if len(loc) == 0 {
+		return ""
+	}
+	if loc[0] > 0 && buf[loc[0]-1] != '\\' {
+		buf = buf[loc[1]:]
+		r := regexp.MustCompile(":\\s*?null\\s*?[,\\]}]")
+		loc = r.FindIndex(buf)
+		if len(loc) > 0 && loc[0] == 0 {
+
+			return ""
+		}
+
+		r = regexp.MustCompile(":\\s*?\"(.*?[^\\\\])\"\\s*?[,\\]}]")
+		loc = r.FindSubmatchIndex(buf)
+
+		if len(loc) == 0 || loc[0] != 0 {
+			return ""
+		}
+		return string(buf[loc[2]:loc[3]])
+	}
+	return ""
+	//for i := 0; i < len(buf); i++ {
+	//	if buf[i] == '"' {
+	//		if i > 0 && buf[i-1] == '\\' {
+	//			continue
+	//		} else {
+	//			if bytes.HasPrefix(buf[i+1:], []byte(key)) && buf[i+1+len(key)] == '"' {
+	//				buf = buf[i+1+len(key)+1:]
+	//				break
+	//			} else {
+	//				buf = buf[i:]
+	//			}
+	//		}
+	//	}
+	//}
+	//
+	//var start = -1
+	//
+	//for i := 0; i < len(buf); i++ {
+	//	if buf[i] == '"' {
+	//		if i > 0 && buf[i-1] == '\\' {
+	//			continue
+	//		} else {
+	//			start = i
+	//			break
+	//		}
+	//	}
+	//}
+	//if start == -1 {
+	//	return ""
+	//}
+	//var end = -1
+	//for i := start + 1; i < len(buf); i++ {
+	//	if buf[i] == '"' {
+	//		if i > 0 && buf[i-1] == '\\' {
+	//			continue
+	//		} else {
+	//			end = i
+	//			break
+	//		}
+	//	}
+	//}
+	//if end == -1 {
+	//	return ""
+	//}
+	//return string(buf[start+1 : end])
 }

@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,27 +11,26 @@ import (
 )
 
 func Twitter(uri string, proxy *url.URL) ([]byte, error) {
-
-	b, err := getTwitterPage(fmt.Sprintf("https://api.twitter.com/1.1/videos/tweet/config/%s.json"), proxy)
+	id := extractKeyString(uri)
+	b, err := getTwitterPage(fmt.Sprintf("https://api.twitter.com/1.1/videos/tweet/config/%s.json", id), proxy)
 	if err != nil {
 		return nil, err
 	}
 	ioutil.WriteFile("1.json", b, 0666)
 	obj := make(map[string]interface{})
 
-	title := SubstringBytes(b, []byte("property=\"og:title\""), []byte("content=\""))
-	obj["title"] = string(title)
-	//obj["url"] = uri
-	//cover := SubstringBytes(b, []byte("setThumbUrl169('"), []byte("');"))
-	//obj["cover"] = string(cover)
-	//play := SubstringBytes(b, []byte("setVideoUrlHigh('"), []byte("');"))
-	//obj["play"] = string(play)
-	//result, err := json.Marshal(obj)
-	//if err != nil {
-	//	return nil, err
-	//}
-	fmt.Println(obj)
-	var result []byte
+	obj["title"] = id
+	obj["url"] = uri
+	cover := KeyString(b, "posterImage")
+	obj["cover"] = string(cover)
+	play := KeyString(b, "playbackUrl")
+	obj["play"] = string(play)
+	result, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+	//fmt.Println(obj)
+	//var result []byte
 	return result, nil
 }
 
@@ -51,6 +51,7 @@ func getTwitterPage(uri string, proxy *url.URL) ([]byte, error) {
 		r.Header.Set("Sec-Fetch-User", "?1")
 		r.Header.Set("Upgrade-Insecure-Requests", "1")
 		r.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36")
+		r.Header.Set("Authorization", "Bearer AAAAAAAAAAAAAAAAAAAAAIK1zgAAAAAA2tUWuhGZ2JceoId5GwYWU5GspY4%3DUq7gzFoCZs1QfwGoVdvSac3IniczZEYXIcDyumCauIXpcAPorE")
 	})
 	if err != nil {
 		return nil, err
@@ -59,10 +60,10 @@ func getTwitterPage(uri string, proxy *url.URL) ([]byte, error) {
 }
 func extractKeyString(uri string) string {
 	ret := regexp.MustCompile("(status|statuses)/(\\d+)").FindStringSubmatch(uri)
-	return ret[0]
+	return ret[2]
 }
 
 // https://twitter.com/i/status/1584276538530627584
 func IsTwitterUri(u string) bool {
-	return strings.HasPrefix("https://www.xvideos.com", u)
+	return strings.HasPrefix("https://twitter.com/", u)
 }
