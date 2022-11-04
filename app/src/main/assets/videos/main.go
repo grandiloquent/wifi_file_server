@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -55,6 +56,7 @@ func tryTikTok(w http.ResponseWriter, q string) bool {
 	}
 	b, err := shared.TikTok(q, getProxy())
 	if err != nil {
+		fmt.Println(err)
 		http.NotFound(w, nil)
 		return true
 	}

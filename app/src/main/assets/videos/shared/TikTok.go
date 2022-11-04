@@ -24,5 +24,6 @@ func TikTok(uri string, proxy *url.URL) ([]byte, error) {
 
 // https://www.tiktok.com/@ryanbakery/video/7162083541365312795?is_from_webapp=1&sender_device=pc&web_id=7146322967022372354
 func IsTikTokUri(u string) bool {
-	return strings.HasPrefix("https://www.tiktok.com", u)
+	fmt.Println(u, strings.HasPrefix("https://www.tiktok.com", u))
+	return strings.HasPrefix(u, "https://www.tiktok.com")
 }

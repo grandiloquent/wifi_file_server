@@ -45,7 +45,6 @@ public class MainActivity extends Activity {
     private WebView mWebView;
 
     private void initialize() {
-
         Shared.requestManageAllFilesPermission(this);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String treeUri = sharedPreferences.getString(TREE_URI, null);
@@ -71,6 +70,12 @@ public class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 webView.loadUrl(request.getUrl().toString());
                 return true;
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                view.evaluateJavascript("document.querySelectorAll('.tt-sheet__container,.tt-sheet__mask').forEach(x=>x.remove())", null);
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {

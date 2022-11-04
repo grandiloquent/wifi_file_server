@@ -54,5 +54,5 @@ func getXVideosPage(uri string, proxy *url.URL) ([]byte, error) {
 
 // https://www.xvideos.com/video73139749/pretty_girl_having_great_fuck_from_her_boyfriend
 func IsXVideosUri(u string) bool {
-	return strings.HasPrefix("https://www.xvideos.com", u)
+	return strings.HasPrefix(u, "https://www.xvideos.com")
 }

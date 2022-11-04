@@ -7,15 +7,16 @@ async function downloadVideo(url) {
     }
     const video = {
         url,
-        title: json.data.title,
-        play: `https://www.tikwm.com/${json.data.hdplay}`,
-        music_play: json.data.music_info.play,
-        music_title: json.data.music_info.title,
-        music_author: json.data.music_info.author,
-        cover: `https://www.tikwm.com/${json.data.cover}`,
+        title: (json.data && json.data.title) || json.title,
+        play: (json.data && `https://www.tikwm.com/${json.data.hdplay}`) || json.play,
+        music_play: (json.data && json.data.music_info.play) || '',
+        music_title: (json.data && json.data.music_info.title) || '',
+        music_author: (json.data && json.data.music_info.author) || '',
+        cover: (json.data && `https://www.tikwm.com/${json.data.cover}`) || json.cover,
     };
     return video;
 }
+
 function exportToJsonString(idbDatabase, cb) {
     const exportObject = {};
     const objectStoreNamesSet = new Set(idbDatabase.objectStoreNames);
@@ -31,7 +32,7 @@ function exportToJsonString(idbDatabase, cb) {
         );
         transaction.onerror = (event) => cb(event, null);
 
-        objectStoreNames.forEach((storeName) => { 
+        objectStoreNames.forEach((storeName) => {
             const allObjects = [];
             transaction.objectStore(storeName).openCursor().onsuccess = (event) => {
                 const cursor = event.target.result;
@@ -51,6 +52,7 @@ function exportToJsonString(idbDatabase, cb) {
         });
     }
 }
+
 function importFromJsonString(idbDatabase, jsonString, cb) {
     const objectStoreNamesSet = new Set(idbDatabase.objectStoreNames);
     const size = objectStoreNamesSet.size;
@@ -113,6 +115,7 @@ function importFromJsonString(idbDatabase, jsonString, cb) {
         });
     }
 }
+
 function clearDatabase(idbDatabase, cb) {
     const objectStoreNamesSet = new Set(idbDatabase.objectStoreNames);
     const size = objectStoreNamesSet.size;

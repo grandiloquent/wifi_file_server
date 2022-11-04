@@ -65,5 +65,5 @@ func extractKeyString(uri string) string {
 
 // https://twitter.com/i/status/1584276538530627584
 func IsTwitterUri(u string) bool {
-	return strings.HasPrefix("https://twitter.com/", u)
+	return strings.HasPrefix(u, "https://twitter.com/")
 }
