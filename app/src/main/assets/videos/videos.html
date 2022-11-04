@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频</title>
+</head>
+
+<body>
+    <custom-search></custom-search>
+    <script src="custom-search.js"></script>
+    <!-- https://github.com/dexie/Dexie.js -->
+    <!-- https://dexie.org/docs/API-Reference -->
+    <script src="dexie.min.js"></script>
+    <script src="db.js"></script>
+    <script>
+        const db = new Dexie("videos");
+        db.version(1).stores({
+            videos: "++_id,title,url,update_at"
+        });
+
+    </script>
+</body>
+
+</html>
