@@ -42,41 +42,7 @@ class CustomBarRenderer extends HTMLElement {
     color: #030303;
 }</style>
     <div style="display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; right: 0; padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); z-index: 3; height: 48px; border-top: 1px solid rgba(0,0,0,.1); background: rgba(255,255,255,.98); color: #030303; font-size: 1.1rem;">
-      <div style="display: flex; -webkit-box-flex: 1; flex: 1 1 0%; min-width: 0;">
-        <div class="item" id="home">
-          <div class="image">
-            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
-              <g>
-                <path d="M4,21V10.08l8-6.96l8,6.96V21h-6v-6h-4v6H4z">
-                </path>
-              </g>
-            </svg>
-          </div>
-          <div class="text">
-            首页
-          </div>
-        </div>
-        <div class="item" id="fav">
-          <div class="image">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-            </svg>
-          </div>
-          <div class="text">
-            收藏
-          </div>
-        </div>
-        <div class="item" id="action-sort">
-          <div class="image">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-              <path d="M0 0h24v24H0V0z" fill="none" />
-              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" />
-            </svg>
-          </div>
-          <div class="text">
-            导出
-          </div>
-        </div>
+      <div class="container" style="display: flex; -webkit-box-flex: 1; flex: 1 1 0%; min-width: 0;">
         <div class="item" id="action-menu">
           <div class="image">
             <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
@@ -90,19 +56,36 @@ class CustomBarRenderer extends HTMLElement {
         </div>
       </div>
     </div>`;
-        this.root.querySelector('#fav').addEventListener('click', evt => {
-            const customFavorites = document.createElement('custom-favorites');
-            document.body.appendChild(customFavorites);
+        const container = this.root.querySelector('.container');
+        [
+            [`<svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
+              <g>
+                <path d="M4,21V10.08l8-6.96l8,6.96V21h-6v-6h-4v6H4z">
+                </path>
+              </g>
+            </svg>`, '首页'],
+            [`<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>`, '收藏'],
+            [`<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0V0z" fill="none" />
+              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" />
+            </svg>`, '导出']
+        ].forEach((x, index) => {
+            const item = this.createItem(x[0], x[1])
+            container.appendChild(item);
+            item.addEventListener('click', evt => {
+                let eventName;
+                if (index === 0) {
+                    eventName = 'home'
+                } else if (index === 1) {
+                    eventName = 'fav'
+                } else if (index === 2) {
+                    eventName = 'submit-sort'
+                }
+                this.dispatchEvent(new CustomEvent(eventName))
+            })
         })
-        const home = this.root.querySelector('#home');
-        home.addEventListener('click', evt => {
-            window.location = "/"
-        })
-        this.root.getElementById('action-sort')
-            .addEventListener('click', evt => {
-                evt.stopPropagation();
-                this.dispatchEvent(new CustomEvent('submit-sort'));
-            });
 
         this.root.getElementById('action-menu')
             .addEventListener('click', evt => {
@@ -111,6 +94,19 @@ class CustomBarRenderer extends HTMLElement {
             });
     }
 
+    createItem(svg, title) {
+        const home = document.createElement('div');
+        home.setAttribute("class", "item");
+        const image = document.createElement('div');
+        image.setAttribute("class", "image");
+        home.appendChild(image);
+        image.innerHTML = svg;
+        const text = document.createElement('div');
+        text.setAttribute("class", "text");
+        home.appendChild(text);
+        text.textContent = title;
+        return home;
+    }
 
     static get observedAttributes() {
         return ['data'];

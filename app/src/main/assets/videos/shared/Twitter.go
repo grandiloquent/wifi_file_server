@@ -3,7 +3,6 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -16,9 +15,7 @@ func Twitter(uri string, proxy *url.URL) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	ioutil.WriteFile("1.json", b, 0666)
 	obj := make(map[string]interface{})
-
 	obj["title"] = id
 	obj["url"] = uri
 	cover := KeyString(b, "posterImage")
