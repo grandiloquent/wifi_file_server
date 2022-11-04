@@ -2,6 +2,7 @@ package shared
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,10 +13,11 @@ func Twitter(uri string, proxy *url.URL) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	//obj := make(map[string]interface{})
-	//
-	//title := SubstringBytes(b, []byte("setVideoTitle('"), []byte("');"))
-	//obj["title"] = string(title)
+	ioutil.WriteFile("1.html", b, 0666)
+	obj := make(map[string]interface{})
+
+	title := SubstringBytes(b, []byte("property=\"og:title\""), []byte("content=\""))
+	obj["title"] = string(title)
 	//obj["url"] = uri
 	//cover := SubstringBytes(b, []byte("setThumbUrl169('"), []byte("');"))
 	//obj["cover"] = string(cover)
@@ -25,7 +27,7 @@ func Twitter(uri string, proxy *url.URL) ([]byte, error) {
 	//if err != nil {
 	//	return nil, err
 	//}
-	fmt.Println(b)
+	fmt.Println(obj)
 	var result []byte
 	return result, nil
 }
