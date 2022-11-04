@@ -44,7 +44,6 @@
         });
         const container = document.querySelector('div');
         db.videos.each(v => {
-            console.log(v);
             const customMediaItem = document.createElement('custom-media-item');
             customMediaItem.setAttribute('src', v.cover);
             customMediaItem.setAttribute('title', v.title);
@@ -61,16 +60,18 @@
                     customBottomSheet.remove();
                     window.open(v.play, '_blank')
                 });
+                const title = v.title;
+                const id = v._id;
                 customBottomSheet.addEventListener('delete', evt => {
+                    console.log(title)
                     evt.stopPropagation();
                     customBottomSheet.remove();
                     const customDialog = document.createElement('custom-dialog');
-                    customDialog.setAttribute('title', "询问");
-                    customDialog.setAttribute('message', `您确定要删除 ${v.title} 吗？`);
+                    customDialog.appendChild(document.createTextNode(`您确定要删除 ${title} 吗？`))
                     customDialog.addEventListener('submit', async evt => {
                         customDialog.remove();
-
                         customMediaItem.remove();
+                        db.videos.delete(id);
                     });
                     document.body.appendChild(customDialog);
                 });
