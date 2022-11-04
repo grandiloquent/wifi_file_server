@@ -43,12 +43,21 @@
         });
         const container = document.querySelector('div');
         db.videos.each(v => {
+            console.log(v);
             const customMediaItem = document.createElement('custom-media-item');
             customMediaItem.setAttribute('src', v.cover);
             customMediaItem.setAttribute('title', v.title);
             customMediaItem.addEventListener('submit', evt => {
                 const customBottomSheet = document.createElement('custom-bottom-sheet');
                 document.body.appendChild(customBottomSheet);
+                customBottomSheet.addEventListener('download-music', evt => {
+                    evt.stopPropagation();
+                    window.open(v.music_play, '_blank')
+                });
+                customBottomSheet.addEventListener('download-video', evt => {
+                    evt.stopPropagation();
+                    window.open(v.play, '_blank')
+                });
             });
             container.appendChild(customMediaItem);
         })

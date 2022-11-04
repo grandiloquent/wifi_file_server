@@ -3,7 +3,7 @@ class CustomBottomSheet extends HTMLElement {
     constructor() {
         super();
 
-        this.root = this.attachShadow({mode: 'open'});
+        this.root = this.attachShadow({ mode: 'open' });
 
         this.root.innerHTML = `<style>.menu-item
 {
@@ -109,13 +109,13 @@ class CustomBottomSheet extends HTMLElement {
           </button>
         </div>
         <div class="menu-item">
-          <button id="move-action" class="menu-item-button">
-            移动
+          <button class="menu-item-button" id="action-download-video" >
+            下载视频
           </button>
         </div>
-        <div class="menu-item" id="action-rename">
+        <div class="menu-item" id="action-download-music">
           <button class="menu-item-button">
-            重命名
+            下载音乐
           </button>
         </div>
         <div class="menu-item" id="close-action">
@@ -138,14 +138,13 @@ class CustomBottomSheet extends HTMLElement {
         deleteAction.addEventListener('click', evt => {
             this.dispatchEvent(new CustomEvent('delete'));
         })
-        const moveAction = this.root.querySelector('#move-action');
-        moveAction.addEventListener('click', evt => {
-            this.dispatchEvent(new CustomEvent('move'));
-        });
-
-        this.root.querySelector('#action-rename')
+        this.root.querySelector('#action-download-music')
             .addEventListener('click', evt => {
-                this.dispatchEvent(new CustomEvent('rename'))
+                this.dispatchEvent(new CustomEvent('download-music'))
+            })
+        this.root.querySelector('#action-download-video')
+            .addEventListener('click', evt => {
+                this.dispatchEvent(new CustomEvent('download-video'))
             })
 
     }
