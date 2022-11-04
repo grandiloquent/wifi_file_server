@@ -9,6 +9,8 @@ import (
 	"./shared"
 )
 
+const SupportedFileTypes = "\\.(?:js|html)"
+
 func main() {
 	println(exec.Command("C:/Program Files/Google/Chrome/Application/chrome.exe", "http://localhost:8080").Run())
 	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -16,8 +18,7 @@ func main() {
 			http.ServeFile(w, r, "index.html")
 			return
 		}
-		println(r.URL.Path)
-		if b, _ := regexp.MatchString("\\.(?:js|html)", r.URL.Path); b {
+		if b, _ := regexp.MatchString(SupportedFileTypes, r.URL.Path); b {
 			http.ServeFile(w, r, r.URL.Path[1:])
 			return
 		}
@@ -37,14 +38,27 @@ func downloadVideo(w http.ResponseWriter, r *http.Request) bool {
 		http.NotFound(w, r)
 		return true
 	}
-	proxy, _ := url.Parse("http://127.0.0.1:10809")
-	b, err := shared.TikTok(q, proxy)
+	if tryTikTok(w, q) {
+		return true
+	}
+	return true
+}
+
+func tryTikTok(w http.ResponseWriter, q string) bool {
+	if !shared.IsTikTokUri(q) {
+		return false
+	}
+	b, err := shared.TikTok(q, getProxy())
 	if err != nil {
-		http.NotFound(w, r)
+		http.NotFound(w, nil)
 		return true
 	}
 	shared.WriteJSON(w, b)
 	return true
+}
+func getProxy() *url.URL {
+	proxy, _ := url.Parse("http://127.0.0.1:10809")
+	return proxy
 }
 
 // $env:GO111MODULE="auto";go run main.go

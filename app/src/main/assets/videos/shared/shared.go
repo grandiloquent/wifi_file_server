@@ -5,7 +5,6 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"crypto/tls"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,20 +12,6 @@ import (
 	"time"
 )
 
-func TikTok(uri string, prxoy *url.URL) ([]byte, error) {
-	// https://www.tiktok.com/@sonyakisa8/video/7156942763492166913?is_from_webapp=1&sender_device=pc&web_id=7146322967022372354
-	uri = fmt.Sprintf("https://www.tikwm.com/api/?count=12&cursor=0&web=1&hd=1&url=%s", uri)
-	result, err := Fetch(uri, nil, prxoy, func(r *http.Request) {
-		r.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
-		r.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-		r.Header.Set("sec-ch-ua", "\"Chromium\";v=\"104\", \" Not A;Brand\";v=\"99\", \"Google Chrome\";v=\"104\"")
-		r.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36")
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
 func Fetch(url string, buffer []byte, prxoy *url.URL, header func(r *http.Request)) ([]byte, error) {
 	transport := &http.Transport{
 		Proxy:               http.ProxyURL(prxoy),

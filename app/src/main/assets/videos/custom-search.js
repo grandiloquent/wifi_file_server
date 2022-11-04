@@ -138,6 +138,7 @@ class CustomSearch extends HTMLElement {
         })
         const clear = this.root.querySelector('.clear');
         clear.addEventListener('click', evt => {
+            evt.stopPropagation();
             input.value = "";
             clear.style.visibility = 'hidden';
             this.dispatchEvent(new CustomEvent('submit', {
