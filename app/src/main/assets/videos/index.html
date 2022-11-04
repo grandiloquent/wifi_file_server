@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>视频</title>
+    <title>视频下载工具 - 回形针</title>
+    <meta name="description" content="下载TikTok、抖音高清无水印视频">
 </head>
 
 <body>
@@ -14,11 +15,19 @@
     <!-- https://github.com/dexie/Dexie.js -->
     <!-- https://dexie.org/docs/API-Reference -->
     <script src="dexie.min.js"></script>
-    <script src="db.js"></script>
+    <script src="utils.js"></script>
     <script>
         const db = new Dexie("videos");
         db.version(1).stores({
-            videos: "++_id,title,url,update_at"
+            videos: "++_id,title,url,video_type,update_at"
+        });
+        const customSearch = document.querySelector('custom-search');
+        customSearch.addEventListener('submit', evt => {
+            evt.stopPropagation();
+            const url = evt.detail;
+            if (/^https:\/\/www.tiktok.com\//.test(url)) {
+                downloadVideo(url)
+            }
         });
 
     </script>

@@ -26,8 +26,6 @@ func main() {
 	}))
 }
 
-// writeJSON
-//
 func downloadVideo(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path != "/api/videos" {
 		return false
