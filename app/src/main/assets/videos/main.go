@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"os/exec"
-	"strings"
+	"regexp"
 
 	"./shared"
 )
@@ -17,7 +17,7 @@ func main() {
 			return
 		}
 		println(r.URL.Path)
-		if strings.HasSuffix(r.URL.Path, ".js") {
+		if b, _ := regexp.MatchString("\\.(?:js|html)", r.URL.Path); b {
 			http.ServeFile(w, r, r.URL.Path[1:])
 			return
 		}

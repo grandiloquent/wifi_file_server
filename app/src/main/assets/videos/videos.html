@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频列表</title>
+    <style>
+        html {
+            font-size: 10px;
+            font-family: Roboto, Arial, sans-serif;
+            word-wrap: break-word;
+            color: #030303;
+            background-color: #fff;
+            -webkit-text-size-adjust: 100%;
+            height: 100%;
+
+        }
+
+        body {
+            margin: 0;
+            padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            font-size: 1.2rem;
+            overflow-x: hidden;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+
+    </div>
+    <script src="custom-image-viewer.js"></script>
+    <script src="custom-media-item.js"></script>
+    <script src="custom-bottom-sheet.js"></script>
+    <script src="dexie.min.js"></script>
+    <script>
+        const db = new Dexie("videos");
+        db.version(1).stores({
+            videos: "++_id,title,url,video_type,update_at"
+        });
+        const container = document.querySelector('div');
+        db.videos.each(v => {
+            const customMediaItem = document.createElement('custom-media-item');
+            customMediaItem.setAttribute('src', v.cover);
+            customMediaItem.setAttribute('title', v.title);
+            customMediaItem.addEventListener('submit', evt => {
+                const customBottomSheet = document.createElement('custom-bottom-sheet');
+                document.body.appendChild(customBottomSheet);
+            });
+            container.appendChild(customMediaItem);
+        })
+    </script>
+</body>
+
+</html>
