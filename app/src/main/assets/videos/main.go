@@ -1,12 +1,11 @@
 package main
 
 import (
+	"./shared"
 	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
-
-	"./shared"
 )
 
 const SupportedFileTypes = "\\.(?:js|html)"
@@ -45,6 +44,9 @@ func downloadVideo(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	if tryTwitter(w, q) {
+		return true
+	}
+	if tryUdn(w, q) {
 		return true
 	}
 	return true
@@ -89,7 +91,18 @@ func tryTwitter(w http.ResponseWriter, q string) bool {
 	shared.WriteJSON(w, b)
 	return true
 }
-
+func tryUdn(w http.ResponseWriter, q string) bool {
+	if !shared.IsUdnUri(q) {
+		return false
+	}
+	b, err := shared.Udn(q, getProxy())
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	shared.WriteJSON(w, b)
+	return true
+}
 func getProxy() *url.URL {
 	proxy, _ := url.Parse("http://127.0.0.1:10809")
 	return proxy

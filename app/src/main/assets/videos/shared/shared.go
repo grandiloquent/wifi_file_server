@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"../brotli"
 	"bytes"
 	"compress/flate"
 	"compress/gzip"
@@ -53,6 +54,8 @@ func Fetch(url string, buffer []byte, prxoy *url.URL, header func(r *http.Reques
 		reader, _ = gzip.NewReader(res.Body)
 	case "deflate":
 		reader = flate.NewReader(res.Body)
+	case "br": // go get https://github.com/andybalholm/brotli
+		reader = brotli.NewReader(res.Body)
 	default:
 		reader = res.Body
 	}
@@ -201,4 +204,14 @@ func KeyString(buf []byte, key string) string {
 }
 func WriteFile(filename string, data []byte) {
 	ioutil.WriteFile(filename, data, 0666)
+}
+
+func SplitLastItem(s string) string {
+	lines := regexp.MustCompile(`"(, ")*`).Split(s, -1)
+	for i := len(lines) - 1; i > -1; i-- {
+		if len(strings.TrimSpace(lines[i])) > 0 {
+			return lines[i]
+		}
+	}
+	return ""
 }

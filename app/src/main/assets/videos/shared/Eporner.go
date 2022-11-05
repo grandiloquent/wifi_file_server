@@ -8,25 +8,22 @@ import (
 	"strings"
 )
 
-func Udn(uri string, proxy *url.URL) ([]byte, error) {
-	uri = fmt.Sprintf("https://video.udn.com/embed/news/%s", SubstringAfterLast(uri, "/"))
-	b, err := getUdnPage(uri, proxy)
+func Eporner(uri string, proxy *url.URL) ([]byte, error) {
+	b, err := getEpornerPage(uri, proxy)
 	if err != nil {
 		return nil, err
 	}
 	obj := make(map[string]interface{})
 
-	title := SubstringBytes(b, []byte("<title>"), []byte("</title>"))
+	title := SubstringBytes(b, []byte("\"name\": \""), []byte("\","))
 	obj["title"] = string(title)
 	obj["url"] = uri
-	cover := SubstringBytes(b, []byte("poster: '"), []byte("'"))
-	obj["cover"] = string(cover)
-
-	cdn := fmt.Sprintf("http:%s", string(SubstringBytes(b, []byte("mp4: '"), []byte("'"))))
-	b, err = Fetch(cdn, nil, proxy, func(r *http.Request) {
-		r.Header.Set("Referer", uri)
-	})
-	obj["play"] = string(b)
+	cover := SubstringBytes(b, []byte("\"thumbnailUrl\":"), []byte("]"))
+	obj["cover"] = SplitLastItem(string(cover))
+	play := SubstringBytes(b, []byte("<div class=\"dloaddivcol\">"), []byte("</div>"))
+	temporary := SubstringAfterLast(string(play), "<a href=\"")
+	temporary = SubstringBefore(temporary, "\"")
+	obj["play"] = fmt.Sprintf("%s.com%s", SubstringBefore(uri, ".com/"), temporary)
 	result, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err
@@ -34,7 +31,7 @@ func Udn(uri string, proxy *url.URL) ([]byte, error) {
 	return result, nil
 }
 
-func getUdnPage(uri string, proxy *url.URL) ([]byte, error) {
+func getEpornerPage(uri string, proxy *url.URL) ([]byte, error) {
 	result, err := Fetch(uri, nil, proxy, func(r *http.Request) {
 		r.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
 		r.Header.Set("Accept-Encoding", "gzip, deflate, br")
@@ -58,18 +55,18 @@ func getUdnPage(uri string, proxy *url.URL) ([]byte, error) {
 	return result, nil
 }
 
-// https://video.udn.com/news/1251480
-func IsUdnUri(u string) bool {
-	return strings.HasPrefix(u, "https://video.udn.com")
+// https://www.eporner.com/video-xzZGrFuOJ2y/can-i-suddenly-fuck-you-at-home-decensored/
+func IsEpornerUri(u string) bool {
+	return strings.HasPrefix(u, "https://www.eporner.com")
 }
 
 /*
 
-func tryUdn(w http.ResponseWriter, q string) bool {
-	if !shared.IsUdnUri(q) {
+func tryEporner(w http.ResponseWriter, q string) bool {
+	if !shared.IsEpornerUri(q) {
 		return false
 	}
-	b, err := shared.Udn(q, getProxy())
+	b, err := shared.Eporner(q, getProxy())
 	if err != nil {
 		http.NotFound(w, nil)
 		return true
@@ -77,7 +74,7 @@ func tryUdn(w http.ResponseWriter, q string) bool {
 	shared.WriteJSON(w, b)
 	return true
 }
-if tryUdn(w, q) {
+if tryEporner(w, q) {
 		return true
 	}
 */
