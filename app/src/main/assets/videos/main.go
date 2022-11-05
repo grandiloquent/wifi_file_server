@@ -12,7 +12,6 @@ import (
 const SupportedFileTypes = "\\.(?:js|html)"
 
 func main() {
-	shared.Udn("https://video.udn.com/news/1251480", getProxy())
 	_ = http.ListenAndServe(":8089", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "" {
 			http.ServeFile(w, r, "index.html")

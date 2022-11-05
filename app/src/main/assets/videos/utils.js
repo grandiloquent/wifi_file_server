@@ -143,12 +143,8 @@ function clearDatabase(idbDatabase, cb) {
 
 
 async function saveVideo(url, db) {
-    if (/^https:\/\/www.tiktok.com\//.test(url)
-        || /^https:\/\/www.xvideos.com\//.test(url)
-        || /^https:\/\/twitter.com\//.test(url)) {
-        const video = await downloadVideo(url);
-        video.create_at = (new Date() / 1000) | 0;
-        video.update_at = (new Date() / 1000) | 0;
-        await db.videos.add(video);
-    }
+    const video = await downloadVideo(url);
+    video.create_at = (new Date() / 1000) | 0;
+    video.update_at = (new Date() / 1000) | 0;
+    await db.videos.add(video);
 }
