@@ -72,6 +72,10 @@
             customBottomSheet.addEventListener('download-hd-video', evt => {
                 evt.stopPropagation();
                 customBottomSheet.remove();
+                if (v.play.indexOf(".m3u8") !== -1) {
+                    navigator.clipboard.writeText(v.play.replaceAll('\\', ''))
+                    return
+                }
                 window.open(v.play, '_blank')
             });
             const title = v.title;
@@ -143,7 +147,19 @@
         let string;
         if (navigator.clipboard)
             string = await navigator.clipboard.readText();
-        console.log(string)
+        else if (typeof NativeAndroid !== "undefined") {
+            string = NativeAndroid.readText()
+        }
+        try {
+            await saveVideo(string, db);
+        } catch (error) {
+
+
+        }
+        location.reload();
+    })
+    customBarRenderer.addEventListener('home', evt => {
+        window.location = '/';
     })
 </script>
 </body>

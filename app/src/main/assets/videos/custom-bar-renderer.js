@@ -43,17 +43,7 @@ class CustomBarRenderer extends HTMLElement {
 }</style>
     <div style="display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; right: 0; padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); z-index: 3; height: 48px; border-top: 1px solid rgba(0,0,0,.1); background: rgba(255,255,255,.98); color: #030303; font-size: 1.1rem;">
       <div class="container" style="display: flex; -webkit-box-flex: 1; flex: 1 1 0%; min-width: 0;">
-        <div class="item" id="action-menu">
-          <div class="image">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-              <path d="M3 6h18v2.016h-18v-2.016zM3 12.984v-1.969h18v1.969h-18zM3 18v-2.016h18v2.016h-18z">
-              </path>
-            </svg>
-          </div>
-          <div class="text">
-            导入
-          </div>
-        </div>
+        
       </div>
     </div>`;
         const container = this.root.querySelector('.container');
@@ -70,7 +60,11 @@ class CustomBarRenderer extends HTMLElement {
             [`<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
               <path d="M0 0h24v24H0V0z" fill="none" />
               <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" />
-            </svg>`, '导出']
+            </svg>`, '导出'],
+            [`<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M3 6h18v2.016h-18v-2.016zM3 12.984v-1.969h18v1.969h-18zM3 18v-2.016h18v2.016h-18z">
+              </path>
+            </svg>`, '导入']
         ].forEach((x, index) => {
             const item = this.createItem(x[0], x[1])
             container.appendChild(item);
@@ -82,16 +76,13 @@ class CustomBarRenderer extends HTMLElement {
                     eventName = 'fav'
                 } else if (index === 2) {
                     eventName = 'submit-sort'
+                } else if (index === 3) {
+                    eventName = 'submit-menu'
                 }
                 this.dispatchEvent(new CustomEvent(eventName))
             })
         })
 
-        this.root.getElementById('action-menu')
-            .addEventListener('click', evt => {
-                evt.stopPropagation();
-                this.dispatchEvent(new CustomEvent('submit-menu'));
-            });
     }
 
     createItem(svg, title) {

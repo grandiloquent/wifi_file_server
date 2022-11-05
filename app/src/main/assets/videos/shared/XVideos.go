@@ -56,3 +56,22 @@ func getXVideosPage(uri string, proxy *url.URL) ([]byte, error) {
 func IsXVideosUri(u string) bool {
 	return strings.HasPrefix(u, "https://www.xvideos.com")
 }
+
+/*
+
+func tryXVideos(w http.ResponseWriter, q string) bool {
+	if !shared.IsXVideosUri(q) {
+		return false
+	}
+	b, err := shared.XVideos(q, getProxy())
+	if err != nil {
+		http.NotFound(w, nil)
+		return true
+	}
+	shared.WriteJSON(w, b)
+	return true
+}
+if tryXVideos(w, q) {
+		return true
+	}
+*/
