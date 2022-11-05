@@ -24,6 +24,7 @@ func Udn(uri string, proxy *url.URL) ([]byte, error) {
 	//play := SubstringBytes(b, []byte("setVideoUrlHigh('"), []byte("');"))
 	//obj["play"] = string(play)
 	cdn := fmt.Sprintf("http%s", string(SubstringBytes(b, []byte("mp4: '"), []byte("'"))))
+	println(cdn)
 	b, err = Fetch(cdn, nil, proxy, func(r *http.Request) {
 		r.Header.Set("Referer", uri)
 	})
