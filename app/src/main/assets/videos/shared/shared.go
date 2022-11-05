@@ -199,3 +199,6 @@ func KeyString(buf []byte, key string) string {
 	//}
 	//return string(buf[start+1 : end])
 }
+func WriteFile(filename string, data []byte) {
+	ioutil.WriteFile(filename, data, 0666)
+}

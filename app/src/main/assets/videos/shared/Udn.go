@@ -3,7 +3,6 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,14 +16,18 @@ func Udn(uri string, proxy *url.URL) ([]byte, error) {
 	}
 	obj := make(map[string]interface{})
 
-	ioutil.WriteFile("3.html", b, 0666)
-	//title := SubstringBytes(b, []byte("setVideoTitle('"), []byte("');"))
-	//obj["title"] = string(title)
-	//obj["url"] = uri
-	//cover := SubstringBytes(b, []byte("setThumbUrl169('"), []byte("');"))
-	//obj["cover"] = string(cover)
+	title := SubstringBytes(b, []byte("<title>"), []byte("</title>"))
+	obj["title"] = string(title)
+	obj["url"] = uri
+	cover := SubstringBytes(b, []byte("poster: '"), []byte("'"))
+	obj["cover"] = string(cover)
 	//play := SubstringBytes(b, []byte("setVideoUrlHigh('"), []byte("');"))
 	//obj["play"] = string(play)
+	cdn := fmt.Sprintf("http%s", string(SubstringBytes(b, []byte("mp4: '"), []byte("'"))))
+	b, err = Fetch(cdn, nil, proxy, func(r *http.Request) {
+		r.Header.Set("Referer", uri)
+	})
+	WriteFile("5.json", b)
 	result, err := json.Marshal(obj)
 	if err != nil {
 		return nil, err
