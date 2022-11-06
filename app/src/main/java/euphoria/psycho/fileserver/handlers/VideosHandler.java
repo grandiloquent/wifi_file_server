@@ -1,5 +1,9 @@
 package euphoria.psycho.fileserver.handlers;
 
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -23,11 +27,29 @@ public class VideosHandler {
             if (q.startsWith("https://www.tiktok.com/")) {
                 try {
                     String contents = TikTok.fetchJson(q);
-                    return Response.newFixedLengthResponse(Status.OK,
-                            "application/json", contents);
+                    JSONObject jsonObject = new JSONObject(contents);
+                    videoDatabase.insertVideo(
+                            jsonObject.getJSONObject("data").getString("title"),
+                            q,
+                            "https://www.tikwm.com/" + jsonObject.getJSONObject("data").getString("hdplay"),
+                            jsonObject.getJSONObject("data").getJSONObject("music_info").getString("play"),
+                            jsonObject.getJSONObject("data").getJSONObject("music_info").getString("title"),
+                            jsonObject.getJSONObject("data").getJSONObject("music_info").getString("author"),
+                            "https://www.tikwm.com/" + jsonObject.getJSONObject("data").getString("cover"),
+                            System.currentTimeMillis(),
+                            System.currentTimeMillis()
+                    );
+                    return Utils.crossOrigin(Utils.ok());
                 } catch (Exception e) {
                     return Utils.crossOrigin(Utils.notFound());
                 }
+            }
+        } else if (session.getUri().equals("/v/all")) {
+            try {
+                return Response.newFixedLengthResponse(Status.OK,
+                         "application/json", videoDatabase.queryAll());
+            } catch (JSONException e) {
+                return Utils.crossOrigin(Utils.notFound());
             }
         }
         return Utils.crossOrigin(Utils.notFound());

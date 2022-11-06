@@ -23,7 +23,7 @@ public class VideoDatabase extends SQLiteOpenHelper {
         getWritableDatabase().delete("video", "_id = ?", new String[]{Integer.toString(id)});
     }
 
-    public long insertVideo(String title, String url, String play, String musicPlay, String musicTitle, String musicAuthor, String cover, int createAt, int updateAt) {
+    public long insertVideo(String title, String url, String play, String musicPlay, String musicTitle, String musicAuthor, String cover, long createAt, long updateAt) {
         ContentValues values = new ContentValues();
         values.put("title", title);
         values.put("url", url);
@@ -38,11 +38,11 @@ public class VideoDatabase extends SQLiteOpenHelper {
     }
 
     public String queryAll() throws JSONException {
-        Cursor c = getReadableDatabase().rawQuery("select _id,title,url,play,music_play,music_title,music_author,cover,create_at,update_at from video", null);
+        Cursor c = getReadableDatabase().rawQuery("select _id,title,url,play,music_play,music_title,music_author,cover,create_at,update_at from video order by update_at desc", null);
         JSONArray jsonArray = new JSONArray();
         while (c.moveToNext()) {
             JSONObject object = new JSONObject();
-            object.put("_id", c.getString(0));
+            object.put("_id", c.getInt(0));
             object.put("title", c.getString(1));
             object.put("url", c.getString(2));
             object.put("play", c.getString(3));
@@ -50,8 +50,8 @@ public class VideoDatabase extends SQLiteOpenHelper {
             object.put("music_title", c.getString(5));
             object.put("music_author", c.getString(6));
             object.put("cover", c.getString(7));
-            object.put("create_at", c.getString(8));
-            object.put("update_at", c.getString(9));
+            object.put("create_at", c.getLong(8));
+            object.put("update_at", c.getLong(9));
             jsonArray.put(object);
         }
         c.close();
@@ -71,8 +71,8 @@ public class VideoDatabase extends SQLiteOpenHelper {
             object.put("music_title", c.getString(4));
             object.put("music_author", c.getString(5));
             object.put("cover", c.getString(6));
-            object.put("create_at", c.getString(7));
-            object.put("update_at", c.getString(8));
+            object.put("create_at", c.getLong(7));
+            object.put("update_at", c.getLong(8));
         }
         c.close();
         return object.toString();
