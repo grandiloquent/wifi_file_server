@@ -45,7 +45,7 @@
         const container = document.querySelector('div');
         async function fetchJson() {
             const res = await fetch('/v/all');
-            (await res.json()).each(v => {
+            (await res.json()).forEach(v => {
                 const customMediaItem = document.createElement('custom-media-item');
                 customMediaItem.setAttribute('src', v.cover);
                 customMediaItem.setAttribute('title', v.title);
