@@ -3,6 +3,9 @@ package euphoria.psycho.fileserver;
 import android.Manifest.permission;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -11,12 +14,14 @@ import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -28,6 +33,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,15 +73,16 @@ public class MainActivity extends Activity {
         );
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                webView.loadUrl(request.getUrl().toString());
-                return true;
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // , [class*=-DivModalContainer] [class*=-DivContainer],
+                view.evaluateJavascript("document.querySelectorAll('.tt-sheet__container,.tt-sheet__mask,.footer-guide').forEach(x=>x.remove())", null);
             }
 
             @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                view.evaluateJavascript("document.querySelectorAll('.tt-sheet__container,.tt-sheet__mask').forEach(x=>x.remove())", null);
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                webView.loadUrl(request.getUrl().toString());
+                return true;
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -105,7 +112,7 @@ public class MainActivity extends Activity {
 
             @Override
             public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-                Log.e("B5aOx2", String.format("onConsoleMessage, %s", consoleMessage.message()));
+                //Log.e("B5aOx2", String.format("onConsoleMessage, %s", consoleMessage.message()));
                 return super.onConsoleMessage(consoleMessage);
             }
 
@@ -128,6 +135,7 @@ public class MainActivity extends Activity {
             }
         });
         mWebView = webView;
+        webView.addJavascriptInterface(new NativeAndroid(), "NativeAndroid");
     }
 
     @Override
@@ -197,6 +205,11 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(0, REQUEST_CODE, 0, "刷新");
         menu.add(0, 2, 0, "设置");
+        menu.add(0, 3, 0, "打开页面");
+        menu.add(0, 4, 0, "保存页面");
+        menu.add(0, 5, 0, "Tiktok");
+        menu.add(0, 6, 0, "复制");
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -210,8 +223,37 @@ public class MainActivity extends Activity {
                 Intent set = new Intent(this, SettingsActivity.class);
                 startActivity(set);
                 break;
+            case 3:
+                mWebView.loadUrl(getString());
+                break;
+            case 4:
+                mWebView.saveWebArchive(
+                        new File(Environment.getExternalStorageDirectory(), "1.mht").getAbsolutePath()
+                );
+                break;
+            case 5:
+                mWebView.loadUrl("https://tiktok.com/");
+                break;
+            case 6:
+                writeString(mWebView.getUrl());
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+    public void writeString(String text) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("demo", text);
+        clipboard.setPrimaryClip(clip);
+    }
+    private String getString() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clipData = clipboard.getPrimaryClip();
+        if (clipData.getItemCount() > 0) {
+            CharSequence sequence = clipboard.getPrimaryClip().getItemAt(0).getText();
+            if (sequence != null)
+                return sequence.toString();
+        }
+        return null;
     }
 
     @Override
@@ -223,6 +265,27 @@ public class MainActivity extends Activity {
             finish();
         } else {
             initialize();
+        }
+    }
+
+    public class NativeAndroid {
+        @JavascriptInterface
+        public String readText() {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clipData = clipboard.getPrimaryClip();
+            if (clipData.getItemCount() > 0) {
+                CharSequence sequence = clipboard.getPrimaryClip().getItemAt(0).getText();
+                if (sequence != null)
+                    return sequence.toString();
+            }
+            return null;
+        }
+
+        @JavascriptInterface
+        public void writeText(String text) {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("demo", text);
+            clipboard.setPrimaryClip(clip);
         }
     }
 }
