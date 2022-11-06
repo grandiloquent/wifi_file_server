@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import euphoria.psycho.fileserver.TikTok;
+import euphoria.psycho.fileserver.Twitter;
 import euphoria.psycho.fileserver.Utils;
 import euphoria.psycho.fileserver.VideoDatabase;
 import euphoria.psycho.fileserver.XVideos;
@@ -44,7 +45,7 @@ public class VideosHandler {
 
             if (q.startsWith("https://twitter.com/i/status/")) {
                 try {
-                    videoDatabase.insertVideo(XVideos.fetch(q));
+                    videoDatabase.insertVideo(Twitter.fetch(q));
                     return Utils.crossOrigin(Utils.ok());
                 } catch (Exception e) {
                     return Utils.crossOrigin(Utils.notFound());
