@@ -18,7 +18,7 @@ import euphoria.psycho.fileserver.VideoDatabase;
 public class VideosHandler {
     public static Response handle(VideoDatabase videoDatabase, IHTTPSession session) {
         Map<String, List<String>> parameters = session.getParameters();
-        if (parameters.containsKey("q")) {
+        if (session.getUri().equals("/v") && parameters.containsKey("q")) {
             List<String> qs = parameters.get("q");
             if (qs == null || qs.size() == 0) {
                 return Utils.crossOrigin(Utils.notFound());
@@ -47,9 +47,18 @@ public class VideosHandler {
         } else if (session.getUri().equals("/v/all")) {
             try {
                 return Response.newFixedLengthResponse(Status.OK,
-                         "application/json", videoDatabase.queryAll());
+                        "application/json", videoDatabase.queryAll());
             } catch (JSONException e) {
                 return Utils.crossOrigin(Utils.notFound());
+            }
+        } else if (session.getUri().equals("/v/remove")) {
+            if (parameters.containsKey("q")) {
+                List<String> qs = parameters.get("q");
+                if (qs == null || qs.size() == 0) {
+                    return Utils.crossOrigin(Utils.notFound());
+                }
+                String q = qs.get(0);
+                videoDatabase.deleteVideo(Integer.parseInt(q));
             }
         }
         return Utils.crossOrigin(Utils.notFound());

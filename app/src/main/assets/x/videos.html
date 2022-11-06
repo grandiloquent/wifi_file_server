@@ -82,7 +82,7 @@
                         customDialog.addEventListener('submit', async evt => {
                             customDialog.remove();
                             customMediaItem.remove();
-                            db.videos.delete(id);
+                            fetch(`/v/remove?q=${id}`);
                         });
                         document.body.appendChild(customDialog);
                     });
@@ -111,7 +111,7 @@
                 await saveVideo(string);
             } catch (error) {
             }
-            // location.reload();
+            location.reload();
         })
         customBarRenderer.addEventListener('home', evt => {
             window.location = '/';
