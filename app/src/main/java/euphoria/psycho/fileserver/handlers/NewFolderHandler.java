@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Utils;
 
 public class NewFolderHandler {
@@ -17,14 +18,14 @@ public class NewFolderHandler {
         String src = Utils.getParameter(parameters, "src");
         String dst = Utils.getParameter(parameters, "dst");
         if (src == null || dst == null) {
-            return Utils.crossOrigin(Utils.notFound());
+            return Nanos.crossOrigin(Nanos.notFound());
         }
         File srcFile = new File(src);
         File dstFile = new File(srcFile, dst);
         if (srcFile.exists() && !dstFile.exists()) {
             dstFile.mkdirs();
-            return Utils.crossOrigin(Utils.ok());
+            return Nanos.crossOrigin(Nanos.ok());
         }
-        return Utils.crossOrigin(Utils.notFound());
+        return Nanos.crossOrigin(Nanos.notFound());
     }
 }

@@ -207,7 +207,7 @@ public class MainActivity extends Activity {
         menu.add(0, 2, 0, "设置");
         menu.add(0, 3, 0, "打开页面");
         menu.add(0, 4, 0, "保存页面");
-        menu.add(0, 5, 0, "Tiktok");
+        menu.add(0, 5, 0, "视频");
         menu.add(0, 6, 0, "复制");
 
         return super.onCreateOptionsMenu(menu);
@@ -232,7 +232,7 @@ public class MainActivity extends Activity {
                 );
                 break;
             case 5:
-                mWebView.loadUrl("https://tiktok.com/");
+                mWebView.loadUrl("http://"+Shared.getDeviceIP(this)+":8089/x");
                 break;
             case 6:
                 writeString(mWebView.getUrl());

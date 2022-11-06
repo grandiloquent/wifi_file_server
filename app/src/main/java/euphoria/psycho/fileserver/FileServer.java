@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -221,7 +220,7 @@ public class FileServer extends NanoHTTPD {
 
     private static Response handleNotFound(String uri) {
         if (uri.equals("/favicon.ico"))
-            return Utils.notFound();
+            return Nanos.notFound();
         return null;
     }
 
@@ -418,7 +417,7 @@ public class FileServer extends NanoHTTPD {
                 session.parseBody(files, mDirectory);
             } catch (Exception ignored) {
             }
-            return Utils.ok();
+            return Nanos.ok();
         }
         if (uri.equals("/api/notes")) {
             return ListNotesHandler.handle(this);
@@ -438,7 +437,7 @@ public class FileServer extends NanoHTTPD {
         if (uri.equals("/api/export")) {
             return ExportHandler.handle(this, session);
         }
-        return Utils.notFound();
+        return Nanos.notFound();
     }
 
 

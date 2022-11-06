@@ -1,13 +1,12 @@
 package euphoria.psycho.fileserver.handlers;
 
-import android.util.Log;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
 import euphoria.psycho.fileserver.FileServer;
+import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Utils;
 
 public class NoteHandler {
@@ -16,7 +15,7 @@ public class NoteHandler {
             try {
                 fileServer.ensureConnection();
                 String r = fileServer.executeQuery(String.format("select * from _insert_notes('%s')", escapeMetaCharacters(Utils.readString(session))));
-                return Utils.crossOrigin(Response.newFixedLengthResponse(Status.OK,
+                return Nanos.crossOrigin(Response.newFixedLengthResponse(Status.OK,
                         "text/plain", r));
             } catch (Exception ignored) {
             }
@@ -26,15 +25,15 @@ public class NoteHandler {
             try {
                 fileServer.ensureConnection();
                 String js = fileServer.executeJSON(String.format("select * from _query_note(%d)", id));
-                return Utils.crossOrigin(Response.newFixedLengthResponse(Status.OK,
+                return Nanos.crossOrigin(Response.newFixedLengthResponse(Status.OK,
                         "application/json",
                         js));
             } catch (Exception ignored) {
-                return Utils.crossOrigin(Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", ignored.getMessage()));
+                return Nanos.crossOrigin(Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", ignored.getMessage()));
             }
 
         }
-        return Utils.crossOrigin(Utils.notFound());
+        return Nanos.crossOrigin(Nanos.notFound());
     }
 
     public static String escapeMetaCharacters(String inputString) {

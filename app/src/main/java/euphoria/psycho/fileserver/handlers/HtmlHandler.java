@@ -12,8 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Shared;
-import euphoria.psycho.fileserver.Utils;
 
 public class HtmlHandler {
     public static Response handle(IHTTPSession session) {
@@ -30,7 +30,7 @@ public class HtmlHandler {
                             Shared.substringAfterLast(session.getUri(), ".")
                     ), bytes);
                 } catch (IOException e) {
-                    return Utils.notFound();
+                    return Nanos.notFound();
                 }
             }
             return null;
@@ -41,7 +41,7 @@ public class HtmlHandler {
                 byte[] bytes = Files.readAllBytes(Paths.get(p));
                 return Response.newFixedLengthResponse(Status.OK, "text/html", bytes);
             } catch (IOException e) {
-                return Utils.notFound();
+                return Nanos.notFound();
             }
 
         }

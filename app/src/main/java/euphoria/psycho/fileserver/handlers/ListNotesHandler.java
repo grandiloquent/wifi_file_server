@@ -6,6 +6,7 @@ import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
 import euphoria.psycho.fileserver.FileServer;
+import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Utils;
 
 public class ListNotesHandler {
@@ -16,11 +17,11 @@ public class ListNotesHandler {
             Log.e("B5aOx2", String.format("handle, %s", "executeJSON"));
             String js = fileServer.executeJSON("select * from _query_notes()");
             if (js != null)
-                return Utils.crossOrigin(Response.newFixedLengthResponse(Status.OK,
+                return Nanos.crossOrigin(Response.newFixedLengthResponse(Status.OK,
                         "application/json", js));
         } catch (Exception ignored) {
             return Utils.internalError(ignored.getMessage());
         }
-        return Utils.crossOrigin(Utils.notFound());
+        return Nanos.crossOrigin(Nanos.notFound());
     }
 }

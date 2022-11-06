@@ -28,20 +28,15 @@ public class Utils {
         ));
     }
 
-    public static Response crossOrigin(Response response) {
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        return response;
-    }
-
     public static Response deleteFileSystem(File path) {
         Response response;
         try {
             Shared.recursiveDelete(path);
-            response = ok();
+            response = Nanos.ok();
         } catch (Exception e) {
             response = internalError(e);
         }
-        return crossOrigin(response);
+        return Nanos.crossOrigin(response);
     }
 
     public static String getParameter(Map<String, List<String>> parameters, String key) {
@@ -96,15 +91,6 @@ public class Utils {
         Response response = Response.newFixedLengthResponse(status, mimeType, message);
         response.addHeader("Accept-Ranges", "bytes");
         return response;
-    }
-
-    public static Response notFound() {
-        return Response.newFixedLengthResponse(Status.NOT_FOUND, "text/plain", "Not Found");
-    }
-
-    public static Response ok() {
-        return Response.newFixedLengthResponse(Status.OK,
-                "text/plain", "Ok");
     }
 
     public static String processPath(String storagePath, String directory, String path) {

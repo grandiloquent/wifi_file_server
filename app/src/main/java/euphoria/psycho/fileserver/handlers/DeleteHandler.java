@@ -9,6 +9,7 @@ import org.nanohttpd.protocols.http.response.Response;
 
 import java.io.File;
 
+import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Shared;
 import euphoria.psycho.fileserver.Utils;
 
@@ -36,9 +37,9 @@ public class DeleteHandler {
                 }
                 Shared.recursiveDelete(new File(path));
             }
-            return Utils.crossOrigin(Utils.ok());
+            return Nanos.crossOrigin(Nanos.ok());
         } catch (Exception ignored) {
         }
-        return Utils.crossOrigin(Utils.notFound());
+        return Nanos.crossOrigin(Nanos.notFound());
     }
 }
