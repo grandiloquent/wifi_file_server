@@ -40,8 +40,8 @@ public class VideoDatabase extends SQLiteOpenHelper {
         return getWritableDatabase().insert("video", null, values);
     }
 
-    public String queryAll() throws JSONException {
-        Cursor c = getReadableDatabase().rawQuery("select _id,title,url,play,music_play,music_title,music_author,cover,create_at,update_at from video order by update_at desc", null);
+    public String queryAll(int t) throws JSONException {
+        Cursor c = getReadableDatabase().rawQuery("select _id,title,url,play,music_play,music_title,music_author,cover,create_at,update_at from video where video_type = ? order by update_at desc", new String[]{Integer.toString(t)});
         JSONArray jsonArray = new JSONArray();
         while (c.moveToNext()) {
             JSONObject object = new JSONObject();
@@ -79,6 +79,26 @@ public class VideoDatabase extends SQLiteOpenHelper {
         }
         c.close();
         return object.toString();
+    }
+
+    public long updateVideo(Video video) {
+        ContentValues values = new ContentValues();
+        if (video.Title != null && video.Title.length() > 0) values.put("title", video.Title);
+        if (video.Url != null && video.Url.length() > 0) values.put("url", video.Url);
+        if (video.Play != null && video.Play.length() > 0) values.put("play", video.Play);
+        if (video.MusicPlay != null && video.MusicPlay.length() > 0)
+            values.put("music_play", video.MusicPlay);
+        if (video.MusicTitle != null && video.MusicTitle.length() > 0)
+            values.put("music_title", video.MusicTitle);
+        if (video.MusicAuthor != null && video.MusicAuthor.length() > 0)
+            values.put("music_author", video.MusicAuthor);
+        if (video.Cover != null && video.Cover.length() > 0) values.put("cover", video.Cover);
+        if (video.VideoType > 0) values.put("video_type", video.VideoType);
+        if (video.CreateAt > 0) values.put("create_at", video.CreateAt);
+        if (video.UpdateAt > 0) values.put("update_at", video.UpdateAt);
+        return getWritableDatabase().update("video", values, "_id = ?", new String[]{
+                Integer.toString(video.Id)
+        });
     }
 
     @Override

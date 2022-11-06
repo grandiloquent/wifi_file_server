@@ -109,7 +109,7 @@ class CustomFilter extends HTMLElement {
       <div class="wrapper">
         <div class="item">
           <div class="title">
-            类型
+            已发布
           </div><span class="arrow">
           </span>
         </div>
@@ -131,7 +131,7 @@ class CustomFilter extends HTMLElement {
             )
             element.style.top = (item.getBoundingClientRect().height + 11) + 'px';
             element.style.left = (item.getBoundingClientRect().x) + 'px';
-
+            this.dispatchEvent(new CustomEvent('submit'))
         });
     }
 

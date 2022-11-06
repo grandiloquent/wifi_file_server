@@ -91,7 +91,7 @@ class CustomBottomSheet extends HTMLElement {
     display: flex;
     flex-direction: column;
     color: #030303;
-    min-height:150px;
+    min-height: 150px;
 }
 .items
 {
@@ -134,10 +134,13 @@ class CustomBottomSheet extends HTMLElement {
             视频
           </div>
           <div>
-          音乐
+            音乐
+          </div>
+          <div>已发布</div>
+          <div>其他</div>
         </div>
+        <div style="flex-grow: 1;">
         </div>
-        <div style="flex-grow:1"></div>
         <div class="menu-item" id="close-action">
           <button class="menu-item-button">
             取消

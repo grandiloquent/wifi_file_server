@@ -40,11 +40,11 @@
         JSONObject object = new JSONObject();
         if (c.moveToNext()) {
             ${items.map((x, index) => {
-                if (x[1] === 2)
-                return `object.put("${x}", c.getString(${index}));`
-            if (x[1] === 1 || x[1] === 0)
+        if (x[1] === 2)
+            return `object.put("${x}", c.getString(${index}));`
+        if (x[1] === 1 || x[1] === 0)
             return `object.put("${x}", c.getInt(${index}));`
-       
+
     }).join('\n')}
         }
         c.close();
@@ -56,11 +56,11 @@
         while (c.moveToNext()) {
         JSONObject object = new JSONObject();
             ${items.map((x, index) => {
-                if (x[1] === 2)
-                return `object.put("${x}", c.getString(${index}));`
-            if (x[1] === 1 || x[1] === 0)
+        if (x[1] === 2)
+            return `object.put("${x}", c.getString(${index}));`
+        if (x[1] === 1 || x[1] === 0)
             return `object.put("${x}", c.getInt(${index}));`
-       
+
     }).join('\n')}
     jsonArray.put(object);
         }
@@ -74,6 +74,18 @@
         return `values.put("${x}", ${camelCase(tableName)}.${capitalize(camelCase(x))});`
     }).join('\n')}
         return getWritableDatabase().insert("${tableName}", null, values);
+    }`);
+    buffer.push(`public long update${capitalize(camelCase(tableName))}(${capitalize(camelCase(tableName))} ${camelCase(tableName)}) {
+        ContentValues values = new ContentValues();
+        ${items.slice(1).map((x, index) => {
+        if (x[1] === 2)
+            return `if ( ${camelCase(tableName)}.${capitalize(camelCase(x[0]))}!=null &&${camelCase(tableName)}.${capitalize(camelCase(x[0]))}.length() > 0)values.put("${x[0]}", ${camelCase(tableName)}.${capitalize(camelCase(x[0]))});`
+            if (x[1] === 1)
+            return `if (${camelCase(tableName)}.${capitalize(camelCase(x[0]))} > 0)values.put("${x[0]}", ${camelCase(tableName)}.${capitalize(camelCase(x[0]))});`
+        }).join('\n')}
+        return getWritableDatabase().update("${tableName}", values,"_id = ?", new String[]{
+            Integer.toString(${tableName}.Id)
+    });
     }`);
 
     buffer.push(`public void delete${capitalize(camelCase(tableName))}(int id) {

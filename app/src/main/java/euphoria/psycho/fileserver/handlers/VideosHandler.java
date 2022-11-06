@@ -29,14 +29,14 @@ public class VideosHandler {
             return exploreVideo(videoDatabase, session);
         } else if (session.getUri().equals("/v/all")) {
             try {
-                return Response.newFixedLengthResponse(Status.OK, "application/json", videoDatabase.queryAll());
+                return Response.newFixedLengthResponse(Status.OK, "application/json",
+                        videoDatabase.queryAll(Nanos.intParamOr(session, "t", 0)));
             } catch (JSONException e) {
                 return Nanos.crossOrigin(Nanos.notFound());
             }
         } else if (session.getUri().equals("/v/remove")) {
             return deleteVideo(videoDatabase, session);
         } else if (session.getUri().equals("/v/import")) {
-            Log.e("B5aOx2", String.format("handle, %s", "xxxxxxxxxxxxxxxxxxxxxxxxxx"));
             try {
                 final HashMap<String, String> map = new HashMap<String, String>();
                 session.parseBody(map, dir);
@@ -65,7 +65,6 @@ public class VideosHandler {
                     videoDatabase.insertVideo(video);
                 }
             } catch (Exception e) {
-                Log.e("B5aOx2", String.format("handle, %s", e.getMessage()));
             }
         }
         return Nanos.crossOrigin(Nanos.notFound());
@@ -100,7 +99,10 @@ public class VideosHandler {
         if (id == 0) {
             return Nanos.notFound();
         }
-        videoDatabase.deleteVideo(id);
+        Video video = new Video();
+        video.Id = id;
+        video.VideoType = Nanos.intParamOr(session, "t", 0);
+        videoDatabase.updateVideo(video);
         return Nanos.ok();
     }
 }
