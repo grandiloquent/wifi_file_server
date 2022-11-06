@@ -15,6 +15,7 @@ import euphoria.psycho.fileserver.TikTok;
 import euphoria.psycho.fileserver.Twitter;
 import euphoria.psycho.fileserver.Utils;
 import euphoria.psycho.fileserver.VideoDatabase;
+import euphoria.psycho.fileserver.VideoDatabase.Video;
 import euphoria.psycho.fileserver.XVideos;
 
 public class VideosHandler {
@@ -26,39 +27,32 @@ public class VideosHandler {
                 return Utils.crossOrigin(Utils.notFound());
             }
             String q = qs.get(0);
-            if (q.startsWith("https://www.tiktok.com/")) {
-                try {
-                    videoDatabase.insertVideo(TikTok.fetch(q));
-                    return Utils.crossOrigin(Utils.ok());
-                } catch (Exception e) {
-                    return Utils.crossOrigin(Utils.notFound());
+            try {
+                Video video = null;
+                if (q.startsWith("https://www.tiktok.com/")) {
+                    video = TikTok.fetch(q);
+                } else if (q.startsWith("https://www.xvideos.com/")) {
+                    video = XVideos.fetch(q);
+                } else if (q.startsWith("https://twitter.com/i/status/")) {
+                    video = Twitter.fetch(q);
                 }
-            }
-            if (q.startsWith("https://www.xvideos.com/")) {
-                try {
-                    videoDatabase.insertVideo(XVideos.fetch(q));
-                    return Utils.crossOrigin(Utils.ok());
-                } catch (Exception e) {
-                    return Utils.crossOrigin(Utils.notFound());
-                }
+                if (video != null)
+                    videoDatabase.insertVideo(video);
+                return Utils.crossOrigin(Utils.ok());
+            } catch (Exception e) {
+                return Utils.crossOrigin(Utils.notFound());
             }
 
-            if (q.startsWith("https://twitter.com/i/status/")) {
-                try {
-                    videoDatabase.insertVideo(Twitter.fetch(q));
-                    return Utils.crossOrigin(Utils.ok());
-                } catch (Exception e) {
-                    return Utils.crossOrigin(Utils.notFound());
-                }
-            }
-        } else if (session.getUri().equals("/v/all")) {
+        } else if (session.getUri().
+                equals("/v/all")) {
             try {
                 return Response.newFixedLengthResponse(Status.OK,
                         "application/json", videoDatabase.queryAll());
             } catch (JSONException e) {
                 return Utils.crossOrigin(Utils.notFound());
             }
-        } else if (session.getUri().equals("/v/remove")) {
+        } else if (session.getUri().
+                equals("/v/remove")) {
             if (parameters.containsKey("q")) {
                 List<String> qs = parameters.get("q");
                 if (qs == null || qs.size() == 0) {
