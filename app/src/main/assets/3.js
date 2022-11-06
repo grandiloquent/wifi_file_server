@@ -62,7 +62,7 @@
     buffer.push(`public long insert${capitalize(camelCase(tableName))}( ${items.slice(1).map((x, index) => {
         if (x[1] === 1)
             return `int ${camelCase(x[0])}`
-            if (x[1] === 2)
+        if (x[1] === 2)
             return `String ${camelCase(x[0])}`
     }).join(',')}) {
         ContentValues values = new ContentValues();
@@ -71,6 +71,10 @@
     }).join('\n')}
         return getWritableDatabase().insert("${tableName}", null, values);
     }`);
+
+    buffer.push(`public void delete${capitalize(camelCase(tableName))}(int id) {
+        getWritableDatabase().delete("${tableName}", "${items[0][0]} = ?", new String[]{Integer.toString(id)});
+    }`)
     console.log(buffer.join('\n'))
 
     function camelCase(string) {

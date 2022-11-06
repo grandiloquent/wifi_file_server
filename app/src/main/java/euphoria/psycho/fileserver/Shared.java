@@ -35,15 +35,18 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 
 public class Shared {
@@ -179,6 +182,11 @@ public class Shared {
         return null;
     }
 
+    public static String getString(Context context, String key, String defValue) {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+                .getString(key, defValue);
+    }
+
     public static String getWifiApIpAddress() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en
@@ -223,7 +231,7 @@ public class Shared {
         while (c.moveToNext()) {
             FileInfo fileInfo = new FileInfo();
             fileInfo.Name = c.getString(0);
-            fileInfo.Parent = "/Android/data"+Uri.decode(path);
+            fileInfo.Parent = "/Android/data" + Uri.decode(path);
             fileInfo.IsDir = c.getString(1).equals(Document.MIME_TYPE_DIR);
             fileInfo.LastModified = c.getLong(2);
             fileInfo.Length = c.getLong(3);
@@ -265,6 +273,42 @@ public class Shared {
             stringBuilder.append(line).append('\n');
         }
         return stringBuilder.toString();
+    }
+
+    public static String readString(HttpURLConnection connection) {
+        InputStream in;
+        BufferedReader reader = null;
+        try {
+            String contentEncoding = connection.getHeaderField("Content-Encoding");
+            if (contentEncoding != null && contentEncoding.equals("gzip")) {
+                in = new GZIPInputStream(connection.getInputStream());
+            } else {
+                in = connection.getInputStream();
+            }
+            /*
+            "implementation group": "org.brotli', name: 'dec', version: '0.1.1",
+            else if (contentEncoding != null && contentEncoding.equals("br")) {
+                in = new BrotliInputStream(connection.getInputStream());
+            } */
+            //  if (contentEncoding != null && contentEncoding.equals("br")) {
+            //in = new BrotliInputStream(connection.getInputStream());
+            //  }
+            reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\r\n");
+            }
+            return sb.toString();
+        } catch (Exception ignored) {
+        } finally {
+            try {
+                if (reader != null)
+                    reader.close();
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 
     public static void recursiveCopy(File sourceDir, File destDir) throws IOException {
@@ -332,6 +376,13 @@ public class Shared {
         }
     }
 
+    public static void setString(Context context, String key, String value) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putString(key, value)
+                .apply();
+    }
+
     public static String substringAfterLast(String s, String delimiter) {
         int index = s.lastIndexOf(delimiter);
         if (index == -1) return s;
@@ -354,7 +405,7 @@ public class Shared {
         try {
             origStream = new BufferedInputStream(input);
             destStream = new BufferedOutputStream(new FileOutputStream(destFile));
-           copyStreams(origStream, destStream);
+            copyStreams(origStream, destStream);
         } finally {
             close(origStream);
             close(destStream);
@@ -367,18 +418,6 @@ public class Shared {
         public boolean IsDir;
         public long LastModified;
         public long Length;
-    }
-
-    public static void setString(Context context, String key, String value) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putString(key, value)
-                .apply();
-    }
-
-    public static String getString(Context context, String key, String defValue) {
-        return PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(key, defValue);
     }
 }
 // https://android.googlesource.com/platform/tools/tradefederation/+/dfd83b4c73cdb2ac0c2459f90b6caed8642cf684/src/com/android/tradefed/util/FileUtil.java

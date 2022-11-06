@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频列表</title>
+    <style>
+        html {
+            font-size: 10px;
+            font-family: Roboto, Arial, sans-serif;
+            word-wrap: break-word;
+            color: #030303;
+            background-color: #fff;
+            -webkit-text-size-adjust: 100%;
+            height: 100%;
+
+        }
+
+        body {
+            margin: 0;
+            padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            font-size: 1.2rem;
+            overflow-x: hidden;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<custom-header></custom-header>
+<div style="padding-bottom: 73px;">
+
+</div>
+<custom-bar-renderer></custom-bar-renderer>
+<script src="custom-image-viewer.js"></script>
+<script src="custom-header.js"></script>
+<script src="custom-media-item.js"></script>
+<script src="custom-bottom-sheet.js"></script>
+<script src="custom-bar-renderer.js"></script>
+<script src="dialog.js"></script>
+<script src="dexie.min.js"></script>
+<script src="utils.js"></script>
+<script>
+
+
+    const db = new Dexie("videos");
+    db.version(1).stores({
+        videos: "++_id,title,url,video_type,update_at"
+    });
+
+
+    const container = document.querySelector('div');
+    db.videos.orderBy('update_at').reverse().each(v => {
+        const customMediaItem = document.createElement('custom-media-item');
+        customMediaItem.setAttribute('src', v.cover);
+        customMediaItem.setAttribute('title', v.title);
+        customMediaItem.addEventListener('submit', evt => {
+            const customBottomSheet = document.createElement('custom-bottom-sheet');
+            document.body.appendChild(customBottomSheet);
+            customBottomSheet.addEventListener('download-music', evt => {
+                evt.stopPropagation();
+                customBottomSheet.remove();
+                window.open(v.music_play, '_blank')
+            });
+            customBottomSheet.addEventListener('download-video', evt => {
+                evt.stopPropagation();
+                customBottomSheet.remove();
+                window.open(v.play.replace('/hdplay', '/play'), '_blank')
+            });
+            customBottomSheet.addEventListener('download-hd-video', evt => {
+                evt.stopPropagation();
+                customBottomSheet.remove();
+                if (v.play.indexOf(".m3u8") !== -1) {
+                    navigator.clipboard.writeText(v.play.replaceAll('\\', ''))
+                    return
+                }
+                window.open(v.play, '_blank')
+            });
+            const title = v.title;
+            const id = v._id;
+            customBottomSheet.addEventListener('delete', evt => {
+                console.log(title)
+                evt.stopPropagation();
+                customBottomSheet.remove();
+                const customDialog = document.createElement('custom-dialog');
+                customDialog.appendChild(document.createTextNode(`您确定要删除 ${title} 吗？`))
+                customDialog.addEventListener('submit', async evt => {
+                    customDialog.remove();
+                    customMediaItem.remove();
+                    db.videos.delete(id);
+                });
+                document.body.appendChild(customDialog);
+            });
+        });
+        container.appendChild(customMediaItem);
+    })
+    const customBarRenderer = document.querySelector('custom-bar-renderer');
+
+    customBarRenderer.addEventListener('submit-sort', evt => {
+        evt.stopPropagation();
+        db.open().then(function () {
+            const idbDatabase = db.backendDB();
+            exportToJsonString(idbDatabase, (error, s) => {
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([s], {type: "application/json;charset=utf-8"}));
+                a.setAttribute('download', 'videos.txt')
+                setTimeout(function () {
+                    a.click();
+                });
+            })
+        });
+    });
+    customBarRenderer.addEventListener('submit-menu', evt => {
+        evt.stopPropagation();
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = "text/plain";
+        input.style.position = 'fixed';
+        input.style.left = '-100%';
+        document.body.appendChild(input);
+        input.addEventListener('change', event => {
+            var input = event.target;
+            var reader = new FileReader();
+            reader.onload = function () {
+                var jsonString = reader.result;
+                db.open().then(function () {
+                    const idbDatabase = db.backendDB();
+                    clearDatabase(idbDatabase, function (err) {
+                        if (!err) { // cleared data successfully
+                            importFromJsonString(idbDatabase, jsonString, function (err) {
+                                if (!err) {
+                                    console.log('Imported data successfully');
+                                }
+                            });
+                        }
+                    });
+                });
+            };
+            reader.readAsText(input.files[0]);
+        })
+        input.click();
+
+    });
+    customBarRenderer.addEventListener('fav', async evt => {
+        let string;
+        if (navigator.clipboard)
+            string = await navigator.clipboard.readText();
+        else if (typeof NativeAndroid !== "undefined") {
+            string = NativeAndroid.readText()
+        }
+        try {
+            await saveVideo(string, db);
+        } catch (error) {
+
+
+        }
+        location.reload();
+    })
+    customBarRenderer.addEventListener('home', evt => {
+        window.location = '/';
+    })
+</script>
+</body>
+
+</html>

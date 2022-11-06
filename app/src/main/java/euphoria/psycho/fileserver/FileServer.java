@@ -47,6 +47,7 @@ import euphoria.psycho.fileserver.handlers.NewFileHandler;
 import euphoria.psycho.fileserver.handlers.NewFolderHandler;
 import euphoria.psycho.fileserver.handlers.NoteHandler;
 import euphoria.psycho.fileserver.handlers.RenameHandler;
+import euphoria.psycho.fileserver.handlers.VideosHandler;
 
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
@@ -59,6 +60,7 @@ public class FileServer extends NanoHTTPD {
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
     private PgConnection mConnection;
+    private VideoDatabase mVideoDatabase;
 
     public FileServer(Context context) {
         super(Shared.getDeviceIP(context), 8089);
@@ -74,6 +76,10 @@ public class FileServer extends NanoHTTPD {
                 preferences.getString(SettingsFragment.KEY_HOST, null),
                 preferences.getString(SettingsFragment.KEY_PORT, null),
                 preferences.getString(SettingsFragment.KEY_PASSWORD, null));
+        mVideoDatabase = new VideoDatabase(
+                mContext,
+                new File(Environment.getExternalStorageDirectory(), "videos.db").getAbsolutePath()
+        );
     }
 
     public String executeJSON(String sql) {
@@ -289,7 +295,7 @@ public class FileServer extends NanoHTTPD {
     }
 
     private Response handleStaticFiles(String uri) {
-        if (uri.equals("/") || uri.endsWith(".js") || uri.endsWith(".css")
+        if (uri.equals("/") || uri.equals("/x") || uri.endsWith(".js") || uri.endsWith(".css")
                 || uri.endsWith(".svg") || uri.endsWith(".html")) {
             String mimeType = "application/javascript";
             if (uri.endsWith(".svg")) {
@@ -305,6 +311,8 @@ public class FileServer extends NanoHTTPD {
             String fileName = uri.substring(1);
             if (uri.equals("/")) {
                 fileName = "index.html";
+            } else if (uri.equals("/x")) {
+                fileName = "/x/videos.html";
             }
             return readAsset(fileName, uri, mimeType);
         }
@@ -355,6 +363,9 @@ public class FileServer extends NanoHTTPD {
         res = handleStaticFiles(uri);
         if (res != null) {
             return res;
+        }
+        if (uri.startsWith("/v/")) {
+            return VideosHandler.handle(mVideoDatabase, session);
         }
         if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);
