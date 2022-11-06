@@ -364,7 +364,7 @@ public class FileServer extends NanoHTTPD {
             return res;
         }
         if (uri.startsWith("/v")) {
-            return VideosHandler.handle(mVideoDatabase, session);
+            return VideosHandler.handle(mVideoDatabase, session,mDirectory);
         }
         if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);

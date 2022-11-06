@@ -8,6 +8,7 @@
         ["music_title", 2],
         ["music_author", 2],
         ["cover", 2],
+        ["video_type", 1],
         ['create_at', 1],
         ['update_at', 1]
     ];
@@ -38,8 +39,12 @@
         });
         JSONObject object = new JSONObject();
         if (c.moveToNext()) {
-            ${items.map(x => x[0]).slice(1).map((x, index) => {
-        return `object.put("${x}", c.getString(${index}));`
+            ${items.map((x, index) => {
+                if (x[1] === 2)
+                return `object.put("${x}", c.getString(${index}));`
+            if (x[1] === 1 || x[1] === 0)
+            return `object.put("${x}", c.getInt(${index}));`
+       
     }).join('\n')}
         }
         c.close();
@@ -50,8 +55,12 @@
         JSONArray jsonArray = new JSONArray();
         while (c.moveToNext()) {
         JSONObject object = new JSONObject();
-            ${items.map(x => x[0]).map((x, index) => {
-        return `object.put("${x}", c.getString(${index}));`
+            ${items.map((x, index) => {
+                if (x[1] === 2)
+                return `object.put("${x}", c.getString(${index}));`
+            if (x[1] === 1 || x[1] === 0)
+            return `object.put("${x}", c.getInt(${index}));`
+       
     }).join('\n')}
     jsonArray.put(object);
         }
@@ -88,6 +97,16 @@
             return `${camelCase(tableName)}.${capitalize(camelCase(x[0]))}="";`
         if (x[1] === 1 || x[1] === 0)
             return `${camelCase(tableName)}.${capitalize(camelCase(x[0]))}=0;`
+    }).join('\n')}`);
+    console.log(buffer.join('\n'))
+
+    buffer.push(`
+    ${capitalize(camelCase(tableName))} ${camelCase(tableName)}=new ${capitalize(camelCase(tableName))}();
+    ${items.map((x, index) => {
+        if (x[1] === 2)
+            return `if( jsonObject.has("${x[0]}"))${camelCase(tableName)}.${capitalize(camelCase(x[0]))}=jsonObject.getString("${x[0]}");`
+        if (x[1] === 1 || x[1] === 0)
+            return `if( jsonObject.has("${x[0]}"))${camelCase(tableName)}.${capitalize(camelCase(x[0]))}=jsonObject.getInt("${x[0]}");`
     }).join('\n')}`);
     console.log(buffer.join('\n'))
 

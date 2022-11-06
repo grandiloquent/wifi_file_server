@@ -25,6 +25,8 @@ public class VideoDatabase extends SQLiteOpenHelper {
 
     public long insertVideo(Video video) {
         ContentValues values = new ContentValues();
+        if (video.Id > 0)
+            values.put("_id", video.Id);
         values.put("title", video.Title);
         values.put("url", video.Url);
         values.put("play", video.Play);
@@ -32,10 +34,12 @@ public class VideoDatabase extends SQLiteOpenHelper {
         values.put("music_title", video.MusicTitle);
         values.put("music_author", video.MusicAuthor);
         values.put("cover", video.Cover);
+        values.put("video_type", video.VideoType);
         values.put("create_at", video.CreateAt);
         values.put("update_at", video.UpdateAt);
         return getWritableDatabase().insert("video", null, values);
     }
+
     public String queryAll() throws JSONException {
         Cursor c = getReadableDatabase().rawQuery("select _id,title,url,play,music_play,music_title,music_author,cover,create_at,update_at from video order by update_at desc", null);
         JSONArray jsonArray = new JSONArray();
@@ -79,7 +83,7 @@ public class VideoDatabase extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.execSQL("create table video(        _id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,url TEXT,play TEXT,music_play TEXT,music_title TEXT,music_author TEXT,cover TEXT,create_at INTEGER,update_at INTEGER    )");
+        sqLiteDatabase.execSQL("create table video(        _id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,url TEXT,play TEXT,music_play TEXT,music_title TEXT,music_author TEXT,cover TEXT,video_type INTEGER,create_at INTEGER,update_at INTEGER    )");
     }
 
     @Override
@@ -95,6 +99,7 @@ public class VideoDatabase extends SQLiteOpenHelper {
         public String MusicTitle;
         public String MusicAuthor;
         public String Cover;
+        public int VideoType;
         public long CreateAt;
         public long UpdateAt;
     }
