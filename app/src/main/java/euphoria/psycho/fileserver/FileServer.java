@@ -52,10 +52,10 @@ import euphoria.psycho.fileserver.handlers.VideosHandler;
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
 
 public class FileServer extends NanoHTTPD {
-    private String mConnectString;
     private final String mDirectory;
     private final String mStoragePath;
     private final String mTreeUri;
+    private String mConnectString;
     private Context mContext;
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
@@ -80,6 +80,25 @@ public class FileServer extends NanoHTTPD {
                 mContext,
                 new File(Environment.getExternalStorageDirectory(), "videos.db").getAbsolutePath()
         );
+    }
+
+    public void ensureConnection() throws Exception {
+        if (mConnection == null || !mConnection.isValid(0)) {
+            Log.e("B5aOx2", String.format("ensureConnection, %s", ""));
+            mConnection = (PgConnection) CompletableFuture.supplyAsync(() -> {
+                try {
+                    if (mConnection != null) {
+                        mConnection.close();
+                    }
+                    Class.forName("org.postgresql.Driver");
+                    DriverManager.setLoginTimeout(3);
+                    return DriverManager.getConnection(mConnectString);
+                } catch (Exception ignored) {
+                }
+                return null;
+            }).get();
+            mConnection.setNetworkTimeout(null, 3000);
+        }
     }
 
     public String executeJSON(String sql) {
@@ -275,32 +294,13 @@ public class FileServer extends NanoHTTPD {
 
     }
 
-    public void ensureConnection() throws Exception {
-        if (mConnection == null || !mConnection.isValid(0)) {
-            Log.e("B5aOx2", String.format("ensureConnection, %s", ""));
-            mConnection = (PgConnection) CompletableFuture.supplyAsync(() -> {
-                try {
-                    if (mConnection != null) {
-                        mConnection.close();
-                    }
-                    Class.forName("org.postgresql.Driver");
-                    DriverManager.setLoginTimeout(3);
-                    return DriverManager.getConnection(mConnectString);
-                } catch (Exception ignored) {
-                }
-                return null;
-            }).get();
-            mConnection.setNetworkTimeout(null, 3000);
-        }
-    }
-
     private Response handleStaticFiles(String uri) {
         if (uri.equals("/") || uri.equals("/x") || uri.endsWith(".js") || uri.endsWith(".css")
                 || uri.endsWith(".svg") || uri.endsWith(".html")) {
             String mimeType = "application/javascript";
             if (uri.endsWith(".svg")) {
                 mimeType = "image/svg+xml";
-            } else if (uri.equals("/") || uri.endsWith(".html")) {
+            } else if (uri.equals("/") || uri.equals("/x") || uri.endsWith(".html")) {
                 mimeType = "text/html";
             } else if (uri.endsWith(".css")) {
                 mimeType = "text/css";
@@ -312,7 +312,7 @@ public class FileServer extends NanoHTTPD {
             if (uri.equals("/")) {
                 fileName = "index.html";
             } else if (uri.equals("/x")) {
-                fileName = "/x/videos.html";
+                fileName = "x/videos.html";
             }
             return readAsset(fileName, uri, mimeType);
         }
@@ -364,7 +364,7 @@ public class FileServer extends NanoHTTPD {
         if (res != null) {
             return res;
         }
-        if (uri.startsWith("/v/")) {
+        if (uri.startsWith("/v")) {
             return VideosHandler.handle(mVideoDatabase, session);
         }
         if (uri.equals("/api/files")) {
