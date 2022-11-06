@@ -109,12 +109,12 @@ class CustomBottomSheet extends HTMLElement {
           </button>
         </div>
         <div class="menu-item">
-        <button class="menu-item-button" id="action-download-hd-video" >
-          下载高清
-        </button>
-      </div>
+          <button class="menu-item-button" id="action-download-hd-video">
+            下载高清
+          </button>
+        </div>
         <div class="menu-item">
-          <button class="menu-item-button" id="action-download-video" >
+          <button class="menu-item-button" id="action-download-video">
             下载视频
           </button>
         </div>

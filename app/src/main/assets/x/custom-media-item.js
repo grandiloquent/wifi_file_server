@@ -119,7 +119,6 @@ class CustomMediaItem extends HTMLElement {
           </div>
           <div style="flex-grow: 1;">
           </div>
-          
         </a>
         <div style="flex-shrink: 0; color: #909090;">
           <button id="media-item-menu">

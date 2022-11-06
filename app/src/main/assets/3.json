@@ -1,0 +1,25 @@
+{
+    "videos": [
+        {
+            "source": "Twitter for Android",
+            "text": "#\u5e7f\u5dde\u75ab\u60c5 \u6d77\u73e0\u533a\u8dd1\u8def\u7684\u5e74\u8f7b\u4eba https:\/\/t.co\/97Com2g55D",
+            "thumb": "http:\/\/pbs.twimg.com\/ext_tw_video_thumb\/1588747632557449216\/pu\/img\/7Wth58j1aolDuKsQ.jpg",
+            "type": "video",
+            "duration": 4333,
+            "bitrate": 632000,
+            "url": "https:\/\/video.twimg.com\/ext_tw_video\/1588747632557449216\/pu\/vid\/320x584\/CG9ZxpNQRz9CzJfZ.mp4",
+            "size": 224145
+        },
+        {
+            "source": "Twitter for Android",
+            "text": "#\u5e7f\u5dde\u75ab\u60c5 \u6d77\u73e0\u533a\u8dd1\u8def\u7684\u5e74\u8f7b\u4eba https:\/\/t.co\/97Com2g55D",
+            "thumb": "http:\/\/pbs.twimg.com\/ext_tw_video_thumb\/1588747632557449216\/pu\/img\/7Wth58j1aolDuKsQ.jpg",
+            "type": "video",
+            "duration": 4333,
+            "bitrate": 950000,
+            "url": "https:\/\/video.twimg.com\/ext_tw_video\/1588747632557449216\/pu\/vid\/464x848\/65przAvpKiVgi3Yu.mp4",
+            "size": 409729
+        }
+    ],
+    "state": "success"
+}
