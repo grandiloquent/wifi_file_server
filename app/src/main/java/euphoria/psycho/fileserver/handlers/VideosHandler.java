@@ -41,6 +41,15 @@ public class VideosHandler {
                     return Utils.crossOrigin(Utils.notFound());
                 }
             }
+
+            if (q.startsWith("https://twitter.com/i/status/")) {
+                try {
+                    videoDatabase.insertVideo(XVideos.fetch(q));
+                    return Utils.crossOrigin(Utils.ok());
+                } catch (Exception e) {
+                    return Utils.crossOrigin(Utils.notFound());
+                }
+            }
         } else if (session.getUri().equals("/v/all")) {
             try {
                 return Response.newFixedLengthResponse(Status.OK,
