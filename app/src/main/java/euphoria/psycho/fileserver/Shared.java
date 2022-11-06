@@ -419,5 +419,14 @@ public class Shared {
         public long LastModified;
         public long Length;
     }
+
+    public static String substring(String string, String first, String second) {
+        int start = string.indexOf(first);
+        if (start == -1) return null;
+        start += first.length();
+        int end = string.indexOf(second, start);
+        if (end == -1) return null;
+        return string.substring(start, end);
+    }
 }
 // https://android.googlesource.com/platform/tools/tradefederation/+/dfd83b4c73cdb2ac0c2459f90b6caed8642cf684/src/com/android/tradefed/util/FileUtil.java

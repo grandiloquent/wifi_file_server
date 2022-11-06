@@ -23,20 +23,19 @@ public class VideoDatabase extends SQLiteOpenHelper {
         getWritableDatabase().delete("video", "_id = ?", new String[]{Integer.toString(id)});
     }
 
-    public long insertVideo(String title, String url, String play, String musicPlay, String musicTitle, String musicAuthor, String cover, long createAt, long updateAt) {
+    public long insertVideo(Video video) {
         ContentValues values = new ContentValues();
-        values.put("title", title);
-        values.put("url", url);
-        values.put("play", play);
-        values.put("music_play", musicPlay);
-        values.put("music_title", musicTitle);
-        values.put("music_author", musicAuthor);
-        values.put("cover", cover);
-        values.put("create_at", createAt);
-        values.put("update_at", updateAt);
+        values.put("title", video.Title);
+        values.put("url", video.Url);
+        values.put("play", video.Play);
+        values.put("music_play", video.MusicPlay);
+        values.put("music_title", video.MusicTitle);
+        values.put("music_author", video.MusicAuthor);
+        values.put("cover", video.Cover);
+        values.put("create_at", video.CreateAt);
+        values.put("update_at", video.UpdateAt);
         return getWritableDatabase().insert("video", null, values);
     }
-
     public String queryAll() throws JSONException {
         Cursor c = getReadableDatabase().rawQuery("select _id,title,url,play,music_play,music_title,music_author,cover,create_at,update_at from video order by update_at desc", null);
         JSONArray jsonArray = new JSONArray();
@@ -85,5 +84,18 @@ public class VideoDatabase extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    }
+
+    public static class Video {
+        public int Id;
+        public String Title;
+        public String Url;
+        public String Play;
+        public String MusicPlay;
+        public String MusicTitle;
+        public String MusicAuthor;
+        public String Cover;
+        public long CreateAt;
+        public long UpdateAt;
     }
 }

@@ -14,6 +14,7 @@ import java.util.Map;
 import euphoria.psycho.fileserver.TikTok;
 import euphoria.psycho.fileserver.Utils;
 import euphoria.psycho.fileserver.VideoDatabase;
+import euphoria.psycho.fileserver.XVideos;
 
 public class VideosHandler {
     public static Response handle(VideoDatabase videoDatabase, IHTTPSession session) {
@@ -26,19 +27,15 @@ public class VideosHandler {
             String q = qs.get(0);
             if (q.startsWith("https://www.tiktok.com/")) {
                 try {
-                    String contents = TikTok.fetchJson(q);
-                    JSONObject jsonObject = new JSONObject(contents);
-                    videoDatabase.insertVideo(
-                            jsonObject.getJSONObject("data").getString("title"),
-                            q,
-                            "https://www.tikwm.com/" + jsonObject.getJSONObject("data").getString("hdplay"),
-                            jsonObject.getJSONObject("data").getJSONObject("music_info").getString("play"),
-                            jsonObject.getJSONObject("data").getJSONObject("music_info").getString("title"),
-                            jsonObject.getJSONObject("data").getJSONObject("music_info").getString("author"),
-                            "https://www.tikwm.com/" + jsonObject.getJSONObject("data").getString("cover"),
-                            System.currentTimeMillis(),
-                            System.currentTimeMillis()
-                    );
+                    videoDatabase.insertVideo(TikTok.fetch(q));
+                    return Utils.crossOrigin(Utils.ok());
+                } catch (Exception e) {
+                    return Utils.crossOrigin(Utils.notFound());
+                }
+            }
+            if (q.startsWith("https://www.xvideos.com/")) {
+                try {
+                    videoDatabase.insertVideo(XVideos.fetch(q));
                     return Utils.crossOrigin(Utils.ok());
                 } catch (Exception e) {
                     return Utils.crossOrigin(Utils.notFound());

@@ -59,15 +59,10 @@
         return jsonArray.toString();
     }`);
 
-    buffer.push(`public long insert${capitalize(camelCase(tableName))}( ${items.slice(1).map((x, index) => {
-        if (x[1] === 1)
-            return `int ${camelCase(x[0])}`
-        if (x[1] === 2)
-            return `String ${camelCase(x[0])}`
-    }).join(',')}) {
+    buffer.push(`public long insert${capitalize(camelCase(tableName))}(${capitalize(camelCase(tableName))} ${camelCase(tableName)}) {
         ContentValues values = new ContentValues();
         ${items.map(x => x[0]).slice(1).map((x, index) => {
-        return `values.put("${x}", ${camelCase(x)});`
+        return `values.put("${x}", ${camelCase(tableName)}.${capitalize(camelCase(x))});`
     }).join('\n')}
         return getWritableDatabase().insert("${tableName}", null, values);
     }`);
@@ -75,6 +70,25 @@
     buffer.push(`public void delete${capitalize(camelCase(tableName))}(int id) {
         getWritableDatabase().delete("${tableName}", "${items[0][0]} = ?", new String[]{Integer.toString(id)});
     }`)
+
+    buffer.push(`public class ${capitalize(camelCase(tableName))}{
+        public int Id;
+        ${items.slice(1).map((x, index) => {
+        if (x[1] === 2)
+            return `public String ${capitalize(camelCase(x[0]))};`
+        if (x[1] === 1 || x[1] === 0)
+            return `public int ${capitalize(camelCase(x[0]))};`
+    }).join('\n')}
+    }`);
+
+    buffer.push(`
+    ${capitalize(camelCase(tableName))} ${camelCase(tableName)}=new ${capitalize(camelCase(tableName))}();
+    ${items.slice(1).map((x, index) => {
+        if (x[1] === 2)
+            return `${camelCase(tableName)}.${capitalize(camelCase(x[0]))}="";`
+        if (x[1] === 1 || x[1] === 0)
+            return `${camelCase(tableName)}.${capitalize(camelCase(x[0]))}=0;`
+    }).join('\n')}`);
     console.log(buffer.join('\n'))
 
     function camelCase(string) {
