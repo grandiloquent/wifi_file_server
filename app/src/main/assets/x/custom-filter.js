@@ -109,7 +109,7 @@ class CustomFilter extends HTMLElement {
       <div class="wrapper">
         <div class="item">
           <div class="title">
-            已发布
+            类型
           </div><span class="arrow">
           </span>
         </div>
@@ -131,7 +131,16 @@ class CustomFilter extends HTMLElement {
             )
             element.style.top = (item.getBoundingClientRect().height + 11) + 'px';
             element.style.left = (item.getBoundingClientRect().x) + 'px';
-            this.dispatchEvent(new CustomEvent('submit'))
+            element.querySelectorAll('.menu-item')
+                .forEach((x, key) => {
+                    x.addEventListener('click', evt => {
+                        evt.stopPropagation();
+                        element.remove();
+                        this.dispatchEvent(new CustomEvent('submit', {
+                            detail: key
+                        }));
+                    });
+                });
         });
     }
 
@@ -188,15 +197,19 @@ function createDropMenu() {
     const menu = document.createElement('div');
     menu.setAttribute("class", "menu");
     dropmenu.appendChild(menu);
+    menu.appendChild(createMenuItem(`已删除`));
+    menu.appendChild(createMenuItem(`已发布`));
+    return dropmenu
+}
+function createMenuItem(title) {
     const menuItem = document.createElement('div');
     menuItem.setAttribute("class", "menu-item");
-    menu.appendChild(menuItem);
     const menuWrapper = document.createElement('div');
     menuWrapper.setAttribute("class", "menu-wrapper");
     menuItem.appendChild(menuWrapper);
     const menuContainer = document.createElement('div');
     menuContainer.setAttribute("class", "menu-container");
     menuWrapper.appendChild(menuContainer);
-    menuContainer.textContent = `XVideos`;
-    return dropmenu
+    menuContainer.textContent = title;
+    return menuItem;
 }

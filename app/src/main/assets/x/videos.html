@@ -122,7 +122,10 @@
         const customFilter = document.querySelector('custom-filter');
         customFilter.addEventListener('submit', evt => {
             evt.stopPropagation();
-            fetchJson(2);
+            if (evt.detail === 0)
+                fetchJson(1);
+            else
+                fetchJson(2);
         });
 
     </script>
