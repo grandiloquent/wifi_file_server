@@ -116,14 +116,19 @@ class CustomFilter extends HTMLElement {
       </div>
     </div>`;
         const item = this.root.querySelector('.item');
-
+        let itemMenu;
         item.addEventListener('click', evt => {
             evt.stopPropagation();
+            if (itemMenu) {
+                itemMenu.remove();
+                itemMenu = null;
+                return
+            }
             const element = createDropMenu();
+            itemMenu = element;
             this.root.querySelector('.wrapper').insertAdjacentElement(
                 'beforeend', element
             )
-            console.log(item.getBoundingClientRect());
             element.style.top = (item.getBoundingClientRect().height + 11) + 'px';
             element.style.left = (item.getBoundingClientRect().x) + 'px';
 

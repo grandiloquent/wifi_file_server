@@ -31,7 +31,7 @@
 <body>
     <custom-header></custom-header>
     <custom-filter></custom-filter>
-    <script src="custom-filter.js"></script>
+    <script src="/x/custom-filter.js"></script>
     <div style="padding-bottom: 73px;">
 
     </div>
@@ -54,40 +54,38 @@
                 customMediaItem.addEventListener('submit', evt => {
                     const customBottomSheet = document.createElement('custom-bottom-sheet');
                     document.body.appendChild(customBottomSheet);
-                    customBottomSheet.addEventListener('download-music', evt => {
-                        evt.stopPropagation();
-                        customBottomSheet.remove();
-                        window.open(v.music_play, '_blank')
-                    });
-                    customBottomSheet.addEventListener('download-video', evt => {
-                        evt.stopPropagation();
-                        customBottomSheet.remove();
-                        window.open(v.play.replace('/hdplay', '/play'), '_blank')
-                    });
-                    customBottomSheet.addEventListener('download-hd-video', evt => {
-                        evt.stopPropagation();
-                        customBottomSheet.remove();
-                        if (v.play.indexOf(".m3u8") !== -1) {
-                            navigator.clipboard.writeText(v.play.replaceAll('\\', ''))
-                            return
-                        }
-                        window.open(v.play, '_blank')
-                    });
                     const title = v.title;
                     const id = v._id;
-                    customBottomSheet.addEventListener('delete', evt => {
-                        console.log(title)
+                    customBottomSheet.addEventListener('submit', evt => {
                         evt.stopPropagation();
                         customBottomSheet.remove();
-                        const customDialog = document.createElement('custom-dialog');
-                        customDialog.appendChild(document.createTextNode(`您确定要删除 ${title} 吗？`))
-                        customDialog.addEventListener('submit', async evt => {
-                            customDialog.remove();
-                            customMediaItem.remove();
-                            fetch(`/v/remove?q=${id}`);
-                        });
-                        document.body.appendChild(customDialog);
+                        if (evt.detail === 0) {
+                            const customDialog = document.createElement('custom-dialog');
+                            customDialog.appendChild(document.createTextNode(`您确定要删除 ${title} 吗？`))
+                            customDialog.addEventListener('submit', async evt => {
+                                customDialog.remove();
+                                customMediaItem.remove();
+                                fetch(`/v/remove?q=${id}`);
+                            });
+                            document.body.appendChild(customDialog);
+                        }
+                        else
+                            if (evt.detail === 1) {
+                                if (v.play.indexOf(".m3u8") !== -1) {
+                                    navigator.clipboard.writeText(v.play.replaceAll('\\', ''))
+                                    return
+                                }
+                                window.open(v.play, '_blank')
+                            }
+                            else if (evt.detail === 2) {
+                                window.open(v.play.replace('/hdplay', '/play'), '_blank')
+                            }
+                            else if (evt.detail === 3) {
+                                window.open(v.music_play, '_blank')
+                            }
                     });
+
+
                 });
                 container.appendChild(customMediaItem);
             })
@@ -117,7 +115,8 @@
         })
         customBarRenderer.addEventListener('home', evt => {
             window.location = '/';
-        })
+        });
+
     </script>
 </body>
 
