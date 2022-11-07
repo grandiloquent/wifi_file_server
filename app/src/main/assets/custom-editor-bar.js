@@ -526,9 +526,10 @@ async function trans(editor, english) {
 let translate = '/api/trans';
 
 async function google(value, english) {
+    // /translate
     // https://service-mayeka3y-1258705152.hk.apigw.tencentcs.com/release/
     // https://service-ehkp0lyi-1301282710.hk.apigw.tencentcs.com/release/
-    const response = await fetch(`${translate}/translate?q=${encodeURIComponent(value.trim())}&to=${english ? "zh" : "en"}`);
+    const response = await fetch(`${translate}?q=${encodeURIComponent(value.trim())}&to=${english ? "zh" : "en"}`);
     const obj = await response.text();
     const lines1 = [];
     const lines2 = [];

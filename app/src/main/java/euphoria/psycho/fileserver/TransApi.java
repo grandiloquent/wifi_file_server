@@ -109,12 +109,12 @@ public class TransApi {
         params.put("q", query);
         params.put("from", from);
         params.put("to", to);
-        params.put("appid", "20200812000540859");
+        params.put("appid", "20161126000032760");
         // 随机数
         String salt = String.valueOf(System.currentTimeMillis());
         params.put("salt", salt);
         // 签名
-        String src = "20200812000540859" + query + salt + "yZF9bXtkZ5L_7eb29DJX"; // 加密前的原文
+        String src = "20161126000032760" + query + salt + "XbKOyIgCIAEvLbADm3oE"; // 加密前的原文
         params.put("sign", MD5(src));
         return params;
     }
