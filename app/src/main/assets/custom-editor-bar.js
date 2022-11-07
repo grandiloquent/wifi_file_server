@@ -523,7 +523,7 @@ async function trans(editor, english) {
     editor.setRangeText(`${english ? string : (lines[0].join(' '))}\n\n${results}\n\n${year}`, points[0], points[1]);
 }
 
-let translate = 'https://kingpunch.cn';
+let translate = '/api/trans';
 
 async function google(value, english) {
     // https://service-mayeka3y-1258705152.hk.apigw.tencentcs.com/release/

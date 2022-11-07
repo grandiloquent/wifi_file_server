@@ -364,7 +364,7 @@ public class FileServer extends NanoHTTPD {
             return res;
         }
         if (uri.startsWith("/v")) {
-            return VideosHandler.handle(mVideoDatabase, session,mDirectory);
+            return VideosHandler.handle(mVideoDatabase, session, mDirectory);
         }
         if (uri.equals("/api/files")) {
             String[] parameters = getParameters(session);
@@ -436,6 +436,18 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/export")) {
             return ExportHandler.handle(this, session);
+        }
+        if (uri.equals("/api/trans")) {
+            try {
+                String obj = TransApi.getTransResult(
+                        Nanos.stringParam(session, "q"),
+                        "auto",
+                        Nanos.stringParam(session, "to")
+                );
+                return Nanos.json(obj);
+            } catch (Exception e) {
+                return Nanos.internalError(e);
+            }
         }
         return Nanos.notFound();
     }

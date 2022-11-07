@@ -63,7 +63,11 @@ public class Nanos {
         response.addHeader("Access-Control-Allow-Origin", "*");
         return response;
     }
-
+    public static Response json(String obj) {
+        Response response = Response.newFixedLengthResponse(Status.OK, "application/json", obj);
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        return response;
+    }
     public static String stringParam(IHTTPSession session, String name) {
         List<String> stringParams = session.getParameters().get(name);
         return stringParams != null && stringParams.size() > 0 ? stringParams.get(0) : null;
