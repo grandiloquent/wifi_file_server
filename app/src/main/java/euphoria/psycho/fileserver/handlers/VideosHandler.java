@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import euphoria.psycho.fileserver.Douyin;
 import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Shared;
 import euphoria.psycho.fileserver.TikTok;
@@ -83,6 +84,8 @@ public class VideosHandler {
                 video = XVideos.fetch(q);
             } else if (q.startsWith("https://twitter.com/i/status/")) {
                 video = Twitter.fetch(q);
+            }else if (q.contains("https://v.douyin.com/")) {
+                video = Douyin.fetch(q);
             }
             if (video == null) {
                 return Nanos.notFound();

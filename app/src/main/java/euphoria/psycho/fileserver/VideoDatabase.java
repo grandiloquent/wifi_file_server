@@ -122,5 +122,23 @@ public class VideoDatabase extends SQLiteOpenHelper {
         public int VideoType;
         public long CreateAt;
         public long UpdateAt;
+
+        @Override
+        public String
+        toString() {
+            return "Video{" +
+                    "Id=" + Id +
+                    ", Title='" + Title + '\'' +
+                    ", Url='" + Url + '\'' +
+                    ", Play='" + Play + '\'' +
+                    ", MusicPlay='" + MusicPlay + '\'' +
+                    ", MusicTitle='" + MusicTitle + '\'' +
+                    ", MusicAuthor='" + MusicAuthor + '\'' +
+                    ", Cover='" + Cover + '\'' +
+                    ", VideoType=" + VideoType +
+                    ", CreateAt=" + CreateAt +
+                    ", UpdateAt=" + UpdateAt +
+                    '}';
+        }
     }
 }
