@@ -116,6 +116,8 @@ public class TransApi {
         // 签名
         String src = "20161126000032760" + query + salt + "XbKOyIgCIAEvLbADm3oE"; // 加密前的原文
         params.put("sign", MD5(src));
+
         return params;
     }
+
 }
