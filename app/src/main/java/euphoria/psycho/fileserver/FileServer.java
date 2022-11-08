@@ -46,6 +46,7 @@ import euphoria.psycho.fileserver.handlers.NewFileHandler;
 import euphoria.psycho.fileserver.handlers.NewFolderHandler;
 import euphoria.psycho.fileserver.handlers.NoteHandler;
 import euphoria.psycho.fileserver.handlers.RenameHandler;
+import euphoria.psycho.fileserver.handlers.TtsHandler;
 import euphoria.psycho.fileserver.handlers.VideosHandler;
 
 import static euphoria.psycho.fileserver.MainActivity.TREE_URI;
@@ -448,6 +449,10 @@ public class FileServer extends NanoHTTPD {
             } catch (Exception e) {
                 return Nanos.internalError(e);
             }
+        }
+
+        if(uri.equals("/api/tts")){
+            return TtsHandler.handle(session);
         }
         return Nanos.notFound();
     }

@@ -28,8 +28,9 @@ public class TtsHandler {
         String sessionId = Nanos.stringParam(session, "sessionId");
         String modelType = Nanos.stringParam(session, "modelType");
         String videoType = Nanos.stringParam(session, "videoType");
+        String volume = Nanos.stringParam(session, "volume");
         try {
-            byte[] bytes = tts(q, sessionId, modelType, videoType,
+            byte[] bytes = tts(q, sessionId, modelType, videoType, volume,
                     Key.SECRET_ID, Key.SECRET_KEY);
             Response response = Response.newFixedLengthResponse(
                     Status.OK,
@@ -43,7 +44,7 @@ public class TtsHandler {
         }
     }
 
-    static byte[] tts(String text, String sessionId, String modelType, String videoType, String secretId, String secretKey) throws Exception {
+    static byte[] tts(String text, String sessionId, String modelType, String videoType, String volume, String secretId, String secretKey) throws Exception {
         StringBuilder sb = new StringBuilder();
         sb.append("POSTtts.tencentcloudapi.com/?Action")
                 .append("=").append("TextToVoice")
@@ -69,6 +70,10 @@ public class TtsHandler {
                 .append("=").append("2019-08-23");
         if (videoType != null) {
             sb.append("&VoiceType=").append(videoType);
+        }
+        if (volume != null) {
+            sb.append("&Volume")
+                    .append("=").append(volume);
         }
         Mac mac = Mac.getInstance("HmacSHA256");
         byte[] hash;

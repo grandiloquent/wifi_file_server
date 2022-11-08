@@ -16,6 +16,8 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,9 +35,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class MainActivity extends Activity {
@@ -49,6 +55,26 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri> mUploadMessage;
     public ValueCallback<Uri[]> uploadMessage;
     private WebView mWebView;
+
+
+
+
+    public void writeString(String text) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("demo", text);
+        clipboard.setPrimaryClip(clip);
+    }
+
+    private String getString() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clipData = clipboard.getPrimaryClip();
+        if (clipData.getItemCount() > 0) {
+            CharSequence sequence = clipboard.getPrimaryClip().getItemAt(0).getText();
+            if (sequence != null)
+                return sequence.toString();
+        }
+        return null;
+    }
 
     private void initialize() {
         Shared.requestManageAllFilesPermission(this);
@@ -209,7 +235,6 @@ public class MainActivity extends Activity {
         menu.add(0, 4, 0, "保存页面");
         menu.add(0, 5, 0, "视频");
         menu.add(0, 6, 0, "复制");
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -232,28 +257,13 @@ public class MainActivity extends Activity {
                 );
                 break;
             case 5:
-                mWebView.loadUrl("http://"+Shared.getDeviceIP(this)+":8089/x");
+                mWebView.loadUrl("http://" + Shared.getDeviceIP(this) + ":8089/x");
                 break;
             case 6:
                 writeString(mWebView.getUrl());
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-    public void writeString(String text) {
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("demo", text);
-        clipboard.setPrimaryClip(clip);
-    }
-    private String getString() {
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clipData = clipboard.getPrimaryClip();
-        if (clipData.getItemCount() > 0) {
-            CharSequence sequence = clipboard.getPrimaryClip().getItemAt(0).getText();
-            if (sequence != null)
-                return sequence.toString();
-        }
-        return null;
     }
 
     @Override
