@@ -636,7 +636,7 @@ console.log([...document.querySelectorAll('.slide-image-wrap img')]
 function substringNearest(string, index, start, end) {
     let j = index;
     while (j > -1) {
-        if (string[j] === start) {
+        if (start.indexOf(string[j]) !== -1) {
             j++
             break;
         }
@@ -644,7 +644,7 @@ function substringNearest(string, index, start, end) {
     }
     let k = index;
     while (k < string.length) {
-        if (string[k] === end) {
+        if (end.indexOf(string[k]) !== -1) {
             break;
         }
         k++;
