@@ -215,6 +215,7 @@ public class MainActivity extends Activity {
             return;
         }
         initialize();
+
     }
 
     @Override

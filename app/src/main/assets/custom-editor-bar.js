@@ -220,7 +220,7 @@ ${await navigator.clipboard.readText()}
                     ev.preventDefault();
                     window.open(
                         substringNearest(textarea.value,
-                            textarea.selectionStart, '(', ')'), '_blank'
+                            textarea.selectionStart, '(-', ')\r\n').trim(), '_blank'
                     );
                 } else if (ev.ctrlKey && ev.key.toLowerCase() === 'o') {
                     ev.preventDefault();
@@ -503,7 +503,8 @@ async function trans(editor, english) {
 
     const value = string.replaceAll(/\n/g, ' ');
     if (!value.trim()) return;
-    const lines = await google(value, english);
+    
+    const lines = await google(value.replace(/\d+[\r\n\s]+(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/,"").trim(), english);
     let results = lines[1].join(' ');
     const pattern = localStorage.getItem('string');
     if (pattern && pattern.trim().length) {
@@ -520,7 +521,10 @@ async function trans(editor, english) {
     if (matchYear) {
         year = matchYear[0] + '年'
     }
-    editor.setRangeText(`${english ? string : (lines[0].join(' '))}\n\n${results}\n\n${year}`, points[0], points[1]);
+    console.log('---------------->',results)
+    // string
+    // \n\n${year}
+    editor.setRangeText(`${english ? '' : (lines[0].join(' '))}\n${results}`, points[1], points[1]);
 }
 
 let translate = '/api/trans';
@@ -538,14 +542,14 @@ async function google(value, english) {
         const sentences = translated.sentences;
         for (let index = 0; index < sentences.length; index++) {
             const element = sentences[index];
-            lines1.push(element.orig);
+            //lines1.push(element.orig);
             lines2.push(element.trans);
         }
     } else {
         const trans = translated.trans_result;
         for (let index = 0; index < trans.length; index++) {
             const element = trans[index];
-            lines1.push(element.src);
+           // lines1.push(element.src);
             lines2.push(element.dst);
         }
     }
