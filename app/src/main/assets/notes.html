@@ -77,9 +77,10 @@
             container.innerHTML = '';
             for (const item of items) {
                 if (filter && !fuzzysearch(filter, item.title)) continue;
-                const template = `<div class="text-line-container" data-id="${item._id}"  data-hidden="${item.hidden}">
+                console.log(item)
+                const template = `<div class="text-line-container" data-id="${item.id}">
     <div class="text-line-wrapper">
-        <div class="text-line" style="${item.hidden === 0 ? '' : 'color: red'}">
+        <div class="text-line">
             ${item.title}
         </div> 
         <div class="icon-more_vert" style="width: 24px">

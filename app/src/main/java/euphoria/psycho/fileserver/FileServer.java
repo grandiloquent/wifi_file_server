@@ -59,7 +59,8 @@ public class FileServer extends NanoHTTPD {
     private Context mContext;
     private AssetManager mAssetManager;
     private HashMap<String, String> mHashMap = new HashMap<>();
-    private PgConnection mConnection;
+    //private PgConnection mConnection;
+    private Database mDatabase;
     private VideoDatabase mVideoDatabase;
 
     public FileServer(Context context) {
@@ -80,77 +81,81 @@ public class FileServer extends NanoHTTPD {
                 mContext,
                 new File(Environment.getExternalStorageDirectory(), "videos.db").getAbsolutePath()
         );
+        mDatabase = new Database(
+                mContext,
+                new File(Environment.getExternalStorageDirectory(), "notes.db").getAbsolutePath()
+        );
     }
 
-    public void ensureConnection() throws Exception {
-        if (mConnection == null || !mConnection.isValid(0)) {
-            Log.e("B5aOx2", String.format("ensureConnection, %s", ""));
-            mConnection = (PgConnection) CompletableFuture.supplyAsync(() -> {
-                try {
-                    if (mConnection != null) {
-                        mConnection.close();
-                    }
-                    Class.forName("org.postgresql.Driver");
-                    DriverManager.setLoginTimeout(3);
-                    return DriverManager.getConnection(mConnectString);
-                } catch (Exception ignored) {
-                }
-                return null;
-            }).get();
-            mConnection.setNetworkTimeout(null, 3000);
-        }
-    }
-
-    public String executeJSON(String sql) {
-        try {
-            ensureConnection();
-            if (mConnection == null) {
-                return null;
-            }
-            try (Statement stmt = mConnection.createStatement()) {
-                stmt.setQueryTimeout(3);
-                ResultSet rs = stmt.executeQuery(sql);
-                if (rs.next()) {
-                    return rs.getObject(1).toString();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-        } catch (Exception ignored) {
-        }
-        return null;
-    }
-
-    public String executeQuery(String sql) {
-        try {
-            ensureConnection();
-            if (mConnection == null) {
-                return null;
-            }
-            try (Statement stmt = mConnection.createStatement()) {
-                stmt.setQueryTimeout(3);
-                ResultSet rs = stmt.executeQuery(sql);
-                JSONArray json = new JSONArray();
-                ResultSetMetaData rsmd = rs.getMetaData();
-                while (rs.next()) {
-                    int numColumns = rsmd.getColumnCount();
-                    JSONObject obj = new JSONObject();
-                    for (int i = 1; i <= numColumns; i++) {
-                        String column_name = rsmd.getColumnName(i);
-                        obj.put(column_name, rs.getObject(column_name));
-                    }
-                    json.put(obj);
-                }
-                return json.toString();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-        } catch (Exception ignored) {
-        }
-        return null;
-    }
+//    public void ensureConnection() throws Exception {
+//        if (mConnection == null || !mConnection.isValid(0)) {
+//            Log.e("B5aOx2", String.format("ensureConnection, %s", ""));
+//            mConnection = (PgConnection) CompletableFuture.supplyAsync(() -> {
+//                try {
+//                    if (mConnection != null) {
+//                        mConnection.close();
+//                    }
+//                    Class.forName("org.postgresql.Driver");
+//                    DriverManager.setLoginTimeout(3);
+//                    return DriverManager.getConnection(mConnectString);
+//                } catch (Exception ignored) {
+//                }
+//                return null;
+//            }).get();
+//            mConnection.setNetworkTimeout(null, 3000);
+//        }
+//    }
+//
+//    public String executeJSON(String sql) {
+//        try {
+//            ensureConnection();
+//            if (mConnection == null) {
+//                return null;
+//            }
+//            try (Statement stmt = mConnection.createStatement()) {
+//                stmt.setQueryTimeout(3);
+//                ResultSet rs = stmt.executeQuery(sql);
+//                if (rs.next()) {
+//                    return rs.getObject(1).toString();
+//                }
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//
+//        } catch (Exception ignored) {
+//        }
+//        return null;
+//    }
+//
+//    public String executeQuery(String sql) {
+//        try {
+//            ensureConnection();
+//            if (mConnection == null) {
+//                return null;
+//            }
+//            try (Statement stmt = mConnection.createStatement()) {
+//                stmt.setQueryTimeout(3);
+//                ResultSet rs = stmt.executeQuery(sql);
+//                JSONArray json = new JSONArray();
+//                ResultSetMetaData rsmd = rs.getMetaData();
+//                while (rs.next()) {
+//                    int numColumns = rsmd.getColumnCount();
+//                    JSONObject obj = new JSONObject();
+//                    for (int i = 1; i <= numColumns; i++) {
+//                        String column_name = rsmd.getColumnName(i);
+//                        obj.put(column_name, rs.getObject(column_name));
+//                    }
+//                    json.put(obj);
+//                }
+//                return json.toString();
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//
+//        } catch (Exception ignored) {
+//        }
+//        return null;
+//    }
 
     public static Response serveFile(Context context, String treeUri, String path) {
         try {
@@ -421,10 +426,10 @@ public class FileServer extends NanoHTTPD {
             return Nanos.ok();
         }
         if (uri.equals("/api/notes")) {
-            return ListNotesHandler.handle(this);
+            return ListNotesHandler.handle(mDatabase,session);
         }
         if (uri.equals("/api/note")) {
-            return NoteHandler.handle(this, session);
+            return NoteHandler.handle(mDatabase, session);
         }
         if (uri.equals("/api/rename")) {
             return RenameHandler.handle(mContext, session);
@@ -436,7 +441,7 @@ public class FileServer extends NanoHTTPD {
             return NewFileHandler.handle(mContext, session);
         }
         if (uri.equals("/api/export")) {
-            return ExportHandler.handle(this, session);
+            return ExportHandler.handle(mDatabase, session);
         }
         if (uri.equals("/api/trans")) {
             try {
@@ -450,8 +455,7 @@ public class FileServer extends NanoHTTPD {
                 return Nanos.internalError(e);
             }
         }
-
-        if(uri.equals("/api/tts")){
+        if (uri.equals("/api/tts")) {
             return TtsHandler.handle(session);
         }
         return Nanos.notFound();

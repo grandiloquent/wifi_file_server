@@ -47,6 +47,15 @@ public class Database extends SQLiteOpenHelper {
         return getWritableDatabase().insert("notes", null, values);
     }
 
+    public long insertNote(JSONObject jsonObject) throws Exception{
+        ContentValues values = new ContentValues();
+        values.put("_id", jsonObject.getInt("_id"));
+        values.put("title", jsonObject.getString("title"));
+        values.put("content", jsonObject.getString("content"));
+        values.put("create_at", jsonObject.getLong("create_at"));
+        values.put("update_at", jsonObject.getLong("update_at"));
+        return getWritableDatabase().insert("notes", null, values);
+    }
     public long updateNote(int id, String title, String content) {
         ContentValues values = new ContentValues();
         values.put("title", title);
@@ -94,6 +103,7 @@ public class Database extends SQLiteOpenHelper {
         }
         c.close();
         if (jsonArray.length() == 0) return null;
+
         return jsonArray.toString();
     }
     public String queryNote(int id) throws JSONException {
