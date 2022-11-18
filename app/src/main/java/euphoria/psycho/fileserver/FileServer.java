@@ -255,6 +255,7 @@ public class FileServer extends NanoHTTPD {
     }
 
     private static Response serveNormalFile(IHTTPSession session, String path) {
+        Log.e("B5aOx2", String.format("serveNormalFile, %s", path));
         try {
             Response response =
                     Utils.serveFile(session.getHeaders(), new File(path), getMimeType(path));
@@ -306,7 +307,7 @@ public class FileServer extends NanoHTTPD {
             if (uri.endsWith(".svg")) {
                 mimeType = "image/svg+xml";
             } else if (uri.equals("/") || uri.equals("/x") || uri.endsWith(".html")) {
-                mimeType = "text/html";
+                mimeType = "text/html; charset=utf-8";
             } else if (uri.endsWith(".css")) {
                 mimeType = "text/css";
             }
@@ -373,6 +374,7 @@ public class FileServer extends NanoHTTPD {
             return VideosHandler.handle(mVideoDatabase, session, mDirectory);
         }
         if (uri.equals("/api/files")) {
+            Log.e("B5aOx2", String.format("serve, %s", "123"));
             String[] parameters = getParameters(session);
             if (parameters[2].equals("preview") && parameters[0].startsWith("/")) {
                 if (parameters[0].contains("/Android/data")) {
@@ -388,7 +390,6 @@ public class FileServer extends NanoHTTPD {
                                 ));
 
                     } catch (Exception e) {
-                        Log.e("B5aOx2", String.format("serve, %s", e.getMessage()));
                         return Utils.internalError(e);
                     }
                 } else

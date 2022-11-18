@@ -39,7 +39,7 @@ public class HtmlHandler {
         if (p.endsWith(".html")) {
             try {
                 byte[] bytes = Files.readAllBytes(Paths.get(p));
-                return Response.newFixedLengthResponse(Status.OK, "text/html", bytes);
+                return Response.newFixedLengthResponse(Status.OK, "text/html; charset=utf-8", bytes);
             } catch (IOException e) {
                 return Nanos.notFound();
             }
