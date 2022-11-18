@@ -60,6 +60,7 @@
                     customBottomSheet.addEventListener('submit', evt => {
                         evt.stopPropagation();
                         customBottomSheet.remove();
+                        
                         if (evt.detail === 0) {
                             const customDialog = document.createElement('custom-dialog');
                             customDialog.appendChild(document.createTextNode(`您确定要删除 ${title} 吗？`))
@@ -85,6 +86,8 @@
                                 window.open(v.music_play, '_blank')
                             } else if (evt.detail === 4) {
                                 fetch(`/v/remove?q=${id}&t=2`);
+                            } else if (evt.detail === 5) {
+                                window.open(v.url);
                             }
                     });
 

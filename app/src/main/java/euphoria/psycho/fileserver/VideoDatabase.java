@@ -6,10 +6,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.util.Log;
+import android.util.Pair;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class VideoDatabase extends SQLiteOpenHelper {
 
@@ -41,8 +46,12 @@ public class VideoDatabase extends SQLiteOpenHelper {
     }
 
     public String queryAll(int t) throws JSONException {
+//        getWritableDatabase().execSQL("CREATE UNIQUE INDEX \"url_ui\" ON \"video\" (\n" +
+//                "\t\"url\"\n" +
+//                ");");
         Cursor c = getReadableDatabase().rawQuery("select _id,title,url,play,music_play,music_title,music_author,cover,create_at,update_at from video where video_type = ? order by update_at desc", new String[]{Integer.toString(t)});
         JSONArray jsonArray = new JSONArray();
+        //clearDuplicate();
         while (c.moveToNext()) {
             JSONObject object = new JSONObject();
             object.put("_id", c.getInt(0));
@@ -59,6 +68,35 @@ public class VideoDatabase extends SQLiteOpenHelper {
         }
         c.close();
         return jsonArray.toString();
+    }
+
+    public void clearDuplicate() {
+        Cursor c = getReadableDatabase().rawQuery("select _id,url from video", null);
+        List<Pair<Integer, String>> j = new ArrayList<>();
+        while (c.moveToNext()) {
+            j.add(Pair.create(c.getInt(0), c.getString(1)));
+        }
+        c.close();
+
+        List<String> deleted = new ArrayList<>();
+
+        for (Pair<Integer, String> v : j) {
+            if (deleted.indexOf(v.second) != -1) {
+                continue;
+            }
+            deleted.add(v.second);
+            int id = v.first;
+            Cursor cursor = getReadableDatabase().rawQuery("select _id from video where url = ?", new String[]{
+                    v.second
+            });
+            while (cursor.moveToNext()) {
+                if (cursor.getInt(0) != id) {
+                    getWritableDatabase().delete("video", "_id=?", new String[]{Integer.toString(cursor.getInt(0))});
+                }
+            }
+            cursor.close();
+        }
+
     }
 
     public String queryVideo(int id) throws JSONException {

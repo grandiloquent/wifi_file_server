@@ -17,8 +17,13 @@ public class ListNotesHandler {
 //            fileServer.ensureConnection();
 //            String js = fileServer.executeJSON("select * from _query_notes()");
 //            if (js != null)
+            String tag = Nanos.stringParam(session, "tag");
+            if (tag.equals("tag")) {
+                return Nanos.crossOrigin(Response.newFixedLengthResponse(Status.OK,
+                        "application/json", database.queryTags()));
+            }
             return Nanos.crossOrigin(Response.newFixedLengthResponse(Status.OK,
-                    "application/json", database.queryNotes()));
+                    "application/json", database.queryNotes(tag)));
         } catch (Exception ignored) {
             return Utils.internalError(ignored.getMessage());
         }

@@ -259,7 +259,18 @@ async function render() {
     const obj = await loadData(new URL(window.location).searchParams.get('id'));
     document.title = `${obj.title} - 回形针`;
     const crumb = document.querySelector('.crumb');
-    
+
+    crumb.insertAdjacentHTML('beforeend', `
+    <a class="crumb-item" href="/notes.html?tag=${encodeURIComponent(obj.tag)}">
+        ${obj.tag}
+    </a>
+    `);
+    const articleTags = document.querySelector('.article-tags');
+
+    articleTags.insertAdjacentHTML('beforeend', `
+    <a class="col-tag" href="/notes.html?tag=${encodeURIComponent(obj.tag)}">${obj.tag}</a>
+    `);
+
     const articleTitle = document.querySelector('.article-title');
     articleTitle.textContent = obj.title;
     const articleInfos = document.querySelector('.article-infos span');

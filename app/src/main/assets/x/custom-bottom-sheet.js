@@ -137,7 +137,7 @@ class CustomBottomSheet extends HTMLElement {
             音乐
           </div>
           <div>已发布</div>
-          <div>其他</div>
+          <div>打开</div>
         </div>
         <div style="flex-grow: 1;">
         </div>

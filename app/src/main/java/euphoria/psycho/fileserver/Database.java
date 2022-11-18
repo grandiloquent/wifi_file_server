@@ -30,6 +30,17 @@ public class Database extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL("CREATE TABLE notes(_id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,content TEXT,create_at INTEGER NOT NULL,update_at  INTEGER NOT NULL)");
+        sqLiteDatabase.execSQL("CREATE TABLE \"note_tag\" (\n" +
+                "\t\"_id\"\tINTEGER,\n" +
+                "\t\"note_id\"\tINTEGER,\n" +
+                "\t\"tag_id\"\tINTEGER,\n" +
+                "\tPRIMARY KEY(\"_id\" AUTOINCREMENT)\n" +
+                ")");
+        sqLiteDatabase.execSQL("CREATE TABLE \"tag\" (\n" +
+                "\t\"_id\"\tINTEGER,\n" +
+                "\t\"name\"\tTEXT NOT NULL,\n" +
+                "\tPRIMARY KEY(\"_id\" AUTOINCREMENT)\n" +
+                ")");
     }
 
     @Override
@@ -47,7 +58,7 @@ public class Database extends SQLiteOpenHelper {
         return getWritableDatabase().insert("notes", null, values);
     }
 
-    public long insertNote(JSONObject jsonObject) throws Exception{
+    public long insertNote(JSONObject jsonObject) throws Exception {
         ContentValues values = new ContentValues();
         values.put("_id", jsonObject.getInt("_id"));
         values.put("title", jsonObject.getString("title"));
@@ -56,11 +67,36 @@ public class Database extends SQLiteOpenHelper {
         values.put("update_at", jsonObject.getLong("update_at"));
         return getWritableDatabase().insert("notes", null, values);
     }
-    public long updateNote(int id, String title, String content) {
+
+    public long updateNote(int id, String title, String content, String tag) {
+
         ContentValues values = new ContentValues();
         values.put("title", title);
         values.put("content", content);
         values.put("update_at", System.currentTimeMillis());
+        Cursor cursor = getReadableDatabase().rawQuery("select _id,name from tag where name = ?", new String[]{tag});
+        if (!cursor.moveToNext()) {
+            ContentValues cv = new ContentValues();
+            cv.put("name", tag);
+            long tagId = getWritableDatabase().insert("tag", null, cv);
+            ContentValues nt = new ContentValues();
+            nt.put("note_id", id);
+            nt.put("tag_id", tagId);
+            getWritableDatabase().delete("note_tag", "note_id = ?", new String[]{
+                    Integer.toString(id)
+            });
+            getWritableDatabase().insert("note_tag", null, nt);
+        } else {
+            long tagId = cursor.getLong(0);
+            ContentValues nt = new ContentValues();
+            nt.put("note_id", id);
+            nt.put("tag_id", tagId);
+            getWritableDatabase().delete("note_tag", "note_id = ?", new String[]{
+                    Integer.toString(id)
+            });
+            getWritableDatabase().insert("note_tag", null, nt);
+        }
+        cursor.close();
         return getWritableDatabase().update("notes", values, "_id = ?", new String[]{
                 Integer.toString(id)
         });
@@ -75,8 +111,13 @@ public class Database extends SQLiteOpenHelper {
 //        return notes;
 //    }
 
-    public String queryNotes() throws JSONException {
-        Cursor c = getReadableDatabase().rawQuery("select _id,title,update_at from notes", null);
+    public String queryNotes(String tag) throws JSONException {
+        Cursor c = tag.equals("null") ?
+                getReadableDatabase().rawQuery("select notes._id,notes.title,notes.update_at from notes where _id not in (select note_id from note_tag)", null)
+                : getReadableDatabase().rawQuery("select notes._id,notes.title,notes.update_at from notes\n" +
+                "JOIN note_tag on note_tag.note_id=notes._id\n" +
+                "JOIN tag on tag._id=note_tag.tag_id\n" +
+                "where tag.name=? or tag.name is null", new String[]{tag});
         JSONArray jsonArray = new JSONArray();
         while (c.moveToNext()) {
             JSONObject object = new JSONObject();
@@ -89,6 +130,19 @@ public class Database extends SQLiteOpenHelper {
         if (jsonArray.length() == 0) return null;
         return jsonArray.toString();
     }
+
+    public String queryTags() {
+         //getWritableDatabase().delete("tag","name = ?",new String[]{"undefined"});
+
+        Cursor cursor = getReadableDatabase().rawQuery("select name from tag", null);
+        JSONArray jsonArray = new JSONArray();
+        while (cursor.moveToNext()) {
+            jsonArray.put(cursor.getString(0));
+        }
+        cursor.close();
+        return jsonArray.toString();
+    }
+
     public String queryAll() throws JSONException {
         Cursor c = getReadableDatabase().rawQuery("select * from notes", null);
         JSONArray jsonArray = new JSONArray();
@@ -106,8 +160,9 @@ public class Database extends SQLiteOpenHelper {
 
         return jsonArray.toString();
     }
+
     public String queryNote(int id) throws JSONException {
-        Cursor c = getReadableDatabase().rawQuery("select title,content,update_at from notes where _id = ?", new String[]{
+        Cursor c = getReadableDatabase().rawQuery("select title,content,update_at,tag.name from notes left join note_tag on note_tag.note_id=notes._id left join tag on tag._id=note_tag.tag_id  where notes._id = ?", new String[]{
                 Integer.toString(id)
         });
         JSONObject object = new JSONObject();
@@ -115,6 +170,7 @@ public class Database extends SQLiteOpenHelper {
             object.put("title", c.getString(0));
             object.put("content", c.getString(1));
             object.put("update_at", c.getLong(2));
+            object.put("tag", c.getString(3));
         }
         c.close();
         return object.toString();

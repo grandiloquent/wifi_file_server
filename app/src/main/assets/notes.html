@@ -24,6 +24,21 @@
 
     <custom-search></custom-search>
     <script src="custom-search.js"></script>
+    <custom-navigation-bar></custom-navigation-bar>
+    <script src="custom-navigation-bar.js"></script>
+    <script>
+        const customNavigationBar = document.querySelector('custom-navigation-bar');
+        async function loadTags() {
+            const items = await fetch(`/api/notes?tag=tag`);
+            customNavigationBar.setAttribute('items', JSON.stringify(
+                (await items.json())
+                .sort((x, y) => {
+                    return x.localeCompare(y);
+                })
+            ));
+        }
+        loadTags();
+    </script>
     <div id="items"
         style="text-size-adjust: 100%;-webkit-font-smoothing: auto;font: 400 14px/20px Roboto,Arial,sans-serif;letter-spacing: .2px;color:  #70757a;-webkit-tap-highlight-color: transparent;padding: 8px 0;border-bottom: none;">
 
@@ -44,7 +59,8 @@
         const mode = new URL(window.location).searchParams.get("m");
 
         async function loadData() {
-            const items = await fetch(`${baseUri}/api/notes`);
+            const tag = new URL(window.location).searchParams.get('tag') || 'JavaScript'
+            const items = await fetch(`${baseUri}/api/notes?tag=${encodeURIComponent(tag)}`);
             return (await items.json()).sort((x, y) => {
                 return x.update_at - y.update_at;
             });
@@ -71,7 +87,7 @@
         }
         async function render(filter) {
             document.querySelectorAll('.text-line-container')
-                .forEach(x=>x.remove());
+                .forEach(x => x.remove());
             const items = await loadData();
             const container = document.getElementById('items');
             container.innerHTML = '';

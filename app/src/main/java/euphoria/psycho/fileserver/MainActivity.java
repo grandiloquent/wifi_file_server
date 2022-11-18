@@ -57,8 +57,6 @@ public class MainActivity extends Activity {
     private WebView mWebView;
 
 
-
-
     public void writeString(String text) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("demo", text);
@@ -94,8 +92,12 @@ public class MainActivity extends Activity {
         webSettings.setDomStorageEnabled(true);
         webSettings.setAllowContentAccess(true);
         setContentView(webView);
+        String host = Shared.getDeviceIP(this);
+        if (host == null) {
+            host = "0.0.0.0";
+        }
         webView.loadUrl(
-                Shared.getString(this, SettingsFragment.KEY_START_PAGE, "http://" + Shared.getDeviceIP(this) + ":8089/notes.html")
+                Shared.getString(this, SettingsFragment.KEY_START_PAGE, "http://" + host + ":8089/notes.html")
         );
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -258,7 +260,11 @@ public class MainActivity extends Activity {
                 );
                 break;
             case 5:
-                mWebView.loadUrl("http://" + Shared.getDeviceIP(this) + ":8089/x");
+                String host = Shared.getDeviceIP(this);
+                if (host == null) {
+                    host = "0.0.0.0";
+                }
+                mWebView.loadUrl("http://" + host + ":8089/x");
                 break;
             case 6:
                 writeString(mWebView.getUrl());

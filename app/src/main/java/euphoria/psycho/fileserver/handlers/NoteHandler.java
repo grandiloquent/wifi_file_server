@@ -1,5 +1,7 @@
 package euphoria.psycho.fileserver.handlers;
 
+import android.util.Log;
+
 import org.json.JSONObject;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.request.Method;
@@ -20,12 +22,13 @@ public class NoteHandler {
                 JSONObject js = new JSONObject(Utils.readString(session));
                 String r = "";
                 if (js.has("_id"))
-                    r = Long.toString(database.updateNote(js.getInt("_id"), js.getString("title"), js.getString("content")));
+                    r = Long.toString(database.updateNote(js.getInt("_id"), js.getString("title"), js.getString("content"),js.getString("tag")));
                 else
                     r = Long.toString(database.insertNote(js.getString("title"), js.getString("content")));
                 return Nanos.crossOrigin(Response.newFixedLengthResponse(Status.OK,
                         "text/plain", r));
             } catch (Exception ignored) {
+                return Nanos.internalError(ignored);
             }
 
         } else {
@@ -41,7 +44,6 @@ public class NoteHandler {
             }
 
         }
-        return Nanos.crossOrigin(Nanos.notFound());
     }
 
     public static String escapeMetaCharacters(String inputString) {

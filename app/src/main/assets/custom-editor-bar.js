@@ -503,8 +503,8 @@ async function trans(editor, english) {
 
     const value = string.replaceAll(/\n/g, ' ');
     if (!value.trim()) return;
-    
-    const lines = await google(value.replace(/\d+[\r\n\s]+(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/,"").trim(), english);
+
+    const lines = await google(value.replace(/\d+[\r\n\s]+(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/, "").trim(), english);
     let results = lines[1].join(' ');
     const pattern = localStorage.getItem('string');
     if (pattern && pattern.trim().length) {
@@ -521,7 +521,7 @@ async function trans(editor, english) {
     if (matchYear) {
         year = matchYear[0] + '年'
     }
-    console.log('---------------->',results)
+    console.log('---------------->', results)
     // string
     // \n\n${year}
     editor.setRangeText(`${english ? '' : (lines[0].join(' '))}\n${results}`, points[1], points[1]);
@@ -549,7 +549,7 @@ async function google(value, english) {
         const trans = translated.trans_result;
         for (let index = 0; index < trans.length; index++) {
             const element = trans[index];
-           // lines1.push(element.src);
+            // lines1.push(element.src);
             lines2.push(element.dst);
         }
     }
@@ -564,7 +564,7 @@ async function submitData(textarea) {
     const obj = {
 
         content: substringAfter(textarea.value.trim(), "\n"),
-        title: firstLine.split('|')[0].replace(/^#+ +/, ''),
+        title: firstLine.replace(/^#+ +/, ''),
     };
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
@@ -577,6 +577,10 @@ async function submitData(textarea) {
         obj.create_at = new Date().getTime();
         obj.update_at = new Date().getTime();
     }
+    if (obj.title.indexOf('|') !== -1) {
+        obj.tag = substringAfter(obj.title, '|').trim();
+        obj.title = substringBefore(obj.title, '|').trim();
+    }
     const response = await fetch(`${baseUri}/api/note`, {
         method: 'POST',
         body: JSON.stringify(obj)
@@ -585,7 +589,7 @@ async function submitData(textarea) {
     if (id)
         document.getElementById('toast').setAttribute('message', '成功');
     else
-        window.location = `${window.location.origin}${window.location.pathname}?id=${JSON.parse(res)[0]["_insert_notes"]}`
+        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
 
 }
 async function loadData(baseUri, id) {
@@ -604,7 +608,7 @@ async function render(textarea) {
         try {
             const obj = await loadData(baseUri, id);
             document.title = obj.title;
-            textarea.value = `# ${obj.title}
+            textarea.value = `# ${obj.title}|${obj.tag}
         
 ${obj.content.trim()}
         `
@@ -654,4 +658,12 @@ function substringNearest(string, index, start, end) {
         k++;
     }
     return string.substring(j, k);
+}
+function substringBefore(string, delimiter, missingDelimiterValue) {
+    const index = string.indexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(0, index);
+    }
 }
