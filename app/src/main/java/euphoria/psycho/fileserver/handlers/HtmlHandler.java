@@ -25,7 +25,7 @@ import euphoria.psycho.fileserver.Utils;
 public class HtmlHandler {
     public static Response handle(Context context, IHTTPSession session) {
         String path = Nanos.stringParam(session, "path");
-        if (path == null && !session.getUri().endsWith(".jpg")
+        if (path == null && session.getUri().contains("/api") && !session.getUri().endsWith(".jpg")
                 && !session.getUri().endsWith(".png")
                 && !session.getUri().endsWith(".svg")) {
             return null;
