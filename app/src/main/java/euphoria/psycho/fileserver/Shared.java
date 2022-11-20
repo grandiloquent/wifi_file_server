@@ -388,7 +388,11 @@ public class Shared {
         if (index == -1) return s;
         return s.substring(index + delimiter.length());
     }
-
+    public static String substringAfter(String s, String delimiter) {
+        int index = s.indexOf(delimiter);
+        if (index == -1) return s;
+        return s.substring(index + delimiter.length());
+    }
     public static String substringBeforeLast(String s, String delimiter) {
         int index = s.lastIndexOf(delimiter);
         if (index == -1) return s;

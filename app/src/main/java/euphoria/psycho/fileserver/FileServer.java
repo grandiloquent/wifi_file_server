@@ -255,7 +255,6 @@ public class FileServer extends NanoHTTPD {
     }
 
     private static Response serveNormalFile(IHTTPSession session, String path) {
-        Log.e("B5aOx2", String.format("serveNormalFile, %s", path));
         try {
             Response response =
                     Utils.serveFile(session.getHeaders(), new File(path), getMimeType(path));

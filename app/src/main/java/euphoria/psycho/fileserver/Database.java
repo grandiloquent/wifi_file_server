@@ -132,7 +132,7 @@ public class Database extends SQLiteOpenHelper {
     }
 
     public String queryTags() {
-         //getWritableDatabase().delete("tag","name = ?",new String[]{"undefined"});
+        //getWritableDatabase().delete("tag","name = ?",new String[]{"|JavaScript"});
 
         Cursor cursor = getReadableDatabase().rawQuery("select name from tag", null);
         JSONArray jsonArray = new JSONArray();
