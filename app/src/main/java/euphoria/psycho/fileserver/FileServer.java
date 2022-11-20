@@ -86,7 +86,6 @@ public class FileServer extends NanoHTTPD {
                 new File(Environment.getExternalStorageDirectory(), "notes.db").getAbsolutePath()
         );
     }
-
 //    public void ensureConnection() throws Exception {
 //        if (mConnection == null || !mConnection.isValid(0)) {
 //            Log.e("B5aOx2", String.format("ensureConnection, %s", ""));
@@ -361,7 +360,7 @@ public class FileServer extends NanoHTTPD {
         if (res != null) {
             return res;
         }
-        res = HtmlHandler.handle(session);
+        res = HtmlHandler.handle(mContext, session);
         if (res != null) {
             return res;
         }
@@ -426,7 +425,7 @@ public class FileServer extends NanoHTTPD {
             return Nanos.ok();
         }
         if (uri.equals("/api/notes")) {
-            return ListNotesHandler.handle(mDatabase,session);
+            return ListNotesHandler.handle(mDatabase, session);
         }
         if (uri.equals("/api/note")) {
             return NoteHandler.handle(mDatabase, session);
