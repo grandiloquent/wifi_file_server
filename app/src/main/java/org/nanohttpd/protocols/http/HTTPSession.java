@@ -427,7 +427,8 @@ public class HTTPSession implements IHTTPSession {
             NanoHTTPD.safeClose(this.outputStream);
         } finally {
             NanoHTTPD.safeClose(r);
-            this.tempFileManager.clear();
+            if (this.tempFileManager != null)
+                this.tempFileManager.clear();
         }
     }
 
@@ -630,7 +631,6 @@ public class HTTPSession implements IHTTPSession {
      * The full path to the saved file is returned.
      */
     private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
-
         String path = "";
         if (len > 0) {
             FileOutputStream fileOutputStream = null;

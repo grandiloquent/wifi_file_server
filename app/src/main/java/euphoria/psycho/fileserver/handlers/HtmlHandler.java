@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Shared;
@@ -24,10 +25,9 @@ import euphoria.psycho.fileserver.Utils;
 
 public class HtmlHandler {
     public static Response handle(Context context, IHTTPSession session) {
+        Pattern pattern = Pattern.compile("\\.(?:jpg|svg|png|jpeg)");
         String path = Nanos.stringParam(session, "path");
-        if (path == null && session.getUri().contains("/api") && !session.getUri().endsWith(".jpg")
-                && !session.getUri().endsWith(".png")
-                && !session.getUri().endsWith(".svg")) {
+        if (path == null && (!session.getUri().contains("/api") || !pattern.matcher(session.getUri()).find())) {
             return null;
         } else if (path != null && (!path.endsWith(".html") && !path.endsWith(".xhtml"))) {
             return null;
@@ -46,7 +46,7 @@ public class HtmlHandler {
         if (source == null || !source.exists()) {
             return Nanos.notFound();
         }
-        if (path != null && (path.endsWith(".html") || path.endsWith(".xhtml"))) {
+        if (path != null && (path.endsWith(".html") || path.endsWith(".xhtml") || path.endsWith(".htm"))) {
             try {
                 InputStream isa = context.getAssets().open("html.html");
                 String template = Shared.readAllText(isa);

@@ -3,7 +3,7 @@ class CustomEditorBar extends HTMLElement {
     constructor() {
         super();
 
-        this.root = this.attachShadow({ mode: 'open' });
+        this.root = this.attachShadow({mode: 'open'});
         this.root.innerHTML = `<style>.text
 {
     max-width: 100%;
@@ -220,7 +220,7 @@ ${await navigator.clipboard.readText()}
                     ev.preventDefault();
                     window.open(
                         substringNearest(textarea.value,
-                            textarea.selectionStart, '(-', ')\r\n').trim(), '_blank'
+                            textarea.selectionStart, '( ', ' )\r\n').trim(), '_blank'
                     );
                 } else if (ev.ctrlKey && ev.key.toLowerCase() === 'o') {
                     ev.preventDefault();
@@ -232,10 +232,19 @@ ${await navigator.clipboard.readText()}
                             return x.localeCompare(y);
                         });
                     textarea.setRangeText(lines.join('\n'), position[0], position[1]);
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'm') {
+                    ev.preventDefault();
+                    const s = await navigator.clipboard.readText();
+                    textarea.setRangeText(
+                        `- [${substringAfterLast(s.trim(),"/")}](${s.trim()})`,
+                        textarea.selectionStart,
+                        textarea.selectionEnd
+                    )
                 }
             }
         });
     }
+
     disconnectedCallback() {
 
     }
@@ -247,7 +256,9 @@ ${await navigator.clipboard.readText()}
     }
 
 }
+
 customElements.define('custom-editor-bar', CustomEditorBar);
+
 /*
 <!--\
 <custom-editor-bar></custom-editor-bar>
@@ -293,6 +304,7 @@ function findCodeBlock(textarea) {
     }
     return [start, end];
 }
+
 function uploadHanlder(editor) {
     if (window.location.protocol === 'https:') {
         tryUploadImageFromClipboard((ok) => {
@@ -404,6 +416,7 @@ function formatHead(editor, count) {
     }
     editor.selectionStart = offsetStart + 1;
 }
+
 function formatList(textarea) {
     const p = findExtendPosition(textarea);
     textarea.setRangeText(
@@ -418,6 +431,7 @@ function formatList(textarea) {
             })
             .join('\n'), p[0], p[1]);
 }
+
 function tab(textarea) {
     textarea.addEventListener('keydown', function (e) {
         if (e.keyCode === 9) {
@@ -436,6 +450,7 @@ function tab(textarea) {
         }
     }, false);
 }
+
 function findExtendPosition(editor) {
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
@@ -483,6 +498,7 @@ function findExtendPosition(editor) {
     // }
     return [offsetStart, offsetEnd];
 }
+
 async function trans(editor, english) {
     // let start = editor.selectionStart;
     // let end = editor.selectionEnd;
@@ -555,10 +571,12 @@ async function google(value, english) {
     }
     return [lines1, lines2];
 }
+
 async function saveData(textarea) {
     await submitData(textarea);
 
 }
+
 async function submitData(textarea) {
     const firstLine = textarea.value.trim().split("\n", 2)[0];
     const obj = {
@@ -592,6 +610,7 @@ async function submitData(textarea) {
         window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
 
 }
+
 async function loadData(baseUri, id) {
 
     const response = await fetch(`${baseUri}/api/note?id=${id}`);
@@ -617,6 +636,7 @@ ${obj.content.trim()}
         }
     }
 }
+
 function preview() {
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
@@ -625,6 +645,7 @@ function preview() {
     else
         window.open(`article.html?id=${id}`, '_blank')
 }
+
 function substringAfter(string, delimiter, missingDelimiterValue) {
     const index = string.indexOf(delimiter);
     if (index === -1) {
@@ -633,14 +654,15 @@ function substringAfter(string, delimiter, missingDelimiterValue) {
         return string.substring(index + delimiter.length);
     }
 }
+function substringAfterLast(string, delimiter, missingDelimiterValue) {
+    const index = string.lastIndexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(index + delimiter.length);
+    }
+}
 
-/*
-console.log([...document.querySelectorAll('.slide-image-wrap img')]
-    .map((x, index) => {
-        return `${x.src.split('?')[0]}\n\tout=${index + 1}.jpg`;
-    }).reverse()
-    .join('\n'))
-    */
 function substringNearest(string, index, start, end) {
     let j = index;
     while (j > -1) {
@@ -659,6 +681,7 @@ function substringNearest(string, index, start, end) {
     }
     return string.substring(j, k);
 }
+
 function substringBefore(string, delimiter, missingDelimiterValue) {
     const index = string.indexOf(delimiter);
     if (index === -1) {
@@ -667,3 +690,11 @@ function substringBefore(string, delimiter, missingDelimiterValue) {
         return string.substring(0, index);
     }
 }
+
+/*
+console.log([...document.querySelectorAll('.slide-image-wrap img')]
+    .map((x, index) => {
+        return `${x.src.split('?')[0]}\n\tout=${index + 1}.jpg`;
+    }).reverse()
+    .join('\n'))
+    */

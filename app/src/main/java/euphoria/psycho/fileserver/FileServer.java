@@ -360,6 +360,7 @@ public class FileServer extends NanoHTTPD {
         if (res != null) {
             return res;
         }
+        Log.e("B5aOx2", String.format("serve, %s", session.getUri()));
         res = HtmlHandler.handle(mContext, session);
         if (res != null) {
             return res;
