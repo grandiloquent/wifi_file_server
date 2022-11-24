@@ -29,7 +29,7 @@ public class HtmlHandler {
         String path = Nanos.stringParam(session, "path");
         if (path == null && (!session.getUri().contains("/api") || !pattern.matcher(session.getUri()).find())) {
             return null;
-        } else if (path != null && (!path.endsWith(".html") && !path.endsWith(".xhtml"))) {
+        } else if (path != null && (!path.endsWith(".html") && !path.endsWith(".xhtml") && !path.endsWith(".htm"))) {
             return null;
         }
         File source = null;
