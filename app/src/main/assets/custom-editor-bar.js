@@ -384,11 +384,11 @@ function formatHead(editor, count) {
         if (string[offsetStart - 1] !== '\n')
             offsetStart--;
         else {
-            while (offsetStart > 0) {
-                if (/\s/.test(string[offsetStart - 1]))
-                    offsetStart--;
-                else break;
-            }
+            // while (offsetStart > 0) {
+            //     if (/\s/.test(string[offsetStart - 1]))
+            //         offsetStart--;
+            //     else break;
+            // }
             break;
         }
     }
@@ -402,19 +402,21 @@ function formatHead(editor, count) {
                      offsetEnd++;
                  else break;
              }*/
-            offsetEnd++;
+            //offsetEnd++;
             break;
         }
     }
     const str = string.substring(offsetStart, offsetEnd).trim();
     if (str.startsWith('#')) {
-        editor.setRangeText(`\n\n#${str}\n`, offsetStart,
+        editor.setRangeText(`#${str}`, offsetStart,
             offsetEnd);
     } else {
-        editor.setRangeText(`\n\n${'#'.repeat(count)} ${str}\n`, offsetStart,
+        editor.setRangeText(`${'#'.repeat(count)} ${str}`, offsetStart,
             offsetEnd);
     }
-    editor.selectionStart = offsetStart + 1;
+    editor.selectionStart = offsetEnd;
+    editor.selectionEnd = offsetEnd;
+    
 }
 
 function formatList(textarea) {
