@@ -133,7 +133,7 @@ class CustomFavorites extends HTMLElement {
     let favorites = localStorage.getItem('favorites');
     if (!favorites) {
       favorites = JSON.stringify([
-        "/storage/emulated/0/Movies/TikTok",
+        "/storage/emulated/0/Books",
         "/storage/emulated/0/Pictures/Screenshots",
         "/storage/FD12-1F1D"
       ]);

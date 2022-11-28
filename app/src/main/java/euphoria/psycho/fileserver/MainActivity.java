@@ -238,6 +238,8 @@ public class MainActivity extends Activity {
         menu.add(0, 4, 0, "保存页面");
         menu.add(0, 5, 0, "视频");
         menu.add(0, 6, 0, "复制");
+        menu.add(0, 7, 0, "首页");
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -268,6 +270,13 @@ public class MainActivity extends Activity {
                 break;
             case 6:
                 writeString(mWebView.getUrl());
+                break;
+            case 7:
+                host = Shared.getDeviceIP(this);
+                if (host == null) {
+                    host = "0.0.0.0";
+                }
+                writeString("http://" + host + ":8089");
                 break;
         }
         return super.onOptionsItemSelected(item);
