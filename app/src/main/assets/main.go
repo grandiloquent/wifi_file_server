@@ -27,6 +27,10 @@ func main() {
 		if newFile(w, r) {
 			return
 		}
+		if r.URL.Path == "/api/save" {
+			saveHandler(w, r)
+			return
+		}
 		http.NotFound(w, r)
 	}))
 }
