@@ -13,24 +13,6 @@ import (
 	"strings"
 )
 
-func listDirectory(fullname string) ([]map[string]interface{}, error) {
-	entries, err := os.ReadDir(fullname)
-	if err != nil {
-		return nil, err
-	}
-	var array []map[string]interface{}
-	for i := 0; i < len(entries); i++ {
-		obj := make(map[string]interface{})
-		obj["parent"] = fullname
-		obj["name"] = entries[i].Name()
-		obj["isDir"] = entries[i].IsDir()
-		f, _ := entries[i].Info()
-		obj["length"] = f.Size()
-		array = append(array, obj)
-	}
-	return array, nil
-}
-
 func deleteFiles(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path != "/api/delete" {
 		return false
@@ -51,6 +33,23 @@ func deleteFiles(w http.ResponseWriter, r *http.Request) bool {
 	}
 	w.Write([]byte("Success"))
 	return true
+}
+func listDirectory(fullname string) ([]map[string]interface{}, error) {
+	entries, err := os.ReadDir(fullname)
+	if err != nil {
+		return nil, err
+	}
+	var array []map[string]interface{}
+	for i := 0; i < len(entries); i++ {
+		obj := make(map[string]interface{})
+		obj["parent"] = fullname
+		obj["name"] = entries[i].Name()
+		obj["isDir"] = entries[i].IsDir()
+		f, _ := entries[i].Info()
+		obj["length"] = f.Size()
+		array = append(array, obj)
+	}
+	return array, nil
 }
 func listFiles(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path == "/api/files" {
