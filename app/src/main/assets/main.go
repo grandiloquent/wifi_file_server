@@ -542,18 +542,5 @@ func listDirectory(fullname string) ([]map[string]interface{}, error) {
 	}
 	return array, nil
 }
-func writeJSON(w http.ResponseWriter, data interface{}) {
-	buffer, err := json.Marshal(data)
-	if err != nil {
-		writeError(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Write(buffer)
-}
-func writeError(w http.ResponseWriter, err error) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.WriteHeader(501)
-	fmt.Fprintln(w, err)
-}
+
+//  go run main.go shared.go utils.go
