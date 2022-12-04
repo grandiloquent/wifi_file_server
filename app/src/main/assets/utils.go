@@ -198,6 +198,9 @@ func staticFiles(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path == "/" {
 		filename = "files/index.html"
 	}
+	if r.URL.Path == "/editor" {
+		filename = "files/editor.html"
+	}
 	if strings.HasSuffix(r.URL.Path, "svg") {
 		filename = r.URL.Path[1:]
 	} else if m, _ := regexp.MatchString("\\.(?:js|css|png|html|jpg)$", r.URL.Path); m {

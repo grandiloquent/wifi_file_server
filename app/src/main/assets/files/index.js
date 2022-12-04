@@ -16,10 +16,35 @@ async function loadFiles() {
     const files = await res.json();
     return files;
 }
+function sortFiles(files, sort) {
+
+    return files.sort((x, y) => {
+        if (x.isDir === y.isDir) {
+            if (sort === 1) {
+                return x.name.localeCompare(y.name);
+            } else if (sort === 2) {
+                return y.length - x.length;
+            } else {
+                return y.lastModified - x.lastModified;
+            }
+        } else if (x.isDir)
+            return -1;
+        else
+            return 1;
+    })
+}
+function createFileLink(element) {
+    const concatenateFilename = element.parent + "/" + element.name;
+    if (isEditableFile(concatenateFilename)) {
+        return `${baseUri}/editor?path=${encodeURIComponent(concatenateFilename)}`;
+    }
+    return `${baseUri}/api/files?path=${encodeURIComponent(concatenateFilename)}&isDir=${element.isDir ? 1 : 0}`;
+}
 async function render(sort) {
 
     let files = await loadFiles();
     if (!files) return;
+    files = sortFiles(files, sort)
     const container = document.querySelector('div');
 
     container.innerHTML = '';
@@ -43,21 +68,7 @@ async function render(sort) {
     });
 
 
-    files = files.sort((x, y) => {
-        if (x.isDir === y.isDir) {
-            if (sort === 1) {
-                console.log(x.name, y.name)
-                return x.name.localeCompare(y.name);
-            } else if (sort === 2) {
-                return y.length - x.length;
-            } else {
-                return y.lastModified - x.lastModified;
-            }
-        } else if (x.isDir)
-            return -1;
-        else
-            return 1;
-    })
+
 
     files.forEach(element => {
         const customMediaItem = document.createElement('custom-media-item');
@@ -90,7 +101,7 @@ async function render(sort) {
         if (element.isDir) {
             path = `?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
         } else {
-            path = `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=${element.isDir ? 1 : 0}`;
+            path = createFileLink(element);
         }
         customMediaItem.setAttribute('href', path);
         customMediaItem.setAttribute('data-path', element.parent + "/" + element.name);
