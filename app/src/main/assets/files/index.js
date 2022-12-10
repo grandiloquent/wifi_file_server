@@ -37,6 +37,9 @@ function createFileLink(element) {
     const concatenateFilename = element.parent + "/" + element.name;
     if (isEditableFile(concatenateFilename)) {
         return `${baseUri}/editor?path=${encodeURIComponent(concatenateFilename)}`;
+    } else if (isVideoFile(concatenateFilename)) {
+    console.log(element.name)
+        return `${baseUri}/video?path=${encodeURIComponent(concatenateFilename)}`;
     }
     return `${baseUri}/api/files?path=${encodeURIComponent(concatenateFilename)}&isDir=${element.isDir ? 1 : 0}`;
 }
@@ -90,7 +93,7 @@ async function render(sort) {
             customMediaItem.setAttribute('src', `icon-code-m.svg`);
         } else if (/\.(?:mp3)$/.test(element.name)) {
             customMediaItem.setAttribute('src', `icon-audio-m.svg`);
-        } else if (/\.(?:mp4)$/.test(element.name)) {
+        } else if (isVideoFile(element.name)) {
             customMediaItem.setAttribute('src', `icon-video-m.svg`);
             customMediaItem.setAttribute('data-src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(element.parent + "/" + element.name)}`);
         } else {

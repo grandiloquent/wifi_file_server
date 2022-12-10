@@ -66,6 +66,29 @@ func listFiles(w http.ResponseWriter, r *http.Request) bool {
 				}
 				r.Header.Set("Content-Type", "text/html")
 				w.Write(b)
+			} else if strings.HasSuffix(p, ".vtt") {
+				p = strings.Replace(p, ".vtt", ".srt", 1)
+				// b, err := ioutil.ReadFile(p)
+				// if err != nil {
+				// 	http.NotFound(w, r)
+				// 	return true
+				// }
+				// vtt, err := SrtToWebVtt(string(b))
+				// if err != nil {
+				// 	http.NotFound(w, r)
+				// 	return true
+				// }
+				// _ = vtt
+				r.Header.Set("Content-Type", "text/vtt")
+				f, err := os.Open(p)
+				if err != nil {
+					http.NotFound(w, r)
+					return true
+				}
+				defer f.Close()
+				r, _ := NewReader(f)
+				r.WriteTo(w)
+				//w.Write([]byte("WEBVTT\n\n" + strings.Replace(vtt, "&gt;", ">", -1)))
 			} else {
 				w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, path.Base(p)))
 				http.ServeFile(w, r, p)
@@ -201,8 +224,14 @@ func staticFiles(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path == "/editor" {
 		filename = "files/editor.html"
 	}
+	if r.URL.Path == "/video" {
+		filename = "files/video.html"
+	}
 	if strings.HasSuffix(r.URL.Path, "svg") {
 		filename = r.URL.Path[1:]
+	} else if strings.HasSuffix(r.URL.Path, "vtt") {
+		filename = r.URL.Path[1:]
+		fmt.Println(filename)
 	} else if m, _ := regexp.MatchString("\\.(?:js|css|png|html|jpg)$", r.URL.Path); m {
 		filename = "files/" + r.URL.Path[1:]
 	}

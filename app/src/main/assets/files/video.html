@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html {
+            word-wrap: break-word;
+            color: #030303;
+            background-color: #fff;
+            -webkit-text-size-adjust: 100%;
+            font-size: 10px;
+            font-family: Roboto, Arial, sans-serif
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            font-size: 1.2rem;
+            overflow-x: hidden
+        }
+
+        [hidden][hidden] {
+            display: none;
+            visibility: hidden
+        }
+
+        @keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg)
+            }
+
+            100% {
+                -webkit-transform: rotate(1turn);
+                transform: rotate(1turn)
+            }
+        }
+
+        .spinner {
+            display: block;
+            box-sizing: border-box;
+            margin: 12px auto;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #eee;
+            border-top-color: #666;
+            -webkit-animation: spinner .8s linear infinite;
+            animation: spinner .8s linear infinite
+        }
+
+        .spinner:not([hidden]) {
+            color: #333;
+            font-size: 1.6rem
+        }
+
+
+        input,
+        textarea {
+            background-color: transparent;
+            padding-bottom: 4px;
+            outline: none;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 0;
+            margin-bottom: 1px;
+            font: inherit;
+            color: #030303
+        }
+
+        input::-webkit-input-placeholder,
+        textarea::-webkit-input-placeholder {
+            color: #606060;
+            opacity: 1
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #606060;
+            opacity: 1
+        }
+
+        textarea {
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 8.4rem;
+            width: 100%;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 8px
+        }
+
+        input {
+            border-bottom: 1px solid #737373;
+            text-overflow: ellipsis
+        }
+
+        input:focus {
+            margin-bottom: 0;
+            border-bottom-width: 2px;
+            border-bottom-color: #030303
+        }
+
+        form {
+            margin: 0
+        }
+
+        a {
+            color: currentColor;
+            text-decoration: none
+        }
+
+        strong,
+        b {
+            font-weight: 500
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            margin: 0 0 3px
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .subhead {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            max-height: 2.5em;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            line-height: 1.25;
+            text-overflow: ellipsis;
+            font-weight: normal
+        }
+
+        h2 {
+            font-size: 1.8rem
+        }
+
+        h3 {
+            font-size: 1.4rem
+        }
+
+        h4 {
+            font-size: 1.3rem
+        }
+
+        .subhead {
+            opacity: .6
+        }
+
+        img {
+            min-width: 1px;
+            min-height: 1px;
+            -webkit-filter: none;
+            filter: none
+        }
+
+        img:not([src]) {
+            visibility: hidden
+        }
+
+        :focus {
+            outline: none
+        }
+
+        p {
+            margin: 8px 0;
+            line-height: 1.25
+        }
+
+        button,
+        select,
+        [role=button],
+        input[type=checkbox] {
+            cursor: pointer
+        }
+
+        .hidden-button {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 1px;
+            width: 1px
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.8)
+        }
+
+        .layout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            flex-grow: 1;
+            flex-shrink: 0;
+            padding: 0 0 0 0;
+            margin: 0 0 0 0;
+            background-color: #000;
+            color: #333;
+            position: relative;
+        }
+
+        .button {
+            width: 48px;
+            height: 48px;
+            color: #fff;
+            fill: currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .middle {
+            position: absolute;
+            transform: translateX(-50%) translateY(-50%);
+            left: 50%;
+            top: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button-fullscreen {
+            width: 44px;
+            height: 44px;
+            color: #fff;
+            fill: currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bottom {
+            display: flex;
+            flex-direction: column;
+            padding: 0 18px 0 26px;
+            color: #fff;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .wrapper {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .time-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 0 0 0 0;
+            margin: 0 0 0 0;
+            font-size: 12px;
+        }
+
+        .progress-bar-playhead {
+            height: 12px;
+            width: 12px;
+            border-radius: 12px;
+            background: #f00;
+            position: absolute;
+            left: 0;
+
+        }
+
+        .progress-bar-played {
+
+            position: absolute;
+            background-color: #f00;
+            height: 3px;
+            width: 100%;
+            left: 0;
+
+        }
+
+        .progress-bar-loaded {
+
+            position: absolute;
+            background-color: #fff;
+            height: 3px;
+            opacity: .6;
+            width: 100%;
+            left: 0;
+
+        }
+
+        .progress-bar-background {
+
+            position: absolute;
+            background-color: #fff;
+            height: 3px;
+            opacity: .3;
+            width: 100%;
+
+        }
+
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            flex-grow: 1;
+            flex-shrink: 0;
+            padding: 0 0 20px 0;
+            margin: 0 16px 0 0;
+            height: 3px;
+            position: relative;
+
+        }
+
+        .time-second {
+            opacity: .7
+        }
+
+        .video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .button-play {
+            width: 176px;
+            height: 56px;
+            color: #fff;
+            fill: currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+    <div class="layout">
+        <video class="video"></video>
+        <div style="position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    touch-action: manipulation;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    ">
+            <div style="
+     flex-grow: 1;
+     "></div>
+            <div class="middle">
+                <div class="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36">
+                        <path d="M19,6L9,12l10,6V6L19,6z M7,6H5v12h2V6z"></path>
+                    </svg>
+                </div>
+
+                <div class="button-play">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="56" height="56">
+                        <path d="M6,4l12,8L6,20V4z"></path>
+                    </svg>
+                </div>
+                <div class="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36">
+                        <path d="M5,18l10-6L5,6V18L5,18z M19,6h-2v12h2V6z"></path>
+                    </svg>
+                </div>
+            </div>
+
+
+
+            <div class="bottom">
+                <div class="wrapper">
+                    <div class="time-display">
+                        <div class="time-first">0:00</div>
+                        <div style="opacity: .7;margin: 0 4px;">/</div>
+                        <div class="time-second">0:00</div>
+                    </div>
+                    <div class="button-fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                            <path
+                                d="M7,11H6V6h5v1H7V11z M18,6h-5v1h4v4h1V6z M18,13h-1v4h-4v1h5V13z M11,17H7v-4H6v5h5V17z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-bar-background"></div>
+                    <div class="progress-bar-loaded"></div>
+                    <div class="progress-bar-played"></div>
+                    <div class="progress-bar-playhead"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div style="display: flex;
+    padding: 12px;
+    ">
+        <div style="flex-grow: 1;">
+            <h2></h2>
+            <div style="font-size: 12px;
+            line-height: 16px;
+            color: #606060;
+            "></div>
+        </div>
+
+        <div style="width: 24px;height: 24px;color: rgb(3, 3, 3);fill: currentColor;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path d="M18 9.28l-6.35 6.35-6.37-6.35.72-.71 5.64 5.65 5.65-5.65z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div style="display: flex;
+    padding: 0 12px 12px;
+    ">
+        <div style="display: flex;
+align-items: center;
+justify-content: center;
+flex-direction: column;
+flex-shrink: 0;
+padding: .7em 0.57em;
+">
+
+
+
+            <div
+                style="width: 40px;height: 24px;color: #030303;fill: currentColor;display:flex;align-items: center;justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24">
+                    <path
+                        d="M4,20h14v1H3V6h1V20z M18,10h-4V6h-1v4H9v1h4v4h1v-4h4V10z M21,3v15H6V3H21z M20,4H7v13h13V4z">
+                    </path>
+                </svg>
+            </div>
+            <div style="font-size: 12px;
+                                        line-height: 12px;
+                                        color: #030303;
+                                        margin-top: 7px;
+                                        ">
+                下载
+            </div>
+        </div>
+    </div>
+    <script>
+        function calculateLoadedPercent(video) {
+            if (!video.buffered.length) {
+                return '0';
+            }
+            return (video.buffered.end(0) / video.duration) * 100 + '%';
+        }
+        function calculateProgressPercent(video) {
+            return ((video.currentTime / video.duration) * 100).toFixed(2) + '%';
+        }
+        function formatDuration(ms) {
+            if (isNaN(ms)) return '0:00';
+            if (ms < 0) ms = -ms;
+            const time = {
+                hour: Math.floor(ms / 3600) % 24,
+                minute: Math.floor(ms / 60) % 60,
+                second: Math.floor(ms) % 60,
+            };
+            return Object.entries(time)
+                .filter((val, index) => index || val[1])
+                .map(val => (val[1] + '').padStart(2, '0'))
+                .join(':');
+        }
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                layout.style.position = "fixed";
+                layout.style.left = '0';
+                layout.style.top = '0';
+                layout.style.bottom = '0';
+                layout.style.right = '0';
+                layout.style.height='auto'
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        /*
+        https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement
+        https://developer.mozilla.org/zh-CN/docs/Web/API/Fullscreen_API
+        */
+        function substringBeforeLast(string, delimiter, missingDelimiterValue) {
+            const index = string.lastIndexOf(delimiter);
+            if (index === -1) {
+                return missingDelimiterValue || string;
+            } else {
+                return string.substring(0, index);
+            }
+        }
+    </script>
+    <script>
+        const layout = document.querySelector('.layout');
+        layout.style.height = `${window.innerWidth * 0.5625}px`;
+
+        const video = document.querySelector('video');
+        video.preload = "auto"
+        video.src = `/api/files?path=${new URL(document.URL).searchParams.get('path')}&isDir=0`;
+        const track = document.createElement('track');
+        track.src = substringBeforeLast(video.src, ".") + ".vtt&isDir=0";
+        track.default = true;
+        video.appendChild(track);
+
+        video.addEventListener('durationchange', evt => {
+            const ratio = video.videoWidth / window.innerWidth;
+            layout.style.height = `${video.videoHeight / ratio}px`;
+            progressBarPlayed.style.width = calculateProgressPercent(video);
+            timeSecond.textContent = formatDuration(video.duration);
+        });
+        video.addEventListener('play', evt => {
+            evt.stopPropagation();
+            buttonPlay.querySelector('path').setAttribute('d', 'M9,19H7V5H9ZM17,5H15V19h2Z');
+
+        });
+        video.addEventListener('timeupdate', evt => {
+            timeFirst.textContent = formatDuration(video.currentTime);
+            progressBarPlayed.style.width = calculateProgressPercent(video);
+        });
+
+        video.addEventListener('progress', evt => {
+            progressBarLoaded.style.width = calculateLoadedPercent(video);
+
+        });
+        video.addEventListener('pause', evt => {
+            buttonPlay.querySelector('path').setAttribute('d', 'M6,4l12,8L6,20V4z');
+        });
+        const progressBarPlayed = document.querySelector('.progress-bar-played');
+        const progressBarLoaded = document.querySelector('.progress-bar-loaded');
+        const timeSecond = document.querySelector('.time-second');
+        let timer;
+        const middle = document.querySelector('.middle');
+        const bottom = document.querySelector('.bottom');
+
+
+
+        const buttonPlay = document.querySelector('.button-play');
+        buttonPlay.addEventListener('click', evt => {
+            evt.stopPropagation();
+            if (video.paused) {
+                video.play();
+                timer && clearTimeout(timer);
+                timer = setTimeout(() => {
+                    middle.style.display = 'none';
+                    bottom.style.display = 'none';
+                }, 5000)
+            } else {
+                video.pause();
+            }
+        });
+        layout.addEventListener('click', evt => {
+            middle.style.display = 'flex';
+            bottom.style.display = 'flex';
+            timer && clearTimeout(timer);
+            timer = setTimeout(() => {
+                middle.style.display = 'none';
+                bottom.style.display = 'none';
+            }, 5000)
+        });
+        const timeFirst = document.querySelector('.time-first');
+        const buttonFullscreen = document.querySelector('.button-fullscreen');
+        buttonFullscreen.addEventListener('click', evt => {
+            toggleFullScreen();
+        });
+
+
+    </script>
+</body>
+
+</html>

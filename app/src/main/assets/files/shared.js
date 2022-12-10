@@ -8,7 +8,7 @@ function humanFileSize(size) {
 }
 
 function isEditableFile(path) {
-    return /\.(?:c|conf|cpp|cs|css|go|h|hpp|java|jl|js|json|jsx|py|service|sql|txt)$/.test(path)
+    return /\.(?:c|conf|cpp|cs|css|go|h|hpp|java|jl|js|json|jsx|py|service|sql|txt|gitignore|md|xml|bat|properties|gradle|properties|wxml|wxss)$/.test(path)
 }
 
 function substringAfter(string, delimiter, missingDelimiterValue) {
@@ -63,6 +63,9 @@ function substringNearest(string, index, start, end) {
         k++;
     }
     return string.substring(j, k);
+}
+function isVideoFile(path) {
+    return /\.(?:mp4)$/.test(path)
 }
 /*
 (() => {

@@ -324,26 +324,24 @@ async function saveData(textarea) {
 async function submitData(textarea) {
     const searchParams = new URL(window.location.href).searchParams;
     const path = searchParams.get('path');
-    const response = await fetch(`${baseUri}/api/save?path=${path}`, {
+    const response = await fetch(`/api/save?path=${path}`, {
         method: 'POST',
         body: textarea.value
     });
     const res = await response.text();
-    if (id)
-        document.getElementById('toast').setAttribute('message', '成功');
-    else
-        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
+    document.getElementById('toast').setAttribute('message', '成功');
+
 
 }
 
 async function loadData(baseUri, path) {
-
+    
     const response = await fetch(`${baseUri}/api/files?path=${path}&isDir=0`);
     return await response.text();
 }
 
 async function render(textarea) {
-    textarea.value = localStorage.getItem("content");
+    //textarea.value = localStorage.getItem("content");
     const searchParams = new URL(window.location.href).searchParams;
     const path = searchParams.get('path');
     let baseUri = '';
@@ -351,7 +349,7 @@ async function render(textarea) {
         try {
             textarea.value = await loadData(baseUri, path);
         } catch (error) {
-            console.log(error)
+
         }
     }
 }
