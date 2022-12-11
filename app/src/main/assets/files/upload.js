@@ -1,5 +1,4 @@
 var dropZone = document.querySelector('body');
-        console.log(dropZone)
         dropZone.addEventListener('dragover', function (e) {
             e.stopPropagation();
             e.preventDefault();
@@ -33,7 +32,6 @@ var dropZone = document.querySelector('body');
             document.querySelector('.dialog').className = 'dialog'
         }
 
-        const customBarRenderer = document.querySelector('custom-bar-renderer');
         customBarRenderer.addEventListener('submit-sort', evt => {
             evt.stopPropagation();
             const customSort = document.createElement('custom-sort');
@@ -45,31 +43,4 @@ var dropZone = document.querySelector('body');
             });
         });
 
-        customBarRenderer.addEventListener('submit-menu', evt => {
-            evt.stopPropagation();
-            const customMenu = document.createElement('custom-menu');
-            document.body.appendChild(customMenu);
-            customMenu.addEventListener('submit', evt => {
-                customMenu.remove();
-                let t = parseInt(evt.detail) + 1;
-                if (t === 1) {
-                    const customDialogRename = document.createElement('custom-dialog-rename');
-                    customDialogRename.setAttribute('title', '新建文件夹');
-                    document.body.appendChild(customDialogRename);
-                    customDialogRename.addEventListener('submit', async evt => {
-                        evt.stopPropagation();
-                        let path = (new URL(document.URL).searchParams.get('path') || '');
-                        await fetch(`/api/newfolder?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
-                    });
-                } else if (t === 2) {
-                    const customDialogRename = document.createElement('custom-dialog-rename');
-                    customDialogRename.setAttribute('title', '新建文件');
-                    document.body.appendChild(customDialogRename);
-                    customDialogRename.addEventListener('submit', async evt => {
-                        evt.stopPropagation();
-                        let path = (new URL(document.URL).searchParams.get('path') || '');
-                        await fetch(`/api/newfile?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
-                    });
-                }
-            });
-        });
+        

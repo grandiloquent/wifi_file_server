@@ -3,7 +3,7 @@ class CustomBottomSheet extends HTMLElement {
     constructor() {
         super();
 
-        this.root = this.attachShadow({mode: 'open'});
+        this.root = this.attachShadow({ mode: 'open' });
 
         this.root.innerHTML = `<style>.menu-item
 {
@@ -118,6 +118,11 @@ class CustomBottomSheet extends HTMLElement {
             重命名
           </button>
         </div>
+        <div class="menu-item" id="action-select-same-type">
+          <button class="menu-item-button">
+            选择相同类型
+          </button>
+        </div>
         <div class="menu-item" id="close-action">
           <button class="menu-item-button">
             取消
@@ -147,6 +152,10 @@ class CustomBottomSheet extends HTMLElement {
             .addEventListener('click', evt => {
                 this.dispatchEvent(new CustomEvent('rename'))
             })
+        const actionSelectSameType = this.root.querySelector('#action-select-same-type');
+        actionSelectSameType.addEventListener('click', evt => {
+            this.dispatchEvent(new CustomEvent('selectsame'))
+        });
 
     }
 

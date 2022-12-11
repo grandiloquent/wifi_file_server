@@ -132,7 +132,8 @@ class CustomMenu extends HTMLElement {
 
         let menu = JSON.stringify([
             "新建文件夹",
-            "新建文件"
+            "新建文件",
+            "搜索"
         ]);
         const items = JSON.parse(menu);
         const is = this.root.querySelector('#items');

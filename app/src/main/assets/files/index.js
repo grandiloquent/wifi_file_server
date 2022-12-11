@@ -38,7 +38,7 @@ function createFileLink(element) {
     if (isEditableFile(concatenateFilename)) {
         return `${baseUri}/editor?path=${encodeURIComponent(concatenateFilename)}`;
     } else if (isVideoFile(concatenateFilename)) {
-    console.log(element.name)
+        console.log(element.name)
         return `${baseUri}/video?path=${encodeURIComponent(concatenateFilename)}`;
     }
     return `${baseUri}/api/files?path=${encodeURIComponent(concatenateFilename)}&isDir=${element.isDir ? 1 : 0}`;
@@ -75,6 +75,7 @@ async function render(sort) {
 
     files.forEach(element => {
         const customMediaItem = document.createElement('custom-media-item');
+        customMediaItem.dataset.isDir = element.isDir;
         if (element.isDir)
             customMediaItem.setAttribute('src', "icon-folder-m.svg");
         else if (/\.(?:apk|pdf|zip|txt)$/.test(element.name)) {
@@ -195,6 +196,10 @@ async function render(sort) {
                 console.log(paths);
                 localStorage.setItem('favorites', JSON.stringify(paths));
             })
+            customBottomSheet.addEventListener('selectsame', async evt => {
+                customBottomSheet.remove();
+                chooseSameType(element);
+            });
         });
         io.observe(customMediaItem)
 
@@ -203,3 +208,70 @@ async function render(sort) {
 }
 render((localStorage.getItem('sort') && parseInt(localStorage.getItem('sort'))) || 2);
 
+function chooseSameType(element) {
+    const files = [];
+    if (element.isDir) {
+        document.querySelectorAll('custom-media-item').forEach(x => {
+            if (x.dataset.isDir === 'true') {
+                x.setAttribute('checked', 'true');
+                files.push(x.dataset.path)
+            }
+        })
+    } else {
+        const extension = "." + substringAfterLast(element.name, ".");
+        document.querySelectorAll('custom-media-item').forEach(x => {
+            if (x.dataset.isDir === 'false' && x.dataset.path.endsWith(extension)) {
+                x.setAttribute('checked', 'true');
+                files.push(x.dataset.path)
+            }
+        })
+    }
+    localStorage.setItem('files', JSON.stringify(files))
+}
+const customBarRenderer = document.querySelector('custom-bar-renderer');
+
+customBarRenderer.addEventListener('submit-menu', evt => {
+    evt.stopPropagation();
+    const customMenu = document.createElement('custom-menu');
+    document.body.appendChild(customMenu);
+    customMenu.addEventListener('submit', evt => {
+        customMenu.remove();
+        let t = parseInt(evt.detail) + 1;
+        if (t === 1) {
+            const customDialogRename = document.createElement('custom-dialog-rename');
+            customDialogRename.setAttribute('title', '新建文件夹');
+            document.body.appendChild(customDialogRename);
+            customDialogRename.addEventListener('submit', async evt => {
+                evt.stopPropagation();
+                let path = (new URL(document.URL).searchParams.get('path') || '');
+                await fetch(`/api/newfolder?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
+            });
+        } else if (t === 2) {
+            const customDialogRename = document.createElement('custom-dialog-rename');
+            customDialogRename.setAttribute('title', '新建文件');
+            document.body.appendChild(customDialogRename);
+            customDialogRename.addEventListener('submit', async evt => {
+                evt.stopPropagation();
+                let path = (new URL(document.URL).searchParams.get('path') || '');
+                await fetch(`/api/newfile?src=${encodeURIComponent(path)}&dst=${evt.detail}`);
+            });
+        } else if (t === 3) {
+            const customDialogRename = document.createElement('custom-dialog-rename');
+            customDialogRename.setAttribute('title', '搜索');
+            document.body.appendChild(customDialogRename);
+            customDialogRename.addEventListener('submit', async evt => {
+                evt.stopPropagation();
+                let path = (new URL(document.URL).searchParams.get('path') || '');
+                path = encodeURIComponent(path);
+                const files = [];
+                document.querySelectorAll('custom-media-item').forEach(x => {
+                    if (substringAfterLast(x.dataset.path, "/").indexOf(evt.detail) !== -1) {
+                        x.setAttribute('checked', 'true');
+                        files.push(x.dataset.path)
+                    }
+                })
+                localStorage.setItem('files', JSON.stringify(files))
+            });
+        }
+    });
+});

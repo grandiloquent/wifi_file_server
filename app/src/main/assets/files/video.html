@@ -199,16 +199,18 @@
             }
         }
 
-
+        const endedEventHandler = evt => {
+            playIndexedVideo(true)
+        }
 
         layout.addEventListener('click', evt => {
             middle.style.display = 'flex';
             bottom.style.display = 'flex';
             timer && clearTimeout(timer);
-            timer = setTimeout(() => {
-                middle.style.display = 'none';
-                bottom.style.display = 'none';
-            }, 5000)
+            // timer = setTimeout(() => {
+            //     middle.style.display = 'none';
+            //     bottom.style.display = 'none';
+            // }, 5000)
         });
         buttonFullscreen.addEventListener('click', evt => {
             toggleFullScreen();
@@ -219,17 +221,19 @@
         video.addEventListener('timeupdate', timeupdateEventHandler);
         video.addEventListener('progress', progressEventHandler);
         video.addEventListener('pause', pauseEventHandler);
+        video.addEventListener('ended', endedEventHandler);
+
+
         buttonPlay.addEventListener('click', playButtonEventHandler);
 
         async function renderData() {
             await loadData();
             const customBottomSheet = document.createElement('custom-bottom-sheet');
             document.body.appendChild(customBottomSheet);
-            items.forEach(x => {
+            items.forEach((x,j) => {
                 customBottomSheet.appendItem(x.name, evt => {
-                    video.src = `/api/files?path=${x.parent + "\\" + x.name}&isDir=0`;
-                    appendSubtitle(video);
                     customBottomSheet.remove();
+                    playVideoAtSpecifiedIndex(j);
                 });
             });
         }
@@ -284,6 +288,20 @@
             s = substringAfterLast(s, '\\')
             return substringBefore(s, "&");
         }
+        const progressBarBackground = document.querySelector('.progress-bar-background');
+        const width = progressBarBackground.getBoundingClientRect().width;
+        const left = parseInt(window.getComputedStyle(bottom, null).getPropertyValue('padding-left'));
+
+        bottom.addEventListener('click', evt => {
+            evt.stopPropagation();
+            if (evt.clientX > left || evt.clientX <= width + left) {
+                let precent = (evt.clientX - left) / width;
+                precent = Math.max(precent, 0);
+                precent = Math.min(precent, 1);
+                video.currentTime = video.duration * precent;
+            }
+        });
+
     </script>
 </body>
 
