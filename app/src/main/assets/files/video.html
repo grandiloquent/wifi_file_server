@@ -207,10 +207,10 @@
             middle.style.display = 'flex';
             bottom.style.display = 'flex';
             timer && clearTimeout(timer);
-            // timer = setTimeout(() => {
-            //     middle.style.display = 'none';
-            //     bottom.style.display = 'none';
-            // }, 5000)
+            timer = setTimeout(() => {
+                middle.style.display = 'none';
+                bottom.style.display = 'none';
+            }, 5000)
         });
         buttonFullscreen.addEventListener('click', evt => {
             toggleFullScreen();
