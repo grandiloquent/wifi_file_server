@@ -49,6 +49,7 @@ function substringBeforeLast(string, delimiter, missingDelimiterValue) {
 }
 
 function appendSubtitle(video) {
+    document.querySelectorAll('track').forEach(x => x.remove())
     const track = document.createElement('track');
     track.src = substringBeforeLast(video.src, ".") + ".vtt&isDir=0";
     track.default = true;

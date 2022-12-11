@@ -8,6 +8,7 @@
     <title>Document</title>
     <link rel="stylesheet" href="video/video.css">
     <script src="video/video.js"></script>
+    <script src="video/custom-bottom-sheet.js"></script>
     <style>
         .controller {
             position: absolute;
@@ -22,7 +23,18 @@
             flex-direction: column;
 
         }
+
+        .download {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            flex-shrink: 0;
+            padding: .7em 0.57em;
+
+        }
     </style>
+
 
 </head>
 
@@ -101,13 +113,7 @@
     <div style="display: flex;
     padding: 0 12px 12px;
     ">
-        <div style="display: flex;
-align-items: center;
-justify-content: center;
-flex-direction: column;
-flex-shrink: 0;
-padding: .7em 0.57em;
-">
+        <div class="download">
 
 
 
@@ -128,9 +134,7 @@ padding: .7em 0.57em;
             </div>
         </div>
     </div>
-    <script>
 
-    </script>
     <script>
         const bottom = document.querySelector('.bottom');
         const buttonFullscreen = document.querySelector('.button-fullscreen');
@@ -144,12 +148,13 @@ padding: .7em 0.57em;
         const timeSecond = document.querySelector('.time-second');
         const video = document.querySelector('video');
 
+
         layout.style.height = `${window.innerWidth * 0.5625}px`;
         let timer;
 
         video.preload = "auto"
         video.src = `/api/files?path=${new URL(document.URL).searchParams.get('path')}&isDir=0`;
-
+        appendSubtitle(video);
         const durationChangeEventHandler = evt => {
             const ratio = video.videoWidth / window.innerWidth;
             layout.style.height = `${video.videoHeight / ratio}px`;
@@ -207,7 +212,29 @@ padding: .7em 0.57em;
         video.addEventListener('timeupdate', timeupdateEventHandler);
         video.addEventListener('progress', progressEventHandler);
         video.addEventListener('pause', pauseEventHandler);
-        buttonPlay.addEventListener('click',playButtonEventHandler);
+        buttonPlay.addEventListener('click', playButtonEventHandler);
+
+        async function loadData() {
+            const path = substringBeforeLast(new URL(document.URL).searchParams.get('path'), '/');
+            const res = await fetch(`/api/files?path=${path}&idDir=1`);
+            let items = await res.json();
+            const customBottomSheet = document.createElement('custom-bottom-sheet');
+            document.body.appendChild(customBottomSheet);
+            items.filter(x => {
+                return !x.isDir && x.name.endsWith('.mp4');
+            }).forEach(x => {
+                customBottomSheet.appendItem(x.name, evt => {
+                    video.src = `/api/files?path=${x.parent + "\\" + x.name}&isDir=0`;
+                    appendSubtitle(video);
+                    customBottomSheet.remove();
+                });
+            });
+        }
+        const download = document.querySelector('.download');
+        download.addEventListener('click', async evt => {
+            evt.stopPropagation();
+            await loadData();
+        });
 
     </script>
 </body>
