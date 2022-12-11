@@ -46,7 +46,7 @@
      flex-grow: 1;
      "></div>
             <div class="middle">
-                <div class="button">
+                <div class="button previous">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36">
                         <path d="M19,6L9,12l10,6V6L19,6z M7,6H5v12h2V6z"></path>
                     </svg>
@@ -57,7 +57,7 @@
                         <path d="M6,4l12,8L6,20V4z"></path>
                     </svg>
                 </div>
-                <div class="button">
+                <div class="button next">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36">
                         <path d="M5,18l10-6L5,6V18L5,18z M19,6h-2v12h2V6z"></path>
                     </svg>
@@ -150,14 +150,21 @@
 
 
         layout.style.height = `${window.innerWidth * 0.5625}px`;
-        let timer;
+        let timer, items;
 
         video.preload = "auto"
         video.src = `/api/files?path=${new URL(document.URL).searchParams.get('path')}&isDir=0`;
         appendSubtitle(video);
         const durationChangeEventHandler = evt => {
-            const ratio = video.videoWidth / window.innerWidth;
-            layout.style.height = `${video.videoHeight / ratio}px`;
+            console.log(window.innerWidth, window.innerHeight)
+            if (window.innerWidth < window.innerHeight) {
+                const ratio = video.videoWidth / window.innerWidth;
+                layout.style.height = `${video.videoHeight / ratio}px`;
+            } else {
+                const ratio = video.videoHeight / window.innerHeight;
+                layout.style.height = `${video.videoHeight / ratio}px`;
+            }
+
             progressBarPlayed.style.width = calculateProgressPercent(video);
             timeSecond.textContent = formatDuration(video.duration);
         }
@@ -214,15 +221,11 @@
         video.addEventListener('pause', pauseEventHandler);
         buttonPlay.addEventListener('click', playButtonEventHandler);
 
-        async function loadData() {
-            const path = substringBeforeLast(new URL(document.URL).searchParams.get('path'), '/');
-            const res = await fetch(`/api/files?path=${path}&idDir=1`);
-            let items = await res.json();
+        async function renderData() {
+            await loadData();
             const customBottomSheet = document.createElement('custom-bottom-sheet');
             document.body.appendChild(customBottomSheet);
-            items.filter(x => {
-                return !x.isDir && x.name.endsWith('.mp4');
-            }).forEach(x => {
+            items.forEach(x => {
                 customBottomSheet.appendItem(x.name, evt => {
                     video.src = `/api/files?path=${x.parent + "\\" + x.name}&isDir=0`;
                     appendSubtitle(video);
@@ -233,9 +236,54 @@
         const download = document.querySelector('.download');
         download.addEventListener('click', async evt => {
             evt.stopPropagation();
-            await loadData();
+            await renderData();
         });
-
+        document.querySelector('.previous')
+            .addEventListener('click', async evt => {
+                playIndexedVideo(false)
+            });
+        async function loadData() {
+            if (!items) {
+                const path = substringBeforeLast(new URL(document.URL).searchParams.get('path'), '/');
+                const res = await fetch(`/api/files?path=${path}&idDir=1`);
+                items = await res.json();
+                items = items.filter(x => {
+                    return !x.isDir && x.name.endsWith('.mp4');
+                })
+            }
+        }
+        document.querySelector('.next')
+            .addEventListener('click', async evt => {
+                evt.stopPropagation();
+                playIndexedVideo(true)
+            });
+        async function playIndexedVideo(next) {
+            await loadData();
+            let index = getIndexOfCurrentPlayback();
+            if (next && index + 1 < items.length) {
+                index++;
+                playVideoAtSpecifiedIndex(index)
+            }
+            if (!next && index > 0) {
+                index--
+                playVideoAtSpecifiedIndex(index)
+            }
+        }
+        async function playVideoAtSpecifiedIndex(index) {
+            const v = items[index];
+            video.src = `/api/files?path=${encodeURIComponent(v.parent + "\\" + v.name)}&isDir=0`;
+            appendSubtitle(video);
+            await video.play();
+        }
+        function getIndexOfCurrentPlayback() {
+            const name = getCurrentVideoFileName();
+            return items.indexOf(items.filter(x => x.name === name)[0]);
+        }
+        function getCurrentVideoFileName() {
+            let s = substringAfterLast(decodeURIComponent(video.src), '/');
+            s = substringAfterLast(s, '\\')
+            return substringBefore(s, "&");
+        }
     </script>
 </body>
 

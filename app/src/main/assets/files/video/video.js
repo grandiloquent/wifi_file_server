@@ -32,6 +32,9 @@ function toggleFullScreen() {
     } else {
         if (document.exitFullscreen) {
             document.exitFullscreen();
+            layout.style.position = "relative";
+            const ratio = video.videoWidth / window.innerWidth;
+            layout.style.height = `${video.videoHeight / ratio}px`;
         }
     }
 }
@@ -49,10 +52,30 @@ function substringBeforeLast(string, delimiter, missingDelimiterValue) {
 }
 
 function appendSubtitle(video) {
-    document.querySelectorAll('track').forEach(x => x.remove())
+    //document.querySelectorAll('track').forEach(x => x.remove())
     const track = document.createElement('track');
+    var tracks = video.textTracks;
+    var numTracks = tracks.length;
+    for (var i = numTracks - 1; i >= 0; i--)
+        video.textTracks[i].mode = "disabled";
     track.src = substringBeforeLast(video.src, ".") + ".vtt&isDir=0";
     track.default = true;
     video.appendChild(track);
 }
 
+function substringAfterLast(string, delimiter, missingDelimiterValue) {
+    const index = string.lastIndexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(index + delimiter.length);
+    }
+}
+function substringBefore(string, delimiter, missingDelimiterValue) {
+    const index = string.indexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(0, index);
+    }
+}
