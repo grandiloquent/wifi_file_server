@@ -80,9 +80,9 @@
         ${items.slice(1).map((x, index) => {
         if (x[1] === 2)
             return `if ( ${camelCase(tableName)}.${capitalize(camelCase(x[0]))}!=null &&${camelCase(tableName)}.${capitalize(camelCase(x[0]))}.length() > 0)values.put("${x[0]}", ${camelCase(tableName)}.${capitalize(camelCase(x[0]))});`
-            if (x[1] === 1)
+        if (x[1] === 1)
             return `if (${camelCase(tableName)}.${capitalize(camelCase(x[0]))} > 0)values.put("${x[0]}", ${camelCase(tableName)}.${capitalize(camelCase(x[0]))});`
-        }).join('\n')}
+    }).join('\n')}
         return getWritableDatabase().update("${tableName}", values,"_id = ?", new String[]{
             Integer.toString(${tableName}.Id)
     });
@@ -130,3 +130,14 @@
     }
 })();
 
+(() => {
+    if (window.location.hostname === "m.youtube.com") {
+        window.addEventListener('scroll', evt => {
+            document.querySelectorAll('.comment-text').forEach(x => {
+                x.onclick = evt => {
+                    NativeAndroid.writeText(evt.currentTarget.textContent)
+                }
+            })
+        })
+    }
+})();
