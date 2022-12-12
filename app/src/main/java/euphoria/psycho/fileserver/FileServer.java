@@ -361,7 +361,7 @@ public class FileServer extends NanoHTTPD {
         if (res != null) {
             return res;
         }
-        res = VideoHandler.handle(session);
+        res = VideoHandler.handle(mContext, session);
         if (res != null) {
             return res;
         }
