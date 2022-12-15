@@ -329,6 +329,7 @@ class CustomPlayerBar extends HTMLElement {
 
     attributeChangedCallback(attrName, oldVal, newVal) {
         if (attrName === 'src') {
+            console.log(newVal)
             this.audio.src = newVal;
             const title = this.root.querySelector('.title');
             title.textContent = this.getAttribute('title')

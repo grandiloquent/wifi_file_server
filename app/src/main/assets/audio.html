@@ -16,8 +16,8 @@
     <custom-player-bar></custom-player-bar>
     <script>
         const customPlayerBar = document.querySelector('custom-player-bar');
-        customPlayerBar.setAttribute('src', new URL(document.URL).searchParams.get('path'));
-    </script>
+        customPlayerBar.setAttribute('src', `/api/files?path=${new URL(document.URL).searchParams.get('path')}&isDir=0`);
+ </script>
 </body>
 
 </html>

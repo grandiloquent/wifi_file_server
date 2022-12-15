@@ -10,7 +10,9 @@ function createFileLink(element) {
     const concatenateFilename = element.parent + "/" + element.name;
     if (isEditableFile(concatenateFilename)) {
         return `${baseUri}/editor?path=${encodeURIComponent(concatenateFilename)}`;
-    } else if (isVideoFile(concatenateFilename)) {
+    } else if(concatenateFilename.endsWith(".m4a")||concatenateFilename.endsWith(".mp3")) {
+        return `${baseUri}/audio.html?path=${encodeURIComponent(concatenateFilename)}`;
+    }  else if (isVideoFile(concatenateFilename)) {
         return `${baseUri}/video?path=${encodeURIComponent(concatenateFilename)}`;
     }
     return `${baseUri}/api/files?path=${encodeURIComponent(concatenateFilename)}&isDir=${element.isDir ? 1 : 0}`;
