@@ -12,7 +12,7 @@ function actionRename(value) {
     });
 }
 async function loadFiles() {
-    const res = await fetch(`${baseUri}/api/files?path=${new URL(window.location).searchParams.get("path") || ''}`);
+    const res = await fetch(`${baseUri}/api/files?path=${encodeURIComponent(new URL(window.location).searchParams.get("path") || '')}`);
     const files = await res.json();
     return files;
 }
@@ -77,28 +77,28 @@ async function render(sort) {
         const customMediaItem = document.createElement('custom-media-item');
         customMediaItem.dataset.isDir = element.isDir;
         if (element.isDir)
-            customMediaItem.setAttribute('src', "icon-folder-m.svg");
+            customMediaItem.setAttribute('src', "../images/icon-folder-m.svg");
         else if (/\.(?:apk|pdf|zip|txt)$/.test(element.name)) {
 
-            customMediaItem.setAttribute('src', `icon-${/\.(apk|pdf|zip|txt)$/.exec(element.name)[1]}-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-${/\.(apk|pdf|zip|txt)$/.exec(element.name)[1]}-m.svg`);
         } else if (/\.(?:jpg|png|svg)$/.test(element.name)) {
-            customMediaItem.setAttribute('src', `icon-pic-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-pic-m.svg`);
             customMediaItem.setAttribute('data-src', `${baseUri}/api/files?path=${encodeURIComponent(element.parent + "/" + element.name)}&isDir=0`);
         } else if (element.name.endsWith('.xlsx')) {
-            customMediaItem.setAttribute('src', `icon-xls-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-xls-m.svg`);
         } else if (element.name.endsWith('.7z')) {
-            customMediaItem.setAttribute('src', `icon-zip-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-zip-m.svg`);
         } else if (/\.(?:txt|epub|azw3|mobi)$/.test(element.name)) {
-            customMediaItem.setAttribute('src', `icon-txt-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-txt-m.svg`);
         } else if (/\.(?:htm|xhtml|html)$/.test(element.name)) {
-            customMediaItem.setAttribute('src', `icon-code-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-code-m.svg`);
         } else if (/\.(?:mp3)$/.test(element.name)) {
-            customMediaItem.setAttribute('src', `icon-audio-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-audio-m.svg`);
         } else if (isVideoFile(element.name)) {
-            customMediaItem.setAttribute('src', `icon-video-m.svg`);
+            customMediaItem.setAttribute('src', `../images/icon-video-m.svg`);
             customMediaItem.setAttribute('data-src', `${baseUri}/api/files?action=preview&path=${encodeURIComponent(element.parent + "/" + element.name)}`);
         } else {
-            customMediaItem.setAttribute('src', "icon-nor-m.svg");
+            customMediaItem.setAttribute('src', "../images/icon-nor-m.svg");
         }
         customMediaItem.setAttribute('title', element.name);
         let path;

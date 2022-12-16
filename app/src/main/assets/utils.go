@@ -236,12 +236,13 @@ func staticFiles(w http.ResponseWriter, r *http.Request) bool {
 		filename = "files/" + r.URL.Path[1:]
 	}
 	if len(filename) > 0 {
+
 		if !checkFileExists(filename) {
 			referer := r.Header.Get("Referer")
 			if len(referer) > 0 {
 				u, err := url.Parse(referer)
 				if err == nil && len(filename) > 3 {
-					filename = path.Dir(u.Query().Get("path")) + "/" + filename[3:]
+					filename = path.Dir(u.Query().Get("path")) + "/" + strings.Split(filename, "/api/")[1:][0]
 				}
 			}
 		}
