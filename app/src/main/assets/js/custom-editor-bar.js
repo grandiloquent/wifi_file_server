@@ -3,7 +3,7 @@ class CustomEditorBar extends HTMLElement {
     constructor() {
         super();
 
-        this.root = this.attachShadow({mode: 'open'});
+        this.root = this.attachShadow({ mode: 'open' });
         this.root.innerHTML = `<style>.text
 {
     max-width: 100%;
@@ -42,20 +42,18 @@ class CustomEditorBar extends HTMLElement {
 }</style>
     <div style="display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; right: 0; padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); z-index: 3; height: 48px; border-top: 1px solid rgba(0,0,0,.1); background: rgba(255,255,255,.98); color: #030303; font-size: 1.1rem;">
       <div style="display: flex; -webkit-box-flex: 1; flex: 1 1 0%; min-width: 0;">
-        <div class="item" id="head">
-          <div class="image">
-            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
-              <g>
-                <path d="M5.016 3.984h13.969v3h-5.484v12h-3v-12h-5.484v-3z">
-                </path>
-              </g>
-            </svg>
-          </div>
-          <div class="text">
-            标题
-          </div>
-        </div>
-        <div class="item" id="english">
+      <div class="item" id="delete-lines">
+      <div class="image">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+          <path d="M18.984 6.422l-5.578 5.578 5.578 5.578-1.406 1.406-5.578-5.578-5.578 5.578-1.406-1.406 5.578-5.578-5.578-5.578 1.406-1.406 5.578 5.578 5.578-5.578z">
+          </path>
+        </svg>
+      </div>
+      <div class="text">
+        删除
+      </div>
+    </div>
+    <div class="item" id="english">
           <div class="image">
             <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
               <path d="M21.516 20.484v-13.969q0-0.422-0.305-0.727t-0.727-0.305h-9.047l1.313 3.797h1.453v-1.266h1.266v1.266h4.547v1.313h-1.922q-0.703 2.344-2.391 4.219l3.281 3.281-0.938 0.891-3.094-3.094 1.031 3.094-1.969 2.531h6.469q0.422 0 0.727-0.305t0.305-0.727zM13.172 10.594l0.797 2.344 0.844 1.125q1.453-1.594 2.063-3.469h-3.703zM6.984 15.984q2.156 0 3.492-1.359t1.336-3.516q0-0.047-0.141-1.031h-4.688v1.734h2.953q-0.094 0.891-0.844 1.641t-2.109 0.75q-1.313 0-2.227-0.938t-0.914-2.25q0-1.359 0.914-2.297t2.227-0.938q1.266 0 2.063 0.797l1.313-1.266q-1.453-1.313-3.375-1.313-2.063 0-3.516 1.477t-1.453 3.539 1.453 3.516 3.516 1.453zM21 3.984q0.797 0 1.406 0.609t0.609 1.406v15q0 0.797-0.609 1.406t-1.406 0.609h-9l-0.984-3h-8.016q-0.797 0-1.406-0.609t-0.609-1.406v-15q0-0.797 0.609-1.406t1.406-0.609h6.984l1.031 3h9.984z" />
@@ -75,6 +73,68 @@ class CustomEditorBar extends HTMLElement {
             保存
           </div>
         </div>
+      <div class="item" id="head">
+          <div class="image">
+            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
+              <g>
+                <path d="M5.016 3.984h13.969v3h-5.484v12h-3v-12h-5.484v-3z">
+                </path>
+              </g>
+            </svg>
+          </div>
+          <div class="text">
+            标题
+          </div>
+        </div>
+        <div class="item" id="code">
+          <div class="image">
+            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
+              <g>
+                <path d="M14.578 16.594l4.641-4.594-4.641-4.594 1.406-1.406 6 6-6 6zM9.422 16.594l-1.406 1.406-6-6 6-6 1.406 1.406-4.641 4.594z">
+                </path>
+              </g>
+            </svg>
+          </div>
+          <div class="text">
+            代码
+          </div>
+        </div>
+        <div class="item" id="codeStr">
+          <div class="image">
+            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
+              <g>
+                <path d="M14.578 16.594l4.641-4.594-4.641-4.594 1.406-1.406 6 6-6 6zM9.422 16.594l-1.406 1.406-6-6 6-6 1.406 1.406-4.641 4.594z">
+                </path>
+              </g>
+            </svg>
+          </div>
+          <div class="text">
+            代码
+          </div>
+        </div>
+        <div class="item" id="bold">
+          <div class="image">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M13.5 15.516q0.656 0 1.078-0.445t0.422-1.055-0.422-1.055-1.078-0.445h-3.516v3h3.516zM9.984 6.516v3h3q0.609 0 1.055-0.445t0.445-1.055-0.445-1.055-1.055-0.445h-3zM15.609 10.781q2.156 0.984 2.156 3.422 0 1.594-1.055 2.695t-2.648 1.102h-7.078v-14.016h6.281q1.688 0 2.836 1.172t1.148 2.859-1.641 2.766z">
+              </path>
+            </svg>
+          </div>
+          <div class="text">
+            粗体
+          </div>
+        </div>
+        <div class="item" id="en">
+          <div class="image">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M13.5 15.516q0.656 0 1.078-0.445t0.422-1.055-0.422-1.055-1.078-0.445h-3.516v3h3.516zM9.984 6.516v3h3q0.609 0 1.055-0.445t0.445-1.055-0.445-1.055-1.055-0.445h-3zM15.609 10.781q2.156 0.984 2.156 3.422 0 1.594-1.055 2.695t-2.648 1.102h-7.078v-14.016h6.281q1.688 0 2.836 1.172t1.148 2.859-1.641 2.766z">
+              </path>
+            </svg>
+          </div>
+          <div class="text">
+            模板
+          </div>
+        </div>
+        
         <div class="item" id="menu">
           <div class="image">
             <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
@@ -86,16 +146,7 @@ class CustomEditorBar extends HTMLElement {
             菜单
           </div>
         </div>
-        <div class="item" id="preview">
-          <div class="image">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-              <path d="M19,3H5C3.89,3,3,3.9,3,5v14c0,1.1,0.89,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.11,3,19,3z M19,19H5V7h14V19z M12,10.5 c1.84,0,3.48,0.96,4.34,2.5c-0.86,1.54-2.5,2.5-4.34,2.5S8.52,14.54,7.66,13C8.52,11.46,10.16,10.5,12,10.5 M12,9 c-2.73,0-5.06,1.66-6,4c0.94,2.34,3.27,4,6,4s5.06-1.66,6-4C17.06,10.66,14.73,9,12,9L12,9z M12,14.5c-0.83,0-1.5-0.67-1.5-1.5 s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S12.83,14.5,12,14.5z" />
-            </svg>
-          </div>
-          <div class="text">
-            预览
-          </div>
-        </div>
+
       </div>
     </div>`;
 
@@ -122,10 +173,16 @@ class CustomEditorBar extends HTMLElement {
         document.addEventListener('visibilitychange', async ev => {
             localStorage.setItem('content', textarea.value);
         });
-        this.root.querySelector('#head').addEventListener('click', evt => {
-            evt.stopPropagation();
+        this.root.querySelector('#head').addEventListener('click', async ev => {
+            ev.stopPropagation();
             formatHead(textarea, 2);
         });
+        this.root.querySelector('#en').addEventListener('click', async evt => {
+            evt.stopPropagation();
+            textarea.setRangeText(localStorage.getItem("template")
+                .replaceAll(/\$1/g, (await navigator.clipboard.readText())), textarea.selectionStart, textarea.selectionEnd);
+        });
+
         this.root.querySelector('#english').addEventListener('click', async evt => {
             evt.stopPropagation();
             await trans(textarea, 1);
@@ -134,14 +191,76 @@ class CustomEditorBar extends HTMLElement {
             evt.stopPropagation();
             saveData(textarea);
         });
-        this.root.querySelector('#preview').addEventListener('click', async evt => {
+        this.root.querySelector('#codeStr').addEventListener('click', async evt => {
             evt.stopPropagation();
-            preview();
+            // const s = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+            // if (s) {
+            //     textarea.setRangeText(`\`${s}\``, textarea.selectionStart, textarea.selectionEnd);
+            // } else {
+            //     textarea.setRangeText(`\`${await navigator.clipboard.readText()}\``, textarea.selectionStart, textarea.selectionEnd);
+            // }
+            let start = textarea.selectionStart;
+            let end = textarea.selectionEnd;
+            while (start - 1 > 0) {
+                if (textarea.value[start] !== '\n') {
+                    start--;
+                    continue;
+                }
+                break;
+            }
+            while (end + 1 < textarea.value.length) {
+                if (textarea.value[end] !== '\n') {
+                    end++;
+                    continue;
+                }
+                break;
+            }
+            start++;
+            let s = textarea.value.substring(start, end);
+            textarea.setRangeText(`\`\`\`rs\n${s.trim()}\n\`\`\``, start, end);
+        });
+        this.root.querySelector('#bold').addEventListener('click', async evt => {
+            evt.stopPropagation();
+            const s = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+            if (s) {
+                textarea.setRangeText(`**${s}**`, textarea.selectionStart, textarea.selectionEnd);
+            } else {
+                textarea.setRangeText(`**${await navigator.clipboard.readText()}**`, textarea.selectionStart, textarea.selectionEnd);
+            }
+        });
+        this.root.querySelector('#delete-lines').addEventListener('click', async evt => {
+            evt.stopPropagation();
+            removeLines(textarea);
+        });
+        this.root.querySelector('#code').addEventListener('click', async evt => {
+            evt.stopPropagation();
+            //textarea.setRangeText(`- \`${await navigator.clipboard.readText()}\`：`, textarea.selectionStart, textarea.selectionEnd)
+            const re = new RegExp('[\u4e00-\u9fa5\r\n，。！？：——/（）]');
+            let start = textarea.selectionStart;
+            let end = start;
+            while (start - 1 > 0) {
+                if (!re.test(textarea.value[start])) {
+                    start--;
+                    continue;
+                }
+                break;
+            }
+            while (end + 1 < textarea.value.length) {
+                if (!re.test(textarea.value[end])) {
+                    end++;
+                    continue;
+                }
+                break;
+            }
+            start++;
+            let s = textarea.value.substring(start, end);
+            textarea.setRangeText(` \`${s.trim()}\` `, start, end);
         });
         this.root.querySelector('#menu').addEventListener('click', async evt => {
             evt.stopPropagation();
             const customEditorMenu = document.createElement('custom-editor-menu');
             customEditorMenu.addEventListener('submit', async evt => {
+                console.log(evt.detail)
                 switch (evt.detail) {
                     case '0':
                         preview();
@@ -167,6 +286,10 @@ class CustomEditorBar extends HTMLElement {
                         const p = findCodeBlock(textarea);
                         textarea.setRangeText(await navigator.clipboard.readText(), p[0], p[1]);
                         break;
+                    case '7':
+                        splitLines(textarea);
+                        break;
+
                 }
             });
             document.body.appendChild(customEditorMenu);
@@ -186,9 +309,25 @@ class CustomEditorBar extends HTMLElement {
             } else if (ev.key === 'F5') {
                 ev.preventDefault();
                 saveData();
+            } else if (ev.key === 'F6') {
+                ev.preventDefault();
+                const s = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                if (s) {
+                    textarea.setRangeText(`\`${s}\``, textarea.selectionStart, textarea.selectionEnd);
+                } else {
+                    textarea.setRangeText(`\`${await navigator.clipboard.readText()}\``, textarea.selectionStart, textarea.selectionEnd);
+                }
+            } else if (ev.key === 'F7') {
+                ev.preventDefault();
+                const s = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                if (s) {
+                    textarea.setRangeText(`**${s}**`, textarea.selectionStart, textarea.selectionEnd);
+                } else {
+                    textarea.setRangeText(`**${await navigator.clipboard.readText()}**`, textarea.selectionStart, textarea.selectionEnd);
+                }
             } else if (ev.key === 'F10') {
                 ev.preventDefault();
-                //removeLines();
+
                 uploadHanlder(textarea);
             } else {
                 if (ev.altKey && ev.key.toLowerCase() === 's') {
@@ -213,10 +352,9 @@ class CustomEditorBar extends HTMLElement {
                     formatHead(textarea, 2);
                 } else if (ev.ctrlKey && ev.key.toLowerCase() === 'l') {
                     ev.preventDefault();
-                    textarea.setRangeText(`\`\`\`js
-${await navigator.clipboard.readText()}
-\`\`\``)
-                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'k') {
+                    textarea.setRangeText(localStorage.getItem("template")
+                        .replaceAll(/\$1/g, (await navigator.clipboard.readText())), textarea.selectionStart, textarea.selectionEnd);
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'j') {
                     ev.preventDefault();
                     window.open(
                         substringNearest(textarea.value,
@@ -236,10 +374,19 @@ ${await navigator.clipboard.readText()}
                     ev.preventDefault();
                     const s = await navigator.clipboard.readText();
                     textarea.setRangeText(
-                        `- [${substringAfterLast(s.trim(),"/")}](${s.trim()})`,
+                        `## [${substringAfterLast(s.trim(), "/")}](${s.trim()})`,
                         textarea.selectionStart,
                         textarea.selectionEnd
                     )
+                    //
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'k') {
+                    ev.preventDefault();
+                    textarea.setRangeText(`- \`${await navigator.clipboard.readText()}\`：`, textarea.selectionStart, textarea.selectionEnd)
+                } else if (ev.ctrlKey && ev.key.toLowerCase() === 'q') {
+                    ev.preventDefault();
+                    const s = `\`${await navigator.clipboard.readText()}\``;
+                    textarea.setRangeText(s, textarea.selectionStart, textarea.selectionEnd)
+                    textarea.selectionStart += s.length;
                 }
             }
         });
@@ -255,6 +402,31 @@ ${await navigator.clipboard.readText()}
         }
     }
 
+    async pasteLineCode() {
+        let start = textarea.selectionStart;
+        let number = 1;
+        while (start > -1) {
+            if (textarea.value[start] === '\n') {
+                const buf = [];
+                let end = start + 1;
+                while (end + 1 < textarea.value.length
+                    && ((textarea.value.codePointAt(end) >= 48 && textarea.value.codePointAt(end) <= 57) || textarea.value.codePointAt(end) === 46)) {
+                    buf.push(textarea.value[end])
+                    end++;
+                }
+                if (buf.length > 0) {
+                    number = parseInt(buf.join(''));
+                    break;
+                }
+            }
+            start--;
+        }
+        textarea.setRangeText(`${number + 1}.
+
+\t\`\`\`shell
+${(await navigator.clipboard.readText()).split(/\n/g).map(x => `\t${x}`).join('\n')}
+\t\`\`\``)
+    }
 }
 
 customElements.define('custom-editor-bar', CustomEditorBar);
@@ -306,7 +478,7 @@ function findCodeBlock(textarea) {
 }
 
 function uploadHanlder(editor) {
-    if (window.location.protocol === 'https:') {
+    if (window.location.protocol === 'https:' || window.location.protocol === 'http:') {
         tryUploadImageFromClipboard((ok) => {
             const string = `![](https://static.lucidu.cn/images/${ok})\n\n`;
             editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
@@ -416,7 +588,7 @@ function formatHead(editor, count) {
     }
     editor.selectionStart = offsetEnd;
     editor.selectionEnd = offsetEnd;
-    
+
 }
 
 function formatList(textarea) {
@@ -539,13 +711,12 @@ async function trans(editor, english) {
     if (matchYear) {
         year = matchYear[0] + '年'
     }
-    console.log('---------------->', results)
     // string
     // \n\n${year}
-    editor.setRangeText(`${english ? '' : (lines[0].join(' '))}\n${results}`, points[1], points[1]);
+    editor.setRangeText(`${english ? '' : (lines[0].join(' '))}\n\n${results}`, points[1], points[1]);
 }
 
-let translate = '/api/trans';
+let translate = 'https://kpkpkp.cn/api/trans';
 
 async function google(value, english) {
     // /translate
@@ -588,20 +759,31 @@ async function submitData(textarea) {
     };
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
-    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
+    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
 
     if (id) {
-        obj._id = parseInt(id);
+        obj.id = parseInt(id);
         obj.update_at = new Date().getTime();
     } else {
         obj.create_at = new Date().getTime();
         obj.update_at = new Date().getTime();
     }
     if (obj.title.indexOf('|') !== -1) {
-        obj.tag = substringAfter(obj.title, '|').trim();
+        const tags = JSON.parse(substringAfter(obj.title, '|').trim() || '[]');
+        if (tags.length) {
+            obj.tags = tags;
+        }
         obj.title = substringBefore(obj.title, '|').trim();
     }
-    const response = await fetch(`${baseUri}/api/note`, {
+
+    const m = /!\[]\(([^)]*?)\)/.exec(textarea.value);
+    if (m) {
+        const thumbnail = m[1];
+        if (thumbnail) {
+            obj.thumbnail = thumbnail;
+        }
+    }
+    const response = await fetch(`${baseUri}/api/article`, {
         method: 'POST',
         body: JSON.stringify(obj)
     });
@@ -615,7 +797,7 @@ async function submitData(textarea) {
 
 async function loadData(baseUri, id) {
 
-    const response = await fetch(`${baseUri}/api/note?id=${id}`);
+    const response = await fetch(`${baseUri}/api/article?id=${id}`);
     return await response.json();
 }
 
@@ -623,13 +805,13 @@ async function render(textarea) {
     textarea.value = localStorage.getItem("content");
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
-    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
+    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
 
     if (id) {
         try {
             const obj = await loadData(baseUri, id);
             document.title = obj.title;
-            textarea.value = `# ${obj.title}|${obj.tag}
+            textarea.value = `# ${obj.title}|${JSON.stringify(obj.tags)}
         
 ${obj.content.trim()}
         `
@@ -642,10 +824,7 @@ ${obj.content.trim()}
 function preview() {
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
-    if (window.location.protocol === 'https:')
-        window.open(`https://wxyoga.cn/article?id=${id}`, '_blank');
-    else
-        window.open(`article.html?id=${id}`, '_blank')
+    window.open(`article?id=${id}`, '_blank')
 }
 
 function substringAfter(string, delimiter, missingDelimiterValue) {
@@ -692,7 +871,91 @@ function substringBefore(string, delimiter, missingDelimiterValue) {
         return string.substring(0, index);
     }
 }
+async function uploadImage(image, name) {
+    const form = new FormData();
+    form.append('images', image, name)
+    const response = await fetch(`https://lucidu.cn/api/article/2`, {
+        method: 'POST',
+        body: form
+    });
+    return await response.text();
+}
+function splitLines(textarea) {
+    const range = findExtendPosition(textarea);
+    const contents = textarea.value.substring(range[0], range[1])
+        .split(/[.?!]/g).filter(x => x.trim()).map(x => x.trim() + '.').join('\n\n');
+    textarea.setRangeText(contents, range[0], range[1]);
+}
+async function removeLines(textarea) {
+    if (textarea.selectionStart !== textarea.selectionEnd) {
+        
+        let start = textarea.selectionStart;
+        let end = textarea.selectionEnd;
 
+        while (start > -1) {
+            if (textarea.value[start] === '\n') {
+                let s = [];
+
+                while (start > -1 && /\s/.test(textarea.value[start])) {
+                    s.push(textarea.value[start])
+                    start--;
+                }
+                if ([...s.join('').matchAll(/\n/g)].length > 2) {
+                    break;
+                }
+            }
+            start--;
+        }
+        while (end + 1 < textarea.value.length) {
+            if (textarea.value[end] === '\n') {
+                let s = [];
+
+                while (end + 1 < textarea.value.length && /\s/.test(textarea.value[end])) {
+                    s.push(textarea.value[end])
+                    end++;
+                }
+                if ([...s.join('').matchAll(/\n/g)].length > 2) {
+                    break;
+                }
+            }
+            end++;
+        }
+        start++;
+        
+        if (typeof NativeAndroid !== 'undefined') {
+            NativeAndroid.writeText(textarea.value.substring(start, end));
+        } else {
+            await navigator.clipboard.writeText(textarea.value.substring(start, end))
+        }
+        textarea.setRangeText('\n', start, end);
+        textarea.selectionEnd = start;
+    } else {
+        // textarea.value = textarea.value.substring(textarea.selectionEnd);
+        // textarea.selectionStart = 0;
+        // textarea.selectionEnd = 0;
+        // textarea.scrollLeft = 0;
+        // textarea.scrollTop = 0;
+        const p = findExtendPosition(textarea);
+
+        let start = p[0];
+
+        while (start > -1 && /\s/.test(textarea.value[start - 1])) {
+            start--;
+        }
+
+        let end = p[1];
+        while (end + 1 < textarea.value.length && /\s/.test(textarea.value[end + 1])) end++;
+
+        if (typeof NativeAndroid !== 'undefined') {
+            NativeAndroid.writeText(textarea.value.substring(start, end));
+        } else {
+            await navigator.clipboard.writeText(textarea.value.substring(start, end))
+        }
+        textarea.setRangeText('\n\n', start, end + 1);
+        textarea.selectionEnd = start;
+    }
+
+}
 /*
 console.log([...document.querySelectorAll('.slide-image-wrap img')]
     .map((x, index) => {
