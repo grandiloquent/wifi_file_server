@@ -34,6 +34,7 @@ func deleteFiles(w http.ResponseWriter, r *http.Request) bool {
 	w.Write([]byte("Success"))
 	return true
 }
+
 func listDirectory(fullname string) ([]map[string]interface{}, error) {
 	entries, err := os.ReadDir(fullname)
 	if err != nil {
@@ -294,4 +295,13 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
+}
+func unzip(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path != "/api/unzip" {
+		return false
+	}
+	q := r.URL.Query()
+	filename := q.Get("path")
+	Unzip(filename, filename[:strings.LastIndex(filename, ".")])
+	return true
 }

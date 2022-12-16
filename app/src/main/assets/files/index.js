@@ -121,6 +121,8 @@ async function render(sort) {
 
             if (/\.(?:mp4|mp3)$/.test(element.name)) {
                 customBottomSheet.appendPlayButton();
+            } else if (/\.(?:zip)$/.test(element.name)) {
+                customBottomSheet.appendUnZipButton();
             } else if (element.isDir) {
                 customBottomSheet.appendFavorite();
             }
@@ -195,6 +197,22 @@ async function render(sort) {
                 paths.push(parent + "/" + element.name);
                 console.log(paths);
                 localStorage.setItem('favorites', JSON.stringify(paths));
+            })
+            customBottomSheet.addEventListener('unzip',async evt => {
+                customBottomSheet.remove();
+                let parent = new URL(window.location).searchParams.get('path');
+                if (!parent) {
+                    parent = "/storage/emulated/0";
+                    return;
+                }
+                try {
+                    await fetch(`${baseUri}/api/unzip?path=${encodeURIComponent(parent + "/" + element.name)}`, {
+                        method: 'POST',
+                        body: localStorage.getItem('files')
+                    });
+                } catch (error) {
+
+                }
             })
             customBottomSheet.addEventListener('selectsame', async evt => {
                 customBottomSheet.remove();

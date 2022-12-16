@@ -173,7 +173,20 @@ class CustomBottomSheet extends HTMLElement {
             'beforebegin', menuItem
         )
     }
-
+    appendUnZipButton() {
+      const menuItem = document.createElement('div');
+      menuItem.setAttribute("class", "menu-item");
+      const menuItemButton = document.createElement('button');
+      menuItemButton.setAttribute("class", "menu-item-button");
+      menuItem.appendChild(menuItemButton);
+      menuItemButton.textContent = `解压`;
+      menuItem.addEventListener('click', evt => {
+          this.dispatchEvent(new CustomEvent('unzip'))
+      });
+      this.root.querySelector('#close-action').insertAdjacentElement(
+          'beforebegin', menuItem
+      )
+  }
     appendFavorite() {
         const menuItem = document.createElement('div');
         menuItem.setAttribute("class", "menu-item");
