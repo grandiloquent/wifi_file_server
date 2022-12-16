@@ -256,7 +256,7 @@ class CustomEditorBar extends HTMLElement {
                 await navigator.clipboard.writeText(textarea.value.substring(start, end))
             }
             let s = textarea.value.substring(start, end);
-            textarea.setRangeText(`\`\`\`rs\n${s.trim()}\n\`\`\``, start, end);
+            textarea.setRangeText(`\n\n\`\`\`rs\n${s.trim()}\n\`\`\`\n\n`,start,end)
             textarea.selectionEnd = start;
         });
         this.root.querySelector('#bold').addEventListener('click', async evt => {
@@ -667,7 +667,7 @@ async function loadData(baseUri, id) {
 function preview() {
     const searchParams = new URL(window.location.href).searchParams;
     const id = searchParams.get('id');
-    window.open(`article?id=${id}`, '_blank')
+    window.open(`article.html?id=${id}`, '_blank')
 }
 async function removeLines(textarea) {
     if (textarea.selectionStart !== textarea.selectionEnd) {
@@ -760,6 +760,7 @@ ${obj.content.trim()}
 }
 
 async function saveData(textarea) {
+    document.getElementById('toast').setAttribute('message', '成功');
     await submitData(textarea);
 
 }
