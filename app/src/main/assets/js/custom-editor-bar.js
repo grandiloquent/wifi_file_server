@@ -179,8 +179,14 @@ class CustomEditorBar extends HTMLElement {
         });
         this.root.querySelector('#en').addEventListener('click', async evt => {
             evt.stopPropagation();
+            let s;
+            if (typeof NativeAndroid !== 'undefined') {
+                s = NativeAndroid.readText()
+            } else {
+                s = await navigator.clipboard.readText()
+            }
             textarea.setRangeText(localStorage.getItem("template")
-                .replaceAll(/\$1/g, (await navigator.clipboard.readText())), textarea.selectionStart, textarea.selectionEnd);
+                .replaceAll(/\$1/g, s), textarea.selectionStart, textarea.selectionEnd);
         });
 
         this.root.querySelector('#english').addEventListener('click', async evt => {
@@ -256,7 +262,7 @@ class CustomEditorBar extends HTMLElement {
                 await navigator.clipboard.writeText(textarea.value.substring(start, end))
             }
             let s = textarea.value.substring(start, end);
-            textarea.setRangeText(`\n\n\`\`\`rs\n${s.trim()}\n\`\`\`\n\n`,start,end)
+            textarea.setRangeText(`\n\n\`\`\`rs\n${s.trim()}\n\`\`\`\n\n`, start, end)
             textarea.selectionEnd = start;
         });
         this.root.querySelector('#bold').addEventListener('click', async evt => {
