@@ -185,6 +185,7 @@ class CustomEditorBar extends HTMLElement {
             } else {
                 s = await navigator.clipboard.readText()
             }
+            s=s.split('\n').filter(x=>x.trim()).join('\n');
             textarea.setRangeText(localStorage.getItem("template")
                 .replaceAll(/\$1/g, s), textarea.selectionStart, textarea.selectionEnd);
         });
@@ -262,7 +263,7 @@ class CustomEditorBar extends HTMLElement {
                 await navigator.clipboard.writeText(textarea.value.substring(start, end))
             }
             let s = textarea.value.substring(start, end);
-            textarea.setRangeText(`\n\n\`\`\`rs\n${s.trim()}\n\`\`\`\n\n`, start, end)
+            textarea.setRangeText(`\n\n\`\`\`rs\n${s.split('\n').filter(x=>x.trim()).join('\n')}\n\`\`\`\n\n`, start, end)
             textarea.selectionEnd = start;
         });
         this.root.querySelector('#bold').addEventListener('click', async evt => {
@@ -281,7 +282,7 @@ class CustomEditorBar extends HTMLElement {
         this.root.querySelector('#code').addEventListener('click', async evt => {
             evt.stopPropagation();
             //textarea.setRangeText(`- \`${await navigator.clipboard.readText()}\`：`, textarea.selectionStart, textarea.selectionEnd)
-            const re = new RegExp('[\u4e00-\u9fa5\r\n，。！？：——/（）]');
+            const re = new RegExp('[\u4e00-\u9fa5\r\n，。！？：——/（）、]');
             let start = textarea.selectionStart;
             let end = start;
             while (start - 1 > 0) {
