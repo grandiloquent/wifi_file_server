@@ -199,25 +199,65 @@ class CustomEditorBar extends HTMLElement {
             // } else {
             //     textarea.setRangeText(`\`${await navigator.clipboard.readText()}\``, textarea.selectionStart, textarea.selectionEnd);
             // }
+            // let start = textarea.selectionStart;
+            // let end = textarea.selectionEnd;
+            // while (start - 1 > 0) {
+            //     if (textarea.value[start] !== '\n') {
+            //         start--;
+            //         continue;
+            //     }
+            //     break;
+            // }
+            // while (end + 1 < textarea.value.length) {
+            //     if (textarea.value[end] !== '\n') {
+            //         end++;
+            //         continue;
+            //     }
+            //     break;
+            // }
+            // start++;
+            // let s = textarea.value.substring(start, end);
             let start = textarea.selectionStart;
             let end = textarea.selectionEnd;
-            while (start - 1 > 0) {
-                if (textarea.value[start] !== '\n') {
-                    start--;
-                    continue;
+
+            while (start > -1) {
+                if (textarea.value[start] === '\n') {
+                    let s = [];
+
+                    while (start > -1 && /\s/.test(textarea.value[start])) {
+                        s.push(textarea.value[start])
+                        start--;
+                    }
+                    if ([...s.join('').matchAll(/\n/g)].length > 2) {
+                        break;
+                    }
                 }
-                break;
+                start--;
             }
             while (end + 1 < textarea.value.length) {
-                if (textarea.value[end] !== '\n') {
-                    end++;
-                    continue;
+                if (textarea.value[end] === '\n') {
+                    let s = [];
+
+                    while (end + 1 < textarea.value.length && /\s/.test(textarea.value[end])) {
+                        s.push(textarea.value[end])
+                        end++;
+                    }
+                    if ([...s.join('').matchAll(/\n/g)].length > 2) {
+                        break;
+                    }
                 }
-                break;
+                end++;
             }
             start++;
+
+            if (typeof NativeAndroid !== 'undefined') {
+                NativeAndroid.writeText(textarea.value.substring(start, end));
+            } else {
+                await navigator.clipboard.writeText(textarea.value.substring(start, end))
+            }
             let s = textarea.value.substring(start, end);
             textarea.setRangeText(`\`\`\`rs\n${s.trim()}\n\`\`\``, start, end);
+            textarea.selectionEnd = start;
         });
         this.root.querySelector('#bold').addEventListener('click', async evt => {
             evt.stopPropagation();
@@ -449,6 +489,8 @@ detail: evt.currentTarget.dataset.index
 }))
 -->
 */
+let translate = 'https://kpkpkp.cn/api/trans';
+
 function findCodeBlock(textarea) {
     const value = textarea.value;
     let start = textarea.selectionStart;
@@ -477,67 +519,52 @@ function findCodeBlock(textarea) {
     return [start, end];
 }
 
-function uploadHanlder(editor) {
-    if (window.location.protocol === 'https:' || window.location.protocol === 'http:') {
-        tryUploadImageFromClipboard((ok) => {
-            const string = `![](https://static.lucidu.cn/images/${ok})\n\n`;
-            editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
-        }, () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.addEventListener('change', async ev => {
-                const file = input.files[0];
-                const imageFile = await uploadImage(file, file.name);
-                const string = `![](https://static.lucidu.cn/images/${imageFile})\n\n`;
-                editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
-            });
-            input.click();
-        });
-    } else {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.addEventListener('change', async ev => {
-            const file = input.files[0];
-            const imageFile = await uploadImage(file, file.name);
-            const string = `![](https://static.lucidu.cn/images/${imageFile})\n\n`;
-            editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
-        });
-        input.click();
-    }
-
-}
-
-function tryUploadImageFromClipboard(success, error) {
-    navigator.permissions.query({
-        name: "clipboard-read"
-    }).then(result => {
-        if (result.state === "granted" || result.state === "prompt") {
-            navigator.clipboard.read().then(data => {
-                console.log(data[0].types);
-                const blob = data[0].getType("image/png");
-                console.log(blob.then(res => {
-                    const formData = new FormData();
-                    formData.append("images", res, "1.png");
-                    fetch(`https://lucidu.cn/api/article/2`, {
-                        method: "POST",
-                        body: formData
-                    }).then(res => {
-                        return res.text();
-                    }).then(obj => {
-                        success(obj);
-                    })
-                }).catch(err => {
-                    console.log(err)
-                    error(err);
-                }))
-            })
-                .catch(err => {
-                    error(err);
-                });
-        } else {
-            error(new Error());
+function findExtendPosition(editor) {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    let string = editor.value;
+    let offsetStart = start;
+    while (offsetStart > 0) {
+        if (!/\s/.test(string[offsetStart - 1]))
+            offsetStart--;
+        else {
+            let os = offsetStart;
+            while (os > 0 && /\s/.test(string[os - 1])) {
+                os--;
+            }
+            if ([...string.substring(offsetStart, os).matchAll(/\n/g)].length > 1) {
+                break;
+            }
+            offsetStart = os;
         }
-    });
+    }
+    let offsetEnd = end;
+    while (offsetEnd < string.length) {
+        if (!/\s/.test(string[offsetEnd + 1])) {
+
+            offsetEnd++;
+        } else {
+
+            let oe = offsetEnd;
+            while (oe < string.length && /\s/.test(string[oe + 1])) {
+                oe++;
+            }
+            if ([...string.substring(offsetEnd, oe + 1).matchAll(/\n/g)].length > 1) {
+                offsetEnd++;
+
+                break;
+            }
+            offsetEnd = oe + 1;
+
+        }
+    }
+    while (offsetStart > 0 && string[offsetStart - 1] !== '\n') {
+        offsetStart--;
+    }
+    // if (/\s/.test(string[offsetEnd])) {
+    //     offsetEnd--;
+    // }
+    return [offsetStart, offsetEnd];
 }
 
 function formatHead(editor, count) {
@@ -606,6 +633,221 @@ function formatList(textarea) {
             .join('\n'), p[0], p[1]);
 }
 
+async function google(value, english) {
+    // /translate
+    // https://service-mayeka3y-1258705152.hk.apigw.tencentcs.com/release/
+    // https://service-ehkp0lyi-1301282710.hk.apigw.tencentcs.com/release/
+    const response = await fetch(`${translate}?q=${encodeURIComponent(value.trim())}&to=${english ? "zh" : "en"}`);
+    const obj = await response.text();
+    const lines1 = [];
+    const lines2 = [];
+    const translated = JSON.parse(obj.replaceAll(/您/g, '你').replaceAll(/ - /g, "——"));
+    if (translated.sentences) {
+        const sentences = translated.sentences;
+        for (let index = 0; index < sentences.length; index++) {
+            const element = sentences[index];
+            //lines1.push(element.orig);
+            lines2.push(element.trans);
+        }
+    } else {
+        const trans = translated.trans_result;
+        for (let index = 0; index < trans.length; index++) {
+            const element = trans[index];
+            // lines1.push(element.src);
+            lines2.push(element.dst);
+        }
+    }
+    return [lines1, lines2];
+}
+async function loadData(baseUri, id) {
+
+    const response = await fetch(`${baseUri}/api/note?id=${id}`);
+    return await response.json();
+}
+function preview() {
+    const searchParams = new URL(window.location.href).searchParams;
+    const id = searchParams.get('id');
+    window.open(`article?id=${id}`, '_blank')
+}
+async function removeLines(textarea) {
+    if (textarea.selectionStart !== textarea.selectionEnd) {
+
+        let start = textarea.selectionStart;
+        let end = textarea.selectionEnd;
+
+        while (start > -1) {
+            if (textarea.value[start] === '\n') {
+                let s = [];
+
+                while (start > -1 && /\s/.test(textarea.value[start])) {
+                    s.push(textarea.value[start])
+                    start--;
+                }
+                if ([...s.join('').matchAll(/\n/g)].length > 2) {
+                    break;
+                }
+            }
+            start--;
+        }
+        while (end + 1 < textarea.value.length) {
+            if (textarea.value[end] === '\n') {
+                let s = [];
+
+                while (end + 1 < textarea.value.length && /\s/.test(textarea.value[end])) {
+                    s.push(textarea.value[end])
+                    end++;
+                }
+                if ([...s.join('').matchAll(/\n/g)].length > 2) {
+                    break;
+                }
+            }
+            end++;
+        }
+        start++;
+
+        if (typeof NativeAndroid !== 'undefined') {
+            NativeAndroid.writeText(textarea.value.substring(start, end));
+        } else {
+            await navigator.clipboard.writeText(textarea.value.substring(start, end))
+        }
+        textarea.setRangeText('\n', start, end);
+        textarea.selectionEnd = start;
+    } else {
+        // textarea.value = textarea.value.substring(textarea.selectionEnd);
+        // textarea.selectionStart = 0;
+        // textarea.selectionEnd = 0;
+        // textarea.scrollLeft = 0;
+        // textarea.scrollTop = 0;
+        const p = findExtendPosition(textarea);
+
+        let start = p[0];
+
+        while (start > -1 && /\s/.test(textarea.value[start - 1])) {
+            start--;
+        }
+
+        let end = p[1];
+        while (end + 1 < textarea.value.length && /\s/.test(textarea.value[end + 1])) end++;
+
+        if (typeof NativeAndroid !== 'undefined') {
+            NativeAndroid.writeText(textarea.value.substring(start, end));
+        } else {
+            await navigator.clipboard.writeText(textarea.value.substring(start, end))
+        }
+        textarea.setRangeText('\n\n', start, end + 1);
+        textarea.selectionEnd = start;
+    }
+
+}
+async function render(textarea) {
+    textarea.value = localStorage.getItem("content");
+    const searchParams = new URL(window.location.href).searchParams;
+    const id = searchParams.get('id');
+    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
+
+    if (id) {
+        try {
+            const obj = await loadData(baseUri, id);
+            document.title = obj.title;
+            textarea.value = `# ${obj.title}|${obj.tag}
+        
+${obj.content.trim()}
+        `
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
+
+async function saveData(textarea) {
+    await submitData(textarea);
+
+}
+function splitLines(textarea) {
+    const range = findExtendPosition(textarea);
+    const contents = textarea.value.substring(range[0], range[1])
+        .split(/[.?!]/g).filter(x => x.trim()).map(x => x.trim() + '.').join('\n\n');
+    textarea.setRangeText(contents, range[0], range[1]);
+}
+async function submitData(textarea) {
+    const firstLine = textarea.value.trim().split("\n", 2)[0];
+    const obj = {
+
+        content: substringAfter(textarea.value.trim(), "\n"),
+        title: firstLine.replace(/^#+ +/, ''),
+    };
+    const searchParams = new URL(window.location.href).searchParams;
+    const id = searchParams.get('id');
+    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://192.168.8.55:8089' : '';
+
+    if (id) {
+        obj._id = parseInt(id);
+        obj.update_at = new Date().getTime();
+    } else {
+        obj.create_at = new Date().getTime();
+        obj.update_at = new Date().getTime();
+    }
+    if (obj.title.indexOf('|') !== -1) {
+        obj.tag = substringAfter(obj.title, '|').trim();
+        obj.title = substringBefore(obj.title, '|').trim();
+    }
+    const response = await fetch(`${baseUri}/api/note`, {
+        method: 'POST',
+        body: JSON.stringify(obj)
+    });
+    const res = await response.text();
+    if (id)
+        document.getElementById('toast').setAttribute('message', '成功');
+    else
+        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
+
+}
+
+function substringAfter(string, delimiter, missingDelimiterValue) {
+    const index = string.indexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(index + delimiter.length);
+    }
+}
+function substringAfterLast(string, delimiter, missingDelimiterValue) {
+    const index = string.lastIndexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(index + delimiter.length);
+    }
+}
+
+function substringBefore(string, delimiter, missingDelimiterValue) {
+    const index = string.indexOf(delimiter);
+    if (index === -1) {
+        return missingDelimiterValue || string;
+    } else {
+        return string.substring(0, index);
+    }
+}
+
+function substringNearest(string, index, start, end) {
+    let j = index;
+    while (j > -1) {
+        if (start.indexOf(string[j]) !== -1) {
+            j++
+            break;
+        }
+        j--;
+    }
+    let k = index;
+    while (k < string.length) {
+        if (end.indexOf(string[k]) !== -1) {
+            break;
+        }
+        k++;
+    }
+    return string.substring(j, k);
+}
+
 function tab(textarea) {
     textarea.addEventListener('keydown', function (e) {
         if (e.keyCode === 9) {
@@ -623,54 +865,6 @@ function tab(textarea) {
             e.preventDefault();
         }
     }, false);
-}
-
-function findExtendPosition(editor) {
-    const start = editor.selectionStart;
-    const end = editor.selectionEnd;
-    let string = editor.value;
-    let offsetStart = start;
-    while (offsetStart > 0) {
-        if (!/\s/.test(string[offsetStart - 1]))
-            offsetStart--;
-        else {
-            let os = offsetStart;
-            while (os > 0 && /\s/.test(string[os - 1])) {
-                os--;
-            }
-            if ([...string.substring(offsetStart, os).matchAll(/\n/g)].length > 1) {
-                break;
-            }
-            offsetStart = os;
-        }
-    }
-    let offsetEnd = end;
-    while (offsetEnd < string.length) {
-        if (!/\s/.test(string[offsetEnd + 1])) {
-
-            offsetEnd++;
-        } else {
-
-            let oe = offsetEnd;
-            while (oe < string.length && /\s/.test(string[oe + 1])) {
-                oe++;
-            }
-            if ([...string.substring(offsetEnd, oe + 1).matchAll(/\n/g)].length > 1) {
-                offsetEnd++;
-
-                break;
-            }
-            offsetEnd = oe + 1;
-
-        }
-    }
-    while (offsetStart > 0 && string[offsetStart - 1] !== '\n') {
-        offsetStart--;
-    }
-    // if (/\s/.test(string[offsetEnd])) {
-    //     offsetEnd--;
-    // }
-    return [offsetStart, offsetEnd];
 }
 
 async function trans(editor, english) {
@@ -716,160 +910,67 @@ async function trans(editor, english) {
     editor.setRangeText(`${english ? '' : (lines[0].join(' '))}\n\n${results}`, points[1], points[1]);
 }
 
-let translate = 'https://kpkpkp.cn/api/trans';
-
-async function google(value, english) {
-    // /translate
-    // https://service-mayeka3y-1258705152.hk.apigw.tencentcs.com/release/
-    // https://service-ehkp0lyi-1301282710.hk.apigw.tencentcs.com/release/
-    const response = await fetch(`${translate}?q=${encodeURIComponent(value.trim())}&to=${english ? "zh" : "en"}`);
-    const obj = await response.text();
-    const lines1 = [];
-    const lines2 = [];
-    const translated = JSON.parse(obj.replaceAll(/您/g, '你').replaceAll(/ - /g, "——"));
-    if (translated.sentences) {
-        const sentences = translated.sentences;
-        for (let index = 0; index < sentences.length; index++) {
-            const element = sentences[index];
-            //lines1.push(element.orig);
-            lines2.push(element.trans);
+function tryUploadImageFromClipboard(success, error) {
+    navigator.permissions.query({
+        name: "clipboard-read"
+    }).then(result => {
+        if (result.state === "granted" || result.state === "prompt") {
+            navigator.clipboard.read().then(data => {
+                console.log(data[0].types);
+                const blob = data[0].getType("image/png");
+                console.log(blob.then(res => {
+                    const formData = new FormData();
+                    formData.append("images", res, "1.png");
+                    fetch(`https://lucidu.cn/api/article/2`, {
+                        method: "POST",
+                        body: formData
+                    }).then(res => {
+                        return res.text();
+                    }).then(obj => {
+                        success(obj);
+                    })
+                }).catch(err => {
+                    console.log(err)
+                    error(err);
+                }))
+            })
+                .catch(err => {
+                    error(err);
+                });
+        } else {
+            error(new Error());
         }
-    } else {
-        const trans = translated.trans_result;
-        for (let index = 0; index < trans.length; index++) {
-            const element = trans[index];
-            // lines1.push(element.src);
-            lines2.push(element.dst);
-        }
-    }
-    return [lines1, lines2];
-}
-
-async function saveData(textarea) {
-    await submitData(textarea);
-
-}
-
-async function submitData(textarea) {
-    const firstLine = textarea.value.trim().split("\n", 2)[0];
-    const obj = {
-
-        content: substringAfter(textarea.value.trim(), "\n"),
-        title: firstLine.replace(/^#+ +/, ''),
-    };
-    const searchParams = new URL(window.location.href).searchParams;
-    const id = searchParams.get('id');
-    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
-
-    if (id) {
-        obj.id = parseInt(id);
-        obj.update_at = new Date().getTime();
-    } else {
-        obj.create_at = new Date().getTime();
-        obj.update_at = new Date().getTime();
-    }
-    if (obj.title.indexOf('|') !== -1) {
-        const tags = JSON.parse(substringAfter(obj.title, '|').trim() || '[]');
-        if (tags.length) {
-            obj.tags = tags;
-        }
-        obj.title = substringBefore(obj.title, '|').trim();
-    }
-
-    const m = /!\[]\(([^)]*?)\)/.exec(textarea.value);
-    if (m) {
-        const thumbnail = m[1];
-        if (thumbnail) {
-            obj.thumbnail = thumbnail;
-        }
-    }
-    const response = await fetch(`${baseUri}/api/article`, {
-        method: 'POST',
-        body: JSON.stringify(obj)
     });
-    const res = await response.text();
-    if (id)
-        document.getElementById('toast').setAttribute('message', '成功');
-    else
-        window.location = `${window.location.origin}${window.location.pathname}?id=${res}`
-
 }
 
-async function loadData(baseUri, id) {
-
-    const response = await fetch(`${baseUri}/api/article?id=${id}`);
-    return await response.json();
-}
-
-async function render(textarea) {
-    textarea.value = localStorage.getItem("content");
-    const searchParams = new URL(window.location.href).searchParams;
-    const id = searchParams.get('id');
-    let baseUri = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
-
-    if (id) {
-        try {
-            const obj = await loadData(baseUri, id);
-            document.title = obj.title;
-            textarea.value = `# ${obj.title}|${JSON.stringify(obj.tags)}
-        
-${obj.content.trim()}
-        `
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-function preview() {
-    const searchParams = new URL(window.location.href).searchParams;
-    const id = searchParams.get('id');
-    window.open(`article?id=${id}`, '_blank')
-}
-
-function substringAfter(string, delimiter, missingDelimiterValue) {
-    const index = string.indexOf(delimiter);
-    if (index === -1) {
-        return missingDelimiterValue || string;
+function uploadHanlder(editor) {
+    if (window.location.protocol === 'https:' || window.location.protocol === 'http:') {
+        tryUploadImageFromClipboard((ok) => {
+            const string = `![](https://static.lucidu.cn/images/${ok})\n\n`;
+            editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
+        }, () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.addEventListener('change', async ev => {
+                const file = input.files[0];
+                const imageFile = await uploadImage(file, file.name);
+                const string = `![](https://static.lucidu.cn/images/${imageFile})\n\n`;
+                editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
+            });
+            input.click();
+        });
     } else {
-        return string.substring(index + delimiter.length);
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.addEventListener('change', async ev => {
+            const file = input.files[0];
+            const imageFile = await uploadImage(file, file.name);
+            const string = `![](https://static.lucidu.cn/images/${imageFile})\n\n`;
+            editor.setRangeText(string, editor.selectionStart, editor.selectionStart);
+        });
+        input.click();
     }
-}
-function substringAfterLast(string, delimiter, missingDelimiterValue) {
-    const index = string.lastIndexOf(delimiter);
-    if (index === -1) {
-        return missingDelimiterValue || string;
-    } else {
-        return string.substring(index + delimiter.length);
-    }
-}
 
-function substringNearest(string, index, start, end) {
-    let j = index;
-    while (j > -1) {
-        if (start.indexOf(string[j]) !== -1) {
-            j++
-            break;
-        }
-        j--;
-    }
-    let k = index;
-    while (k < string.length) {
-        if (end.indexOf(string[k]) !== -1) {
-            break;
-        }
-        k++;
-    }
-    return string.substring(j, k);
-}
-
-function substringBefore(string, delimiter, missingDelimiterValue) {
-    const index = string.indexOf(delimiter);
-    if (index === -1) {
-        return missingDelimiterValue || string;
-    } else {
-        return string.substring(0, index);
-    }
 }
 async function uploadImage(image, name) {
     const form = new FormData();
@@ -879,82 +980,6 @@ async function uploadImage(image, name) {
         body: form
     });
     return await response.text();
-}
-function splitLines(textarea) {
-    const range = findExtendPosition(textarea);
-    const contents = textarea.value.substring(range[0], range[1])
-        .split(/[.?!]/g).filter(x => x.trim()).map(x => x.trim() + '.').join('\n\n');
-    textarea.setRangeText(contents, range[0], range[1]);
-}
-async function removeLines(textarea) {
-    if (textarea.selectionStart !== textarea.selectionEnd) {
-        
-        let start = textarea.selectionStart;
-        let end = textarea.selectionEnd;
-
-        while (start > -1) {
-            if (textarea.value[start] === '\n') {
-                let s = [];
-
-                while (start > -1 && /\s/.test(textarea.value[start])) {
-                    s.push(textarea.value[start])
-                    start--;
-                }
-                if ([...s.join('').matchAll(/\n/g)].length > 2) {
-                    break;
-                }
-            }
-            start--;
-        }
-        while (end + 1 < textarea.value.length) {
-            if (textarea.value[end] === '\n') {
-                let s = [];
-
-                while (end + 1 < textarea.value.length && /\s/.test(textarea.value[end])) {
-                    s.push(textarea.value[end])
-                    end++;
-                }
-                if ([...s.join('').matchAll(/\n/g)].length > 2) {
-                    break;
-                }
-            }
-            end++;
-        }
-        start++;
-        
-        if (typeof NativeAndroid !== 'undefined') {
-            NativeAndroid.writeText(textarea.value.substring(start, end));
-        } else {
-            await navigator.clipboard.writeText(textarea.value.substring(start, end))
-        }
-        textarea.setRangeText('\n', start, end);
-        textarea.selectionEnd = start;
-    } else {
-        // textarea.value = textarea.value.substring(textarea.selectionEnd);
-        // textarea.selectionStart = 0;
-        // textarea.selectionEnd = 0;
-        // textarea.scrollLeft = 0;
-        // textarea.scrollTop = 0;
-        const p = findExtendPosition(textarea);
-
-        let start = p[0];
-
-        while (start > -1 && /\s/.test(textarea.value[start - 1])) {
-            start--;
-        }
-
-        let end = p[1];
-        while (end + 1 < textarea.value.length && /\s/.test(textarea.value[end + 1])) end++;
-
-        if (typeof NativeAndroid !== 'undefined') {
-            NativeAndroid.writeText(textarea.value.substring(start, end));
-        } else {
-            await navigator.clipboard.writeText(textarea.value.substring(start, end))
-        }
-        textarea.setRangeText('\n\n', start, end + 1);
-        textarea.selectionEnd = start;
-    }
-
 }
 /*
 console.log([...document.querySelectorAll('.slide-image-wrap img')]

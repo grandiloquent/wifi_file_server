@@ -38,11 +38,20 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.Proxy.Type;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 public class MainActivity extends Activity {
     public static final int REQUEST_SELECT_FILE = 100;
@@ -239,7 +248,6 @@ public class MainActivity extends Activity {
         menu.add(0, 5, 0, "视频");
         menu.add(0, 6, 0, "复制");
         menu.add(0, 7, 0, "首页");
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -293,7 +301,42 @@ public class MainActivity extends Activity {
             initialize();
         }
     }
-
+    public static String readString(HttpURLConnection connection) {
+        InputStream in;
+        BufferedReader reader = null;
+        try {
+            String contentEncoding = connection.getHeaderField("Content-Encoding");
+            if (contentEncoding != null && contentEncoding.equals("gzip")) {
+                in = new GZIPInputStream(connection.getInputStream());
+            } else {
+                in = connection.getInputStream();
+            }
+            /*
+            "implementation group": "org.brotli', name: 'dec', version: '0.1.1",
+            else if (contentEncoding != null && contentEncoding.equals("br")) {
+                in = new BrotliInputStream(connection.getInputStream());
+            } */
+            //  if (contentEncoding != null && contentEncoding.equals("br")) {
+            //in = new BrotliInputStream(connection.getInputStream());
+            //  }
+            reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\r\n");
+            }
+            return sb.toString();
+        } catch (Exception ignored) {
+            Log.e("B5aOx2", String.format("readString, %s", ignored));
+        } finally {
+            try {
+                if (reader != null)
+                    reader.close();
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
     public class NativeAndroid {
         @JavascriptInterface
         public String readText() {
@@ -312,6 +355,29 @@ public class MainActivity extends Activity {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("demo", text);
             clipboard.setPrimaryClip(clip);
+        }
+
+        @JavascriptInterface
+        public String google(String q, boolean to) {
+            if (VERSION.SDK_INT >= VERSION_CODES.N) {
+                try {
+                    return CompletableFuture.supplyAsync(() -> {
+                        try {
+                            HttpURLConnection h = (HttpURLConnection) new URL(String.format("https://translate.google.com/translate_a/single?client=gtx&sl=auto&tl=%s&dt=t&dt=bd&ie=UTF-8&oe=UTF-8&dj=1&source=icon&q=%s",
+                                    to ? "en" : "zh", Uri.encode(q))).openConnection(new Proxy(Type.HTTP, new InetSocketAddress("127.0.0.1", 10809)));
+                            h.addRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74");
+                            h.addRequestProperty("Accept-Encoding", "gzip, deflate, br");
+                            String s = readString(h);
+                            return s;
+                        } catch (Exception e) {
+                        }
+                        return null;
+                    }).get();
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+            return null;
         }
     }
 }
