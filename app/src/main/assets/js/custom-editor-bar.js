@@ -667,7 +667,6 @@ async function google(value, english) {
     return [lines1, lines2];
 }
 async function loadData(baseUri, id) {
-
     const response = await fetch(`${baseUri}/api/note?id=${id}`);
     return await response.json();
 }

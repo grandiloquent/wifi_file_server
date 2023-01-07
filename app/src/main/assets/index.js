@@ -10,9 +10,9 @@ function createFileLink(element) {
     const concatenateFilename = element.parent + "/" + element.name;
     if (isEditableFile(concatenateFilename)) {
         return `${baseUri}/editor?path=${encodeURIComponent(concatenateFilename)}`;
-    } else if(concatenateFilename.endsWith(".m4a")||concatenateFilename.endsWith(".mp3")) {
+    } else if (concatenateFilename.endsWith(".m4a") || concatenateFilename.endsWith(".mp3")) {
         return `${baseUri}/audio.html?path=${encodeURIComponent(concatenateFilename)}`;
-    }  else if (isVideoFile(concatenateFilename)) {
+    } else if (isVideoFile(concatenateFilename)) {
         return `${baseUri}/video?path=${encodeURIComponent(concatenateFilename)}`;
     }
     return `${baseUri}/api/files?path=${encodeURIComponent(concatenateFilename)}&isDir=${element.isDir ? 1 : 0}`;
@@ -254,9 +254,9 @@ function chooseSameType(element) {
             }
         })
     } else {
-        const extension = "." + substringAfterLast(element.name, ".");
+        const extension = element.name.indexOf('.') === -1 ? '' : "." + substringAfterLast(element.name, ".");
         document.querySelectorAll('custom-media-item').forEach(x => {
-            if (x.dataset.isDir === 'false' && x.dataset.path.endsWith(extension)) {
+            if (x.dataset.isDir === 'false' && ((!extension && substringAfterLast(x.dataset.path,"/").indexOf('.') === -1)||(extension && x.dataset.path.endsWith(extension)))) {
                 x.setAttribute('checked', 'true');
                 files.push(x.dataset.path)
             }

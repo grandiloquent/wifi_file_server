@@ -153,7 +153,7 @@
         let timer, items;
 
         video.preload = "auto"
-        video.src = `/api/files?path=${new URL(document.URL).searchParams.get('path')}&isDir=0`;
+        video.src = `/api/files?path=${encodeURIComponent(new URL(document.URL).searchParams.get('path'))}&isDir=0`;
         appendSubtitle(video);
         const durationChangeEventHandler = evt => {
             console.log(window.innerWidth, window.innerHeight)
@@ -249,7 +249,7 @@
         async function loadData() {
             if (!items) {
                 const path = substringBeforeLast(new URL(document.URL).searchParams.get('path'), '/');
-                const res = await fetch(`/api/files?path=${path}&idDir=1`);
+                const res = await fetch(`/api/files?path=${encodeURIComponent(path)}&idDir=1`);
                 items = await res.json();
                 items = items.filter(x => {
                     return !x.isDir && x.name.endsWith('.mp4');
@@ -306,6 +306,3 @@
 </body>
 
 </html>
-
-
-audio.html

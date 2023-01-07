@@ -398,6 +398,11 @@ public class Shared {
         if (index == -1) return s;
         return s.substring(0, index);
     }
+    public static String substringBefore(String s, String delimiter) {
+        int index = s.indexOf(delimiter);
+        if (index == -1) return s;
+        return s.substring(0, index);
+    }
 
     public static void writeToFile(String inputString, File destFile) throws IOException {
         writeToFile(new ByteArrayInputStream(inputString.getBytes()), destFile);

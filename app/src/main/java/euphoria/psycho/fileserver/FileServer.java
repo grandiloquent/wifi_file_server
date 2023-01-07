@@ -25,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -446,6 +448,17 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/export")) {
             return ExportHandler.handle(mDatabase, session);
+        }
+        if (uri.equals("/api/title")) {
+            try {
+                HttpURLConnection c= (HttpURLConnection) new URL(Nanos.stringParam(session,"url")).openConnection();
+               String title= Shared.substringBefore(Shared.substringAfter(Shared.readString(c),"<title>"),"</title>");
+                return  Response.newFixedLengthResponse(Status.OK,
+                        "text/plain",title);
+
+            }catch (Exception e){
+                return Nanos.internalError(e);
+            }
         }
         if (uri.equals("/api/trans")) {
             try {

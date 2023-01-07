@@ -69,7 +69,9 @@ public class Database extends SQLiteOpenHelper {
     }
 
     public long updateNote(int id, String title, String content, String tag) {
-
+        if (tag.equals("undefined")) {
+            tag = "全部";
+        }
         ContentValues values = new ContentValues();
         values.put("title", title);
         values.put("content", content);
@@ -132,8 +134,7 @@ public class Database extends SQLiteOpenHelper {
     }
 
     public String queryTags() {
-        //getWritableDatabase().delete("tag","name = ?",new String[]{"undefined"});
-
+        //getWritableDatabase().delete("tag", "name = ?", new String[]{"undefined"});
         Cursor cursor = getReadableDatabase().rawQuery("select name from tag", null);
         JSONArray jsonArray = new JSONArray();
         while (cursor.moveToNext()) {
@@ -157,7 +158,6 @@ public class Database extends SQLiteOpenHelper {
         }
         c.close();
         if (jsonArray.length() == 0) return null;
-
         return jsonArray.toString();
     }
 
