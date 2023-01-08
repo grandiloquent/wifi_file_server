@@ -452,7 +452,7 @@ public class FileServer extends NanoHTTPD {
         if (uri.equals("/api/title")) {
             try {
                 HttpURLConnection c= (HttpURLConnection) new URL(Nanos.stringParam(session,"url")).openConnection();
-               String title= Shared.substringBefore(Shared.substringAfter(Shared.readString(c),"<title>"),"</title>");
+               String title= Shared.substringBefore(Shared.substringAfter(Shared.readString(c),"<title>"),"</title>").trim();
                 return  Response.newFixedLengthResponse(Status.OK,
                         "text/plain",title);
 
