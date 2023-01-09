@@ -284,7 +284,7 @@ public class MainActivity extends Activity {
                 if (host == null) {
                     host = "0.0.0.0";
                 }
-                writeString("http://" + host + ":8089/?path=%2Fstorage%2FFD12-1F1D%2F音乐&isDir=1");
+                mWebView.loadUrl("http://" + host + ":8089/?path=%2Fstorage%2FFD12-1F1D%2F音乐&isDir=1");
                 break;
         }
         return super.onOptionsItemSelected(item);

@@ -41,6 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import euphoria.psycho.fileserver.Shared.FileInfo;
 import euphoria.psycho.fileserver.handlers.DeleteHandler;
 import euphoria.psycho.fileserver.handlers.ExportHandler;
+import euphoria.psycho.fileserver.handlers.GitHubHandler;
 import euphoria.psycho.fileserver.handlers.HtmlHandler;
 import euphoria.psycho.fileserver.handlers.ListNotesHandler;
 import euphoria.psycho.fileserver.handlers.MoveHandler;
@@ -451,12 +452,12 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/title")) {
             try {
-                HttpURLConnection c= (HttpURLConnection) new URL(Nanos.stringParam(session,"url")).openConnection();
-               String title= Shared.substringBefore(Shared.substringAfter(Shared.readString(c),"<title>"),"</title>").trim();
-                return  Response.newFixedLengthResponse(Status.OK,
-                        "text/plain",title);
+                HttpURLConnection c = (HttpURLConnection) new URL(Nanos.stringParam(session, "url")).openConnection();
+                String title = Shared.substringBefore(Shared.substringAfter(Shared.readString(c), "<title>"), "</title>").trim();
+                return Response.newFixedLengthResponse(Status.OK,
+                        "text/plain", title);
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 return Nanos.internalError(e);
             }
         }
@@ -474,6 +475,9 @@ public class FileServer extends NanoHTTPD {
         }
         if (uri.equals("/api/tts")) {
             return TtsHandler.handle(session);
+        }
+        if (uri.equals("/api/github")) {
+            return GitHubHandler.handle();
         }
         return Nanos.notFound();
     }
