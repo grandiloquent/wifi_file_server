@@ -247,7 +247,8 @@ public class MainActivity extends Activity {
         menu.add(0, 4, 0, "保存页面");
         menu.add(0, 5, 0, "视频");
         menu.add(0, 6, 0, "复制");
-        menu.add(0, 7, 0, "首页");
+        menu.add(0, 7, 0, "音乐");
+        menu.add(0, 8, 0, "首页");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -285,6 +286,13 @@ public class MainActivity extends Activity {
                     host = "0.0.0.0";
                 }
                 mWebView.loadUrl("http://" + host + ":8089/?path=%2Fstorage%2FFD12-1F1D%2F音乐&isDir=1");
+                break;
+            case 8:
+                host = Shared.getDeviceIP(this);
+                if (host == null) {
+                    host = "0.0.0.0";
+                }
+                mWebView.loadUrl("http://" + host + ":8089/notes.html");
                 break;
         }
         return super.onOptionsItemSelected(item);

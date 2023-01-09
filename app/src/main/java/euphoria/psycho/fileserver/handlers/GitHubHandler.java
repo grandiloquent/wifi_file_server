@@ -25,6 +25,7 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.HttpsURLConnection;
 
 import euphoria.psycho.fileserver.Database;
+import euphoria.psycho.fileserver.Key;
 import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Shared;
 
@@ -37,7 +38,7 @@ public class GitHubHandler {
                 try {
                     HttpsURLConnection c = (HttpsURLConnection) new URL(
                             "https://raw.githubusercontent.com/"
-                                    + Shared.substringAfter(x, "com/").replace("/blob/","/")
+                                    + Shared.substringAfter(x, "com/").replace("/blob/", "/")
                     ).openConnection();
                     return readString(c);
                 } catch (IOException e) {
@@ -59,8 +60,12 @@ public class GitHubHandler {
                 c.addRequestProperty("Accept", "application/vnd.github+json");
                 c.addRequestProperty("X-GitHub-Api-Version", "2022-11-28");
                 // https://github.com/settings/personal-access-tokens
-                c.addRequestProperty("Authorization", "Bearer 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");
+                c.addRequestProperty("Authorization", "Bearer "+ Key.SECRET_GITHUB_KEY);
+                Log.e("B5aOx2", String.format("fetchHtmlUrls, %s", c.getResponseCode()));
                 String contents = readString(c);
+                if (contents == null) {
+                    return null;
+                }
                 JSONObject object = new JSONObject(contents);
                 JSONArray items = object.getJSONArray("items");
                 List<String> array = new ArrayList<>();
@@ -69,6 +74,7 @@ public class GitHubHandler {
                 }
                 return array;
             } catch (Exception ignored) {
+                Log.e("B5aOx2", String.format("fetchHtmlUrls, %s", ignored.getMessage()));
             }
             return null;
         });
