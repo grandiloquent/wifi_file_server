@@ -30,9 +30,13 @@ import euphoria.psycho.fileserver.Nanos;
 import euphoria.psycho.fileserver.Shared;
 
 public class GitHubHandler {
-    public static Response handle() {
+    public static Response handle(IHTTPSession session) {
         try {
-            List<String> htmlUrls = fetchHtmlUrls().get();
+            String page = Nanos.stringParam(session, "page");
+            if (page == null) {
+                page = "1";
+            }
+            List<String> htmlUrls = fetchHtmlUrls(page).get();
             // .limit(10)
             String contents = htmlUrls.stream().parallel().map(x -> {
                 try {
@@ -53,15 +57,14 @@ public class GitHubHandler {
         }
     }
 
-    static CompletableFuture<List<String>> fetchHtmlUrls() {
+    static CompletableFuture<List<String>> fetchHtmlUrls(String page) {
         CompletableFuture<List<String>> task = CompletableFuture.supplyAsync(() -> {
             try {
-                HttpsURLConnection c = (HttpsURLConnection) new URL("https://api.github.com/search/code?q=vmess+extension%3Atxt&sort=indexed&order=desc").openConnection();
+                HttpsURLConnection c = (HttpsURLConnection) new URL("https://api.github.com/search/code?q=vmess+extension%3Atxt&sort=indexed&order=desc&page=" + page).openConnection();
                 c.addRequestProperty("Accept", "application/vnd.github+json");
                 c.addRequestProperty("X-GitHub-Api-Version", "2022-11-28");
                 // https://github.com/settings/personal-access-tokens
-                c.addRequestProperty("Authorization", "Bearer "+ Key.SECRET_GITHUB_KEY);
-                Log.e("B5aOx2", String.format("fetchHtmlUrls, %s", c.getResponseCode()));
+                c.addRequestProperty("Authorization", "Bearer " + Key.SECRET_GITHUB_KEY);
                 String contents = readString(c);
                 if (contents == null) {
                     return null;
