@@ -477,7 +477,7 @@ public class FileServer extends NanoHTTPD {
             return TtsHandler.handle(session);
         }
         if (uri.equals("/api/github")) {
-            return GitHubHandler.handle();
+            return GitHubHandler.handle(session);
         }
         return Nanos.notFound();
     }
